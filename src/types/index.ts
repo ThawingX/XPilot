@@ -22,6 +22,25 @@ export interface Metadata {
   status?: string;
 }
 
+// Account post interface
+export interface AccountPost {
+  id: number;
+  content: string;
+  time: string;
+  stats: Stats;
+}
+
+// Account analytics interface
+export interface AccountAnalytics {
+  influence: number;
+  engagement: number;
+  reach: string;
+  avgLikes: string;
+  topCategories: string[];
+  audienceAge: string;
+  audienceGender: string;
+}
+
 // 对标账号接口
 export interface InspirationAccount {
   id: number;
@@ -38,7 +57,7 @@ export interface InspirationAccount {
 
 export interface Card {
   id: number;
-  type: 'post' | 'tweet' | 'strategy' | 'action' | 'inspiration';
+  type: 'post' | 'tweet' | 'strategy' | 'action' | 'inspiration' | 'account';
   title: string;
   content: string;
   author?: Author;

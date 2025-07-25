@@ -1,14 +1,153 @@
 import React from 'react';
-import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp } from 'lucide-react';
-import { Card } from '../types';
+import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye } from 'lucide-react';
+import { Card, InspirationAccount } from '../types';
 import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
+import { mockAccountPosts, mockAccountAnalytics } from '../data/mockData';
 
 interface ResultsAreaProps {
   selectedCard: Card | null;
+  selectedAccount: InspirationAccount | null;
 }
 
-const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard }) => {
-  if (!selectedCard) {
+const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount }) => {
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
+  const renderAccountProfile = (account: InspirationAccount) => {
+    const accountPosts = mockAccountPosts[account.id] || [];
+    const accountAnalytics = mockAccountAnalytics[account.id];
+
+    return (
+      <div className="h-full overflow-y-auto">
+        {/* Account Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-start space-x-4">
+            <img
+              src={account.avatar}
+              alt={account.name}
+              className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
+            />
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <h1 className="text-2xl font-bold">{account.name}</h1>
+                {account.verified && <VerifiedBadge />}
+                {account.starred && <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />}
+              </div>
+              <p className="text-blue-100 mb-2">@{account.handle}</p>
+              <p className="text-sm text-blue-100 mb-4">{account.bio}</p>
+              <div className="flex items-center space-x-6 text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="w-4 h-4" />
+                  <span>{formatNumber(account.followers)} followers</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Heart className="w-4 h-4" />
+                  <span>{formatNumber(account.likes)} likes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Analytics Dashboard */}
+          {accountAnalytics && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <TrendingUp className="w-5 h-5 mr-2 text-blue-500" />
+                Account Analytics
+              </h2>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">{accountAnalytics.influence}</div>
+                  <div className="text-sm text-gray-600">Influence Score</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-green-600">{accountAnalytics.engagement}%</div>
+                  <div className="text-sm text-gray-600">Engagement Rate</div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-purple-600">{formatNumber(accountAnalytics.reach)}</div>
+                  <div className="text-sm text-gray-600">Avg Reach</div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <div className="text-2xl font-bold text-orange-600">{formatNumber(accountAnalytics.avgLikes)}</div>
+                  <div className="text-sm text-gray-600">Avg Likes</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Recent Posts */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="p-8 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                <MessageSquare className="w-6 h-6 mr-3 text-blue-500" />
+                Recent Posts ({accountPosts.length})
+              </h2>
+            </div>
+            
+            <div className="divide-y divide-gray-200">
+              {accountPosts.length > 0 ? (
+                accountPosts.map((post) => (
+                  <div key={post.id} className="p-8 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-start space-x-4">
+                      <img
+                        src={account.avatar}
+                        alt={account.name}
+                        className="w-12 h-12 rounded-full flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <span className="font-semibold text-gray-900">{account.name}</span>
+                          {account.verified && <VerifiedBadge />}
+                          <span className="text-gray-500">@{account.handle}</span>
+                          <span className="text-gray-500">·</span>
+                          <span className="text-gray-500 text-sm">{post.time}</span>
+                        </div>
+                        <p className="text-gray-900 mb-4 leading-relaxed text-base">{post.content}</p>
+                        <div className="flex items-center space-x-8 text-gray-500">
+                          <div className="flex items-center space-x-2 hover:text-blue-500 cursor-pointer transition-colors">
+                            <MessageSquare className="w-5 h-5" />
+                            <span className="text-sm font-medium">{formatNumber(post.stats.comments)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 hover:text-green-500 cursor-pointer transition-colors">
+                            <Repeat2 className="w-5 h-5" />
+                            <span className="text-sm font-medium">{formatNumber(post.stats.retweets)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 hover:text-red-500 cursor-pointer transition-colors">
+                            <Heart className="w-5 h-5" />
+                            <span className="text-sm font-medium">{formatNumber(post.stats.likes)}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 hover:text-blue-500 cursor-pointer transition-colors">
+                            <Eye className="w-5 h-5" />
+                            <span className="text-sm font-medium">{formatNumber(post.stats.views || 0)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-gray-500">
+                  <MessageSquare className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg">No recent posts available</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  if (!selectedCard && !selectedAccount) {
     return (
       <div className="flex flex-1 justify-center items-center bg-white">
         <div className="text-center">
@@ -18,6 +157,15 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard }) => {
           <h3 className="mb-2 text-lg font-medium text-gray-900">Select an item to view details</h3>
           <p className="text-gray-500">Choose a post, tweet, strategy, or action from the queue to see detailed information and interactions.</p>
         </div>
+      </div>
+    );
+  }
+
+  // If an account is selected, show account profile
+  if (selectedAccount) {
+    return (
+      <div className="h-full bg-gray-50">
+        {renderAccountProfile(selectedAccount)}
       </div>
     );
   }

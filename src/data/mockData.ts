@@ -1,6 +1,89 @@
 import { Card, InspirationAccount } from '../types';
 import { Target, PenTool, Users, Calendar, User } from 'lucide-react';
 
+// Mock posts for account profiles
+export const mockAccountPosts = {
+  1: [ // Elon Musk posts
+    {
+      id: 101,
+      content: "Mars is looking more achievable every day. SpaceX Starship is the key to making life multiplanetary. 🚀",
+      time: "2 hours ago",
+      stats: { comments: 1200, retweets: 3400, likes: 15600, views: 89000, bookmarks: 890 }
+    },
+    {
+      id: 102,
+      content: "Tesla's Full Self-Driving beta is improving rapidly. The neural networks are learning at an incredible pace.",
+      time: "6 hours ago",
+      stats: { comments: 890, retweets: 2100, likes: 12300, views: 67000, bookmarks: 560 }
+    },
+    {
+      id: 103,
+      content: "X (formerly Twitter) will become the everything app. Payments, messaging, social media - all in one place.",
+      time: "1 day ago",
+      stats: { comments: 2300, retweets: 5600, likes: 23400, views: 156000, bookmarks: 1200 }
+    }
+  ],
+  2: [ // Naval posts
+    {
+      id: 201,
+      content: "Wealth is not about money. Wealth is having assets that earn while you sleep.",
+      time: "4 hours ago",
+      stats: { comments: 340, retweets: 890, likes: 4500, views: 23000, bookmarks: 670 }
+    },
+    {
+      id: 202,
+      content: "The most important skill for entrepreneurs: learning how to learn quickly.",
+      time: "1 day ago",
+      stats: { comments: 180, retweets: 450, likes: 2800, views: 15000, bookmarks: 420 }
+    }
+  ],
+  3: [ // Paul Graham posts
+    {
+      id: 301,
+      content: "The best startups are often solving problems the founders have themselves.",
+      time: "3 hours ago",
+      stats: { comments: 120, retweets: 340, likes: 1800, views: 12000, bookmarks: 290 }
+    },
+    {
+      id: 302,
+      content: "Writing is thinking. If you can't write clearly, you probably don't understand the problem.",
+      time: "8 hours ago",
+      stats: { comments: 89, retweets: 230, likes: 1200, views: 8900, bookmarks: 180 }
+    }
+  ]
+};
+
+// Account analytics data
+export const mockAccountAnalytics = {
+  1: { // Elon Musk
+    influence: 98,
+    engagement: 12.5,
+    reach: "150M+",
+    avgLikes: "45K",
+    topCategories: ["Technology", "Space", "Automotive"],
+    audienceAge: "25-44",
+    audienceGender: "65% Male, 35% Female"
+  },
+  2: { // Naval
+    influence: 92,
+    engagement: 8.7,
+    reach: "2.1M+",
+    avgLikes: "4.2K",
+    topCategories: ["Business", "Philosophy", "Investing"],
+    audienceAge: "28-45",
+    audienceGender: "70% Male, 30% Female"
+  },
+  3: { // Paul Graham
+    influence: 89,
+    engagement: 6.8,
+    reach: "1.8M+",
+    avgLikes: "2.8K",
+    topCategories: ["Startups", "Programming", "Essays"],
+    audienceAge: "25-40",
+    audienceGender: "75% Male, 25% Female"
+  }
+};
+
 // 对标账号mock数据
 export const mockInspirationAccounts: InspirationAccount[] = [
   {

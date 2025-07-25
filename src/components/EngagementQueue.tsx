@@ -1,22 +1,50 @@
 import React, { useState } from 'react';
 import { Activity, Star, Search, Users } from 'lucide-react';
 import { mockCards, mockInspirationAccounts, mockSearchAccounts } from '../data/mockData';
-import { InspirationAccount } from '../types';
+import { InspirationAccount, Card } from '../types';
 import CardItem from './CardItem';
 import InspirationAccountCard from './InspirationAccountCard';
+import Toast from './Toast';
 
 interface EngagementQueueProps {
   showInspirationAccounts?: boolean;
+  onCardClick?: (card: Card) => void;
+  onAccountClick?: (account: InspirationAccount) => void;
 }
 
 type TabType = 'starred' | 'outreach';
 
-const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccounts = false }) => {
+const EngagementQueue: React.FC<EngagementQueueProps> = ({ 
+  showInspirationAccounts = false, 
+  onCardClick,
+  onAccountClick 
+}) => {
   const [inspirationAccounts, setInspirationAccounts] = useState<InspirationAccount[]>(mockInspirationAccounts);
   const [activeTab, setActiveTab] = useState<TabType>('starred');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<InspirationAccount[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({
+      message,
+      type,
+      isVisible: true
+    });
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
 
   const handleToggleTarget = (id: number, isTargeted: boolean) => {
     setInspirationAccounts(prev => 
@@ -101,7 +129,12 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccoun
         
         <div className="overflow-y-auto flex-1 p-6 space-y-4">
           {mockCards.map((card) => (
-            <CardItem key={card.id} card={card} />
+            <CardItem 
+              key={card.id} 
+              card={card}
+              isSelected={false}
+              onClick={onCardClick || (() => {})}
+            />
           ))}
         </div>
       </div>
@@ -124,8 +157,8 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccoun
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Star size={16} className={activeTab === 'starred' ? 'text-yellow-500' : ''} />
-            <span>Starred</span>
+            <Star size={16} className={activeTab === 'starred' ? 'text-yellow-500 fill-yellow-500' : ''} />
+            <span className="hidden sm:inline">Starred</span>
           </button>
           <button
             onClick={() => setActiveTab('outreach')}
@@ -136,7 +169,7 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccoun
             }`}
           >
             <Users size={16} />
-            <span>Outreach</span>
+            <span className="hidden sm:inline">Outreach</span>
           </button>
         </div>
 
@@ -150,7 +183,7 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccoun
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="搜索账号..."
+              placeholder="Search accounts..."
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             {isSearching && (
@@ -197,10 +230,19 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({ showInspirationAccoun
               account={account} 
               onToggleTarget={handleToggleTarget}
               onToggleStar={handleToggleStar}
+              onShowToast={showToast}
+              onClick={onAccountClick}
             />
           ))
         )}
       </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
     </div>
   );
 };

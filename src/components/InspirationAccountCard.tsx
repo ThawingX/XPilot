@@ -6,12 +6,16 @@ interface InspirationAccountCardProps {
   account: InspirationAccount;
   onToggleTarget: (id: number, isTargeted: boolean) => void;
   onToggleStar: (id: number, starred: boolean) => void;
+  onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
+  onClick?: (account: InspirationAccount) => void;
 }
 
 const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({ 
   account, 
-  onToggleTarget,
-  onToggleStar
+  onToggleTarget, 
+  onToggleStar, 
+  onShowToast,
+  onClick 
 }) => {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -38,20 +42,42 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
   // 截取描述文字，避免过长
   const truncatedBio = account.bio.length > 80 ? account.bio.substring(0, 80) + '...' : account.bio;
 
-  const handleStarClick = () => {
+  const handleStarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
     if (account.starred) {
-      // 如果已经starred，显示确认提示
-      const confirmed = window.confirm('取消star将会被移出当前列表并且不再采用该账号的灵感，确定要继续吗？');
-      if (confirmed) {
+      // 取消星标需要确认
+      if (window.confirm('确定要取消收藏该账号吗？')) {
         onToggleStar(account.id, false);
+        if (onShowToast) {
+          onShowToast('已取消收藏该账号', 'info');
+        }
       }
     } else {
+      // 添加星标直接执行
       onToggleStar(account.id, true);
+      if (onShowToast) {
+        onShowToast('已收藏该账号', 'success');
+      }
+    }
+  };
+
+  const handleTargetClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleTarget(account.id, !account.isTargeted);
+  };
+
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(account);
     }
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+    <div 
+      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
+      onClick={handleCardClick}
+    >
       {/* Type Badge - 移到顶部 */}
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${accountType.color}`}>
@@ -70,16 +96,16 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
           >
             <Star 
               size={16} 
-              className={account.starred ? 'fill-current' : ''} 
+              className={account.starred ? 'fill-yellow-500' : ''} 
             />
           </button>
           
           {/* Toggle Switch */}
-          <label className="relative inline-flex items-center cursor-pointer">
+          <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
             <input
               type="checkbox"
               checked={account.isTargeted}
-              onChange={(e) => onToggleTarget(account.id, e.target.checked)}
+              onChange={handleTargetClick}
               className="sr-only peer"
             />
             <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
