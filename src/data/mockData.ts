@@ -1,5 +1,5 @@
 import { Card } from '../types';
-import { Home, Search, Bell, Mail, Bookmark, User, Settings, MoreHorizontal } from 'lucide-react';
+import { Settings, PenTool, Users, Calendar, User } from 'lucide-react';
 
 // Mock数据集中管理
 export const mockCards: Card[] = [
@@ -113,12 +113,9 @@ export const mockChatMessages = [
 
 // 菜单项mock数据
 export const mockMenuItems = [
-  { name: 'Home', icon: Home },
-  { name: 'Explore', icon: Search },
-  { name: 'Notifications', icon: Bell },
-  { name: 'Messages', icon: Mail },
-  { name: 'Bookmarks', icon: Bookmark },
+  { name: 'Configuration', icon: Settings },
+  { name: 'Tweet Generation', icon: PenTool },
+  { name: 'Engagement', icon: Users },
+  { name: 'Content Strategy', icon: Calendar },
   { name: 'Profile', icon: User },
-  { name: 'Settings', icon: Settings },
-  { name: 'More', icon: MoreHorizontal },
 ];
