@@ -22,15 +22,29 @@ export interface Metadata {
   status?: string;
 }
 
+// 对标账号接口
+export interface InspirationAccount {
+  id: number;
+  name: string;
+  handle: string;
+  bio: string;
+  avatar: string;
+  followers: number;
+  likes: number;
+  isTargeted: boolean;
+  verified?: boolean;
+}
+
 export interface Card {
   id: number;
-  type: 'post' | 'tweet' | 'strategy' | 'action';
+  type: 'post' | 'tweet' | 'strategy' | 'action' | 'inspiration';
   title: string;
   content: string;
   author?: Author;
   time: string;
   stats?: Stats;
   metadata?: Metadata;
+  inspirationAccount?: InspirationAccount;
 }
 
 export type CardType = Card['type'];

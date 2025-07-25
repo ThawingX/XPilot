@@ -1,5 +1,42 @@
-import { Card } from '../types';
-import { Settings, PenTool, Users, Calendar, User } from 'lucide-react';
+import { Card, InspirationAccount } from '../types';
+import { Target, PenTool, Users, Calendar, User } from 'lucide-react';
+
+// 对标账号mock数据
+export const mockInspirationAccounts: InspirationAccount[] = [
+  {
+    id: 1,
+    name: 'Elon Musk',
+    handle: '@elonmusk',
+    bio: 'CEO of Tesla, SpaceX, and X. Building the future of sustainable transport and space exploration.',
+    avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150',
+    followers: 150000000,
+    likes: 45000000,
+    isTargeted: true,
+    verified: true
+  },
+  {
+    id: 2,
+    name: 'Naval Ravikant',
+    handle: '@naval',
+    bio: 'Entrepreneur, investor, and philosopher. Sharing insights on wealth, happiness, and decision-making.',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    followers: 2100000,
+    likes: 890000,
+    isTargeted: false,
+    verified: true
+  },
+  {
+    id: 3,
+    name: 'Paul Graham',
+    handle: '@paulg',
+    bio: 'Co-founder of Y Combinator. Essays on startups, programming, and life.',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    followers: 1800000,
+    likes: 650000,
+    isTargeted: true,
+    verified: true
+  }
+];
 
 // Mock数据集中管理
 export const mockCards: Card[] = [
@@ -113,7 +150,7 @@ export const mockChatMessages = [
 
 // 菜单项mock数据
 export const mockMenuItems = [
-  { name: 'Configuration', icon: Settings },
+  { name: 'Inspiration Accounts', icon: Target },
   { name: 'Tweet Generation', icon: PenTool },
   { name: 'Engagement', icon: Users },
   { name: 'Content Strategy', icon: Calendar },

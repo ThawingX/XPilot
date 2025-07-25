@@ -2,8 +2,18 @@ import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { mockMenuItems } from '../data/mockData';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onMenuItemClick?: (itemName: string) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onMenuItemClick }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [activeItem, setActiveItem] = useState<string | null>(null);
+
+  const handleItemClick = (itemName: string) => {
+    setActiveItem(itemName);
+    onMenuItemClick?.(itemName);
+  };
 
   return (
     <div className={`bg-white border-r border-gray-200 h-full transition-all duration-300 ${
@@ -26,19 +36,19 @@ const Sidebar: React.FC = () => {
       
       <nav className="px-2">
         {mockMenuItems.map((item) => (
-          <a
+          <button
             key={item.name}
-            href="#"
-            className={`flex items-center px-3 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors mb-1 ${
+            onClick={() => handleItemClick(item.name)}
+            className={`w-full flex items-center px-3 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors mb-1 ${
               isExpanded ? 'justify-start' : 'justify-center'
-            }`}
+            } ${activeItem === item.name ? 'bg-blue-50 text-blue-600 border border-blue-200' : ''}`}
             title={!isExpanded ? item.name : undefined}
           >
-            <item.icon size={20} className={isExpanded ? "mr-3" : ""} />
+            <item.icon size={20} className={`${isExpanded ? "mr-3" : ""} ${activeItem === item.name ? 'text-blue-600' : ''}`} />
             {isExpanded && (
               <span className="font-medium">{item.name}</span>
             )}
-          </a>
+          </button>
         ))}
       </nav>
     </div>
