@@ -1,15 +1,17 @@
 import React from 'react';
 import { InspirationAccount } from '../types';
-import { CheckCircle, Users, Heart } from 'lucide-react';
+import { CheckCircle, Users, Heart, Star } from 'lucide-react';
 
 interface InspirationAccountCardProps {
   account: InspirationAccount;
   onToggleTarget: (id: number, isTargeted: boolean) => void;
+  onToggleStar: (id: number, starred: boolean) => void;
 }
 
 const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({ 
   account, 
-  onToggleTarget 
+  onToggleTarget,
+  onToggleStar
 }) => {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -36,6 +38,18 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
   // 截取描述文字，避免过长
   const truncatedBio = account.bio.length > 80 ? account.bio.substring(0, 80) + '...' : account.bio;
 
+  const handleStarClick = () => {
+    if (account.starred) {
+      // 如果已经starred，显示确认提示
+      const confirmed = window.confirm('取消star将会被移出当前列表并且不再采用该账号的灵感，确定要继续吗？');
+      if (confirmed) {
+        onToggleStar(account.id, false);
+      }
+    } else {
+      onToggleStar(account.id, true);
+    }
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
       {/* Type Badge - 移到顶部 */}
@@ -43,15 +57,34 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${accountType.color}`}>
           {accountType.type}
         </span>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={account.isTargeted}
-            onChange={(e) => onToggleTarget(account.id, e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
-        </label>
+        <div className="flex items-center space-x-2">
+          {/* Star Button */}
+          <button
+            onClick={handleStarClick}
+            className={`p-1 rounded-full transition-colors ${
+              account.starred 
+                ? 'text-yellow-500 hover:text-yellow-600' 
+                : 'text-gray-400 hover:text-yellow-500'
+            }`}
+            aria-label={account.starred ? '取消收藏' : '收藏账号'}
+          >
+            <Star 
+              size={16} 
+              className={account.starred ? 'fill-current' : ''} 
+            />
+          </button>
+          
+          {/* Toggle Switch */}
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={account.isTargeted}
+              onChange={(e) => onToggleTarget(account.id, e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
+          </label>
+        </div>
       </div>
 
       {/* Header */}

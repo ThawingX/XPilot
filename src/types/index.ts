@@ -32,6 +32,7 @@ export interface InspirationAccount {
   followers: number;
   likes: number;
   isTargeted: boolean;
+  starred?: boolean;
   verified?: boolean;
 }
 
