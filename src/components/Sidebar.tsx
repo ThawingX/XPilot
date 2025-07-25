@@ -4,9 +4,13 @@ import { mockMenuItems } from '../data/mockData';
 
 interface SidebarProps {
   onMenuItemClick?: (itemName: string) => void;
+  activeMenuItem?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onMenuItemClick }) => {
+const Sidebar: React.FC<SidebarProps> = ({ 
+  onMenuItemClick, 
+  activeMenuItem
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeItem, setActiveItem] = useState<string | null>(null);
 

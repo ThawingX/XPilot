@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import EngagementQueue from './components/EngagementQueue';
 import ResultsArea from './components/ResultsArea';
-import RightSidebar from './components/RightSidebar';
 import { Card, InspirationAccount } from './types/index';
+import AIAssistant from './components/AIAssistant';
 
 function App() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
@@ -29,10 +29,13 @@ function App() {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Left Sidebar */}
-      <Sidebar onMenuItemClick={handleMenuItemClick} />
+      <Sidebar 
+        onMenuItemClick={handleMenuItemClick} 
+        activeMenuItem={activeMenuItem}
+      />
       
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex overflow-hidden flex-1">
         {/* Activity Queue - 1/4 of main content when showing inspiration accounts, 1/5 otherwise */}
         <div className={`${showInspirationAccounts ? 'w-1/4' : 'w-1/5'} min-w-0`}>
           <EngagementQueue 
@@ -51,8 +54,8 @@ function App() {
         </div>
       </div>
       
-      {/* Right Sidebar */}
-      <RightSidebar />
+      {/* Vibe X Operation - Right Sidebar */}
+      <AIAssistant />
     </div>
   );
 }

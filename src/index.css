@@ -2,31 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 自定义滚动条样式 */
+/* Custom scrollbar styles */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 3px;
+  background: transparent;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #4792E6, #3b82f6);
-  border-radius: 3px;
-  transition: all 0.3s ease;
+  background: #cbd5e1;
+  border-radius: 10px;
+  border: none;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #3b7dd8, #2563eb);
-  box-shadow: 0 2px 8px rgba(71, 146, 230, 0.4);
-  transform: scale(1.1);
+  background: #94a3b8;
 }
 
 ::-webkit-scrollbar-corner {
-  background: #f8fafc;
+  background: transparent;
+}
+
+/* Hide scrollbar arrows */
+::-webkit-scrollbar-button {
+  display: none;
 }
 
 /* Firefox 滚动条样式 */
