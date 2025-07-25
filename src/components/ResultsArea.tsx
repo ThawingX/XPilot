@@ -1,27 +1,7 @@
 import React from 'react';
 import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp } from 'lucide-react';
-
-interface Card {
-  id: number;
-  type: 'post' | 'tweet' | 'strategy' | 'action';
-  title: string;
-  content: string;
-  author?: {
-    name: string;
-    handle: string;
-    avatar: string;
-    verified?: boolean;
-  };
-  time: string;
-  stats?: {
-    comments: number;
-    retweets: number;
-    likes: number;
-    views: number;
-    bookmarks: number;
-  };
-  metadata?: any;
-}
+import { Card } from '../types';
+import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
 
 interface ResultsAreaProps {
   selectedCard: Card | null;
@@ -54,11 +34,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard }) => {
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <h3 className="font-semibold text-gray-900">{selectedCard.author!.name}</h3>
-            {selectedCard.author!.verified && (
-              <div className="flex justify-center items-center w-5 h-5 bg-blue-500 rounded-full">
-                <span className="text-xs text-white">✓</span>
-              </div>
-            )}
+            {selectedCard.author!.verified && <VerifiedBadge />}
             <span className="text-gray-500">{selectedCard.author!.handle}</span>
           </div>
           <div className="flex items-center mt-1 space-x-2">
@@ -78,18 +54,18 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard }) => {
         <div className="flex items-center py-3 space-x-6 border-gray-200 border-y">
           <div className="flex items-center space-x-2 text-gray-600">
             <MessageSquare size={18} />
-            <span>{selectedCard.stats.comments} Comments</span>
+            <span>{formatNumber(selectedCard.stats.comments)} Comments</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <Repeat2 size={18} />
-            <span>{selectedCard.stats.retweets} Retweets</span>
+            <span>{formatNumber(selectedCard.stats.retweets)} Retweets</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
             <Heart size={18} />
-            <span>{selectedCard.stats.likes} Likes</span>
+            <span>{formatNumber(selectedCard.stats.likes)} Likes</span>
           </div>
           <div className="flex items-center space-x-2 text-gray-600">
-            <span>{selectedCard.stats.views} Views</span>
+            <span>{formatNumber(selectedCard.stats.views)} Views</span>
           </div>
         </div>
       )}
