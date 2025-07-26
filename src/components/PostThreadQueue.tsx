@@ -15,7 +15,9 @@ import {
   Copy,
   Edit3,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Plus,
+  PenTool
 } from 'lucide-react';
 
 interface PostThreadQueueProps {
@@ -168,6 +170,11 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
     // Could show a toast notification here
   };
 
+  const handleCreateNew = () => {
+    console.log('Creating new post/thread');
+    // Handle create new post/thread logic here
+  };
+
   const displayItems = getDisplayItems();
 
   return (
@@ -176,8 +183,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       <div className="flex-shrink-0 p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <Bot className="w-6 h-6 text-blue-600" />
-            <h2 className="text-xl font-semibold text-gray-900">AI Generated Content</h2>
+            <PenTool className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Get Post/Threads</h2>
           </div>
         </div>
 
@@ -208,11 +215,20 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
         </div>
 
         {/* Items Count */}
-        <div className="flex items-center space-x-2">
-          <Activity size={20} className="text-gray-600" />
-          <span className="text-sm font-medium text-gray-600">
-            {displayItems.length} {activeTab}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Activity size={20} className="text-gray-600" />
+            <span className="text-sm font-medium text-gray-600">
+              {displayItems.length} {activeTab}
+            </span>
+          </div>
+          <button
+            onClick={handleCreateNew}
+            className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+          >
+            <Plus size={16} />
+            <span>New {activeTab.slice(0, -1)}</span>
+          </button>
         </div>
       </div>
       
@@ -286,31 +302,17 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
                   <div className="flex items-center space-x-1">
                     <button
                       onClick={(e) => handleCopy(item.content, e)}
-                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                       title="Copy content"
                     >
-                      <Copy size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => handleEdit(item.id, e)}
-                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
-                      title="Edit post"
-                    >
-                      <Edit3 size={14} />
+                      <Copy size={16} />
                     </button>
                     <button
                       onClick={(e) => handleDelete(item.id, e)}
-                      className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                       title="Delete post"
                     >
-                      <Trash2 size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => handlePublish(item.id, e)}
-                      className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                      title="Publish post"
-                    >
-                      <Send size={14} />
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>

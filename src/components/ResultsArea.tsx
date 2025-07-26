@@ -144,12 +144,6 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                 <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(post.status)} bg-white/90`}>
                   {post.status}
                 </span>
-                {post.aiGenerated && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center">
-                    <Sparkles size={14} className="mr-1" />
-                    AI Generated
-                  </span>
-                )}
               </div>
               <div className="flex items-center space-x-4 text-sm text-blue-100">
                 <div className="flex items-center space-x-2">
@@ -210,44 +204,6 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
               </div>
             </div>
           )}
-
-          {/* Action Buttons */}
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Zap className="w-5 h-5 mr-2 text-blue-500" />
-              Actions
-            </h2>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                onClick={() => handleCopy(post.content)}
-                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                <Copy size={16} />
-                <span>Copy</span>
-              </button>
-              <button
-                onClick={() => handleEdit(post.id)}
-                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
-              >
-                <Edit3 size={16} />
-                <span>Edit</span>
-              </button>
-              <button
-                onClick={() => handleDelete(post.id)}
-                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
-              >
-                <Trash2 size={16} />
-                <span>Delete</span>
-              </button>
-              <button
-                onClick={() => handlePublish(post.id)}
-                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Send size={16} />
-                <span>Publish</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
