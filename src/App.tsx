@@ -7,11 +7,15 @@ import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
 import MarketingStrategy from './components/MarketingStrategy';
+import Login from './components/Login';
+import UserProfile from './components/UserProfile';
 import { Card, InspirationAccount, Post } from './types/index';
 import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-function App() {
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
@@ -20,6 +24,23 @@ function App() {
   const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategyType | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
+
+  // 显示加载状态
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">正在加载...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果用户未登录，显示登录页面
+  if (!user) {
+    return <Login />;
+  }
 
   const handleMenuItemClick = (itemName: string) => {
     setActiveMenuItem(itemName);
@@ -140,7 +161,7 @@ function App() {
           {showDashboard ? (
             <Dashboard onNavigate={handleDashboardNavigate} />
           ) : showProfile ? (
-            <Profile initialSection={profileInitialSection} />
+            <UserProfile />
           ) : showConfig ? (
             <Config 
               onItemClick={handleConfigItemClick} 
@@ -217,6 +238,14 @@ function App() {
       {/* Vibe X Operation - Right Sidebar */}
       <AIAssistant />
     </div>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

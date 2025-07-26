@@ -42,7 +42,7 @@ const AIAssistant: React.FC = () => {
         isUser: false,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
     }, 1000);
   };
   
