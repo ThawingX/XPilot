@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Activity, Star, Search, Users } from 'lucide-react';
-import { mockCards, mockInspirationAccounts, mockSearchAccounts } from '../data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Activity, MessageSquare, Repeat2, Search, Users } from 'lucide-react';
+import { mockCards, mockInspirationAccounts, mockSearchAccounts, mockAutoReplyData } from '../data/mockData';
 import { InspirationAccount, Card } from '../types';
 import CardItem from './CardItem';
+import AutoReplyCard from './AutoReplyCard';
 import InspirationAccountCard from './InspirationAccountCard';
 import Toast from './Toast';
 
@@ -10,29 +11,54 @@ interface EngagementQueueProps {
   showInspirationAccounts?: boolean;
   onCardClick?: (card: Card) => void;
   onAccountClick?: (account: InspirationAccount) => void;
+  selectedCardId?: string;
+  selectedAccountId?: number;
 }
 
-type TabType = 'starred' | 'outreach';
+type TabType = 'autoReply' | 'autoRepost';
 
 const EngagementQueue: React.FC<EngagementQueueProps> = ({ 
   showInspirationAccounts = false, 
   onCardClick,
-  onAccountClick 
+  onAccountClick,
+  selectedCardId,
+  selectedAccountId
 }) => {
   const [inspirationAccounts, setInspirationAccounts] = useState<InspirationAccount[]>(mockInspirationAccounts);
-  const [activeTab, setActiveTab] = useState<TabType>('starred');
+  const [activeTab, setActiveTab] = useState<TabType>('autoReply');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<InspirationAccount[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [toast, setToast] = useState<{
-    message: string;
-    type: 'success' | 'error' | 'info';
-    isVisible: boolean;
-  }>({
+  const [autoReplyData, setAutoReplyData] = useState<Card[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState({
     message: '',
-    type: 'info',
+    type: 'success' as 'success' | 'error' | 'info',
     isVisible: false
   });
+
+  // Fetch autoReply data
+  const fetchAutoReplyData = async () => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setAutoReplyData(mockAutoReplyData);
+    } catch (error) {
+      console.error('Failed to fetch autoReply data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Set up polling for autoReply data every 3 seconds
+  useEffect(() => {
+    if (activeTab === 'autoReply') {
+      fetchAutoReplyData();
+      const interval = setInterval(fetchAutoReplyData, 3000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({
@@ -97,10 +123,10 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
 
   // 获取当前显示的账号列表
   const getDisplayAccounts = () => {
-    if (activeTab === 'starred') {
-      return inspirationAccounts.filter(account => account.starred);
+    if (activeTab === 'autoReply') {
+      return [];
     } else {
-      // outreach 标签页显示搜索结果或所有未星标的账号
+      // autoRepost 标签页显示搜索结果或所有未星标的账号
       if (searchQuery.trim()) {
         return searchResults;
       } else {
@@ -110,71 +136,18 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
   };
 
   const displayAccounts = getDisplayAccounts();
-  const totalItems = showInspirationAccounts ? displayAccounts.length : mockCards.length;
-  const title = showInspirationAccounts ? 'Inspiration Accounts' : 'Activity Queue';
+  const totalItems = showInspirationAccounts ? displayAccounts.length : autoReplyData.length;
+  const title = showInspirationAccounts ? 'Inspiration Accounts' : 'Engagement Queue';
 
-  if (!showInspirationAccounts) {
-    // 原有的 Activity Queue 显示逻辑，使用与 Inspiration Accounts 一致的宽度
+  if (showInspirationAccounts) {
+    // Inspiration Accounts 显示逻辑
     return (
       <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+        {/* Header */}
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
-          <div className="flex items-center space-x-2">
-            <Activity size={20} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">
-              {totalItems} items
-            </span>
-          </div>
-        </div>
-        
-        <div className="overflow-y-auto flex-1 p-6 space-y-4">
-          {mockCards.map((card) => (
-            <CardItem 
-              key={card.id} 
-              card={card}
-              isSelected={false}
-              onClick={onCardClick || (() => {})}
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
-      {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-gray-200">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
-        
-        {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
-          <button
-            onClick={() => setActiveTab('starred')}
-            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'starred'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Star size={16} className={activeTab === 'starred' ? 'text-yellow-500 fill-yellow-500' : ''} />
-            <span className="hidden sm:inline">Starred</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('outreach')}
-            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'outreach'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Users size={16} />
-            <span className="hidden sm:inline">Outreach</span>
-          </button>
-        </div>
-
-        {/* Search Bar - Only show in outreach tab */}
-        {activeTab === 'outreach' && (
+          
+          {/* Search Bar */}
           <div className="relative mb-4">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search size={16} className="text-gray-400" />
@@ -192,48 +165,118 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
               </div>
             )}
           </div>
-        )}
+
+          {/* Items Count */}
+          <div className="flex items-center space-x-2">
+            <Users size={20} className="text-gray-600" />
+            <span className="text-sm font-medium text-gray-600">
+              {inspirationAccounts.length} accounts
+            </span>
+          </div>
+        </div>
+        
+        {/* Content */}
+        <div className="overflow-y-auto flex-1 p-6 space-y-4">
+          {inspirationAccounts.length === 0 ? (
+            <div className="text-center py-8">
+              <Users size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">No inspiration accounts available</p>
+            </div>
+          ) : (
+            inspirationAccounts.map((account) => (
+              <InspirationAccountCard 
+                key={account.id} 
+                account={account} 
+                onToggleTarget={handleToggleTarget}
+                onToggleStar={handleToggleStar}
+                onShowToast={showToast}
+                onClick={onAccountClick}
+                isSelected={selectedAccountId === account.id}
+              />
+            ))
+          )}
+        </div>
+
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={toast.isVisible}
+          onClose={hideToast}
+        />
+      </div>
+    );
+  }
+
+  // Engagement 显示逻辑 (原 Activity Queue)
+  return (
+    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="flex-shrink-0 p-6 border-b border-gray-200">
+        <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
+        
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
+          <button
+            onClick={() => setActiveTab('autoReply')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'autoReply'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <MessageSquare size={16} />
+            <span className="hidden sm:inline">autoReply</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('autoRepost')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'autoRepost'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Repeat2 size={16} />
+            <span className="hidden sm:inline">autoRepost</span>
+          </button>
+        </div>
 
         {/* Items Count */}
         <div className="flex items-center space-x-2">
           <Activity size={20} className="text-gray-600" />
           <span className="text-sm font-medium text-gray-600">
-            {totalItems} items
+            {activeTab === 'autoReply' ? autoReplyData.length : 0} items
           </span>
+          {loading && activeTab === 'autoReply' && (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+          )}
         </div>
       </div>
       
       {/* Content */}
       <div className="overflow-y-auto flex-1 p-6 space-y-4">
-        {displayAccounts.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
-              {activeTab === 'starred' ? (
-                <Star size={48} className="mx-auto" />
-              ) : (
-                <Users size={48} className="mx-auto" />
-              )}
+        {activeTab === 'autoReply' ? (
+          autoReplyData.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageSquare size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500">No autoReply data available</p>
             </div>
-            <p className="text-gray-500">
-              {activeTab === 'starred' 
-                ? '还没有收藏的账号' 
-                : searchQuery.trim() 
-                  ? '没有找到匹配的账号' 
-                  : '开始搜索账号'
-              }
-            </p>
-          </div>
+          ) : (
+            <div className="space-y-4">
+              {autoReplyData.map((card) => (
+                <AutoReplyCard
+                  key={card.id}
+                  card={card}
+                  isSelected={selectedCardId === card.id}
+                  onClick={() => onCardClick?.(card)}
+                />
+              ))}
+            </div>
+          )
         ) : (
-          displayAccounts.map((account) => (
-            <InspirationAccountCard 
-              key={account.id} 
-              account={account} 
-              onToggleTarget={handleToggleTarget}
-              onToggleStar={handleToggleStar}
-              onShowToast={showToast}
-              onClick={onAccountClick}
-            />
-          ))
+          <div className="text-center py-8">
+            <Repeat2 size={48} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">autoRepost feature coming soon</p>
+          </div>
         )}
       </div>
 

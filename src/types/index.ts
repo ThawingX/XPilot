@@ -56,15 +56,26 @@ export interface InspirationAccount {
 }
 
 export interface Card {
-  id: number;
-  type: 'post' | 'tweet' | 'strategy' | 'action' | 'inspiration' | 'account';
-  title: string;
+  id: string;
+  type?: 'post' | 'tweet' | 'strategy' | 'action' | 'inspiration' | 'account';
+  title?: string;
   content: string;
-  author?: Author;
+  author?: string;
+  handle?: string;
+  avatar?: string;
   time: string;
+  likes?: number;
+  retweets?: number;
+  replies?: number;
+  views?: number;
   stats?: Stats;
   metadata?: Metadata;
   inspirationAccount?: InspirationAccount;
+  suggestedReply?: string;
+  replyActions?: {
+    reject: boolean;
+    postReply: boolean;
+  };
 }
 
 export type CardType = Card['type'];

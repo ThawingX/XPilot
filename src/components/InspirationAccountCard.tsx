@@ -8,6 +8,7 @@ interface InspirationAccountCardProps {
   onToggleStar: (id: number, starred: boolean) => void;
   onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
   onClick?: (account: InspirationAccount) => void;
+  isSelected?: boolean;
 }
 
 const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({ 
@@ -15,7 +16,8 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
   onToggleTarget, 
   onToggleStar, 
   onShowToast,
-  onClick 
+  onClick,
+  isSelected = false
 }) => {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
@@ -75,7 +77,11 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+        isSelected 
+          ? 'border-blue-300 bg-blue-50 shadow-lg ring-2 ring-blue-100' 
+          : 'border-gray-200 bg-white hover:border-gray-300'
+      }`}
       onClick={handleCardClick}
     >
       {/* Type Badge - 移到顶部 */}

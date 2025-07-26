@@ -215,88 +215,142 @@ export const mockSearchAccounts: InspirationAccount[] = [
 // Mock数据集中管理
 export const mockCards: Card[] = [
   {
-    id: 1,
+    id: '1',
     type: 'post',
     title: 'Building in Public Discussion',
     content: 'Building in public is both liberating and terrifying. You get real-time feedback, but also real-time judgment. The key is finding the balance between transparency and vulnerability.',
-    author: {
-      name: 'Sarah Chen',
-      handle: '@sarahbuilds',
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-      verified: true
-    },
+    author: 'Sarah Chen',
+    handle: '@sarahbuilds',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
     time: '2 hours ago',
+    likes: 89,
+    retweets: 12,
+    replies: 24,
+    views: 1200,
     stats: {
       comments: 24,
       retweets: 12,
       likes: 89,
       views: 1200,
       bookmarks: 15
-    }
+    },
+    suggestedReply: 'Great perspective! Building in public has definitely helped me connect with my audience more authentically. The vulnerability aspect is challenging but ultimately rewarding.'
   },
   {
-    id: 2,
+    id: '2',
     type: 'tweet',
     title: 'Product Launch Tweet',
     content: '🚀 Just shipped our biggest update yet! New AI-powered insights, improved dashboard, and 3x faster performance. What feature should we build next?',
-    author: {
-      name: 'Alex Rodriguez',
-      handle: '@alexbuilds',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-      verified: false
-    },
+    author: 'Alex Rodriguez',
+    handle: '@alexbuilds',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
     time: '4 hours ago',
+    likes: 234,
+    retweets: 67,
+    replies: 45,
+    views: 5600,
     stats: {
       comments: 45,
       retweets: 67,
       likes: 234,
       views: 5600,
       bookmarks: 32
-    }
+    },
+    suggestedReply: 'Congratulations on the launch! 🎉 The AI-powered insights sound fascinating. I\'d love to see more automation features for content scheduling and analytics.'
   },
   {
-    id: 3,
+    id: '3',
     type: 'strategy',
     title: 'Q4 Content Strategy',
     content: 'Focus on educational content that showcases our expertise while building trust with potential customers. Emphasize case studies and behind-the-scenes content.',
+    author: 'Maya Patel',
+    handle: '@mayatech',
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
     time: '1 day ago',
-    metadata: {
-      category: 'Content Marketing',
-      priority: 'High',
-      deadline: '2024-01-15'
-    }
-  },
-  {
-    id: 4,
-    type: 'action',
-    title: 'Respond to Customer Feedback',
-    content: 'Address the recent feedback about onboarding complexity. Create a response strategy and implement improvements.',
-    time: '3 hours ago',
-    metadata: {
-      priority: 'Medium',
-      assignee: 'Product Team',
-      status: 'In Progress'
-    }
-  },
-  {
-    id: 5,
-    type: 'post',
-    title: 'Industry Insights',
-    content: 'The future of SaaS isn\'t just about features—it\'s about creating experiences that feel intuitive and human. We\'re seeing a shift towards more personalized, context-aware applications.',
-    author: {
-      name: 'Maya Patel',
-      handle: '@mayatech',
-      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      verified: true
-    },
-    time: '6 hours ago',
+    likes: 156,
+    retweets: 34,
+    replies: 18,
+    views: 2800,
     stats: {
       comments: 18,
       retweets: 34,
       likes: 156,
       views: 2800,
       bookmarks: 28
-    }
+    },
+    metadata: {
+      category: 'Content Marketing',
+      priority: 'High',
+      deadline: '2024-01-15'
+    },
+    suggestedReply: 'This strategy aligns perfectly with what we\'re seeing work in the market. Case studies especially resonate well with B2B audiences. Have you considered adding video testimonials?'
+  }
+];
+
+// AutoReply专用的mock数据
+export const mockAutoReplyData: Card[] = [
+  {
+    id: 'ar1',
+    type: 'tweet',
+    content: 'The worst part of building in public?\n\nFeeling like you\'re behind...\n...even when no one\'s actually racing you.',
+    author: 'Raju Vishwas',
+    handle: '@rajuvishwas',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    time: '1:45 PM · Mar 27, 2023',
+    likes: 164,
+    retweets: 6,
+    replies: 8,
+    views: 1240,
+    stats: {
+      comments: 8,
+      retweets: 6,
+      likes: 164,
+      views: 1240,
+      bookmarks: 23
+    },
+    suggestedReply: 'So true. The biggest paradox of building in public is that the transparency meant to liberate often becomes another source of pressure. At XPilot we remind ourselves daily that progress isn\'t linear - and that\'s perfectly fine.'
+  },
+  {
+    id: 'ar2',
+    type: 'tweet',
+    content: 'Just launched our new AI-powered analytics dashboard! 🚀\n\nReal-time insights, predictive modeling, and automated reporting all in one place.\n\nWhat metrics matter most to your business?',
+    author: 'Emma Thompson',
+    handle: '@emmabuild',
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    time: '3:22 PM · Mar 27, 2023',
+    likes: 89,
+    retweets: 23,
+    replies: 15,
+    views: 2100,
+    stats: {
+      comments: 15,
+      retweets: 23,
+      likes: 89,
+      views: 2100,
+      bookmarks: 12
+    },
+    suggestedReply: 'Congratulations on the launch! 🎉 For our team, customer acquisition cost and lifetime value are the key metrics we track. Does your dashboard support custom metric calculations?'
+  },
+  {
+    id: 'ar3',
+    type: 'tweet',
+    content: 'Hot take: Most "productivity" tools actually make you less productive.\n\nThey add complexity instead of removing friction.\n\nSimplicity wins every time.',
+    author: 'David Kim',
+    handle: '@davidkimtech',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+    time: '11:15 AM · Mar 27, 2023',
+    likes: 342,
+    retweets: 78,
+    replies: 45,
+    views: 5600,
+    stats: {
+      comments: 45,
+      retweets: 78,
+      likes: 342,
+      views: 5600,
+      bookmarks: 67
+    },
+    suggestedReply: 'Absolutely agree! We\'ve seen this pattern repeatedly. The best tools feel invisible - they solve problems without creating new ones. What\'s your go-to simple productivity setup?'
   }
 ];
 
@@ -325,8 +379,8 @@ export const mockChatMessages = [
 // 菜单项mock数据
 export const mockMenuItems = [
   { name: 'Inspiration Accounts', icon: Target },
-  { name: 'Tweet Generation', icon: PenTool },
   { name: 'Engagement', icon: Users },
+  { name: 'Tweet Generation', icon: PenTool },
   { name: 'Content Strategy', icon: Calendar },
   { name: 'Config', icon: Settings },
   { name: 'Profile', icon: User },

@@ -214,21 +214,21 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   </div>
                 )}
 
-                {/* Style Selection */}
+                {/* Style Selection - Disabled */}
                 {selectedConfigItem.style && (
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
-                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                      <Tag className="w-5 h-5 mr-2 text-purple-500" />
-                      回复风格
+                    <h2 className="text-lg font-semibold text-gray-400 mb-4 flex items-center">
+                      <Tag className="w-5 h-5 mr-2 text-gray-400" />
+                      回复风格 (暂时禁用)
                     </h2>
                     <div className="space-y-3">
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-600">当前风格:</span>
+                        <span className="text-sm text-gray-400">当前风格:</span>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          selectedConfigItem.style === 'funny' ? 'bg-yellow-100 text-yellow-800' :
-                          selectedConfigItem.style === 'professional' ? 'bg-blue-100 text-blue-800' :
-                          selectedConfigItem.style === 'casual' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
+                          selectedConfigItem.style === 'funny' ? 'bg-gray-100 text-gray-600' :
+                          selectedConfigItem.style === 'professional' ? 'bg-gray-100 text-gray-600' :
+                          selectedConfigItem.style === 'casual' ? 'bg-gray-100 text-gray-600' :
+                          'bg-gray-100 text-gray-600'
                         }`}>
                           {selectedConfigItem.style === 'funny' ? '幽默风趣' :
                            selectedConfigItem.style === 'professional' ? '专业正式' :
@@ -236,8 +236,9 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                         </span>
                       </div>
                       <select 
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full p-3 border border-gray-200 rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed"
                         defaultValue={selectedConfigItem.style}
+                        disabled
                       >
                         <option value="professional">专业正式</option>
                         <option value="funny">幽默风趣</option>
@@ -260,40 +261,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">操作</h2>
-              <div className="flex space-x-3">
-                {selectedConfigItem.status === 'pending' && (
-                  <>
-                    <button className="px-4 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-blue-600 transition-colors">
-                      {selectedConfigItem.type === 'reply' ? '发送回复' : '执行转发'}
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      编辑内容
-                    </button>
-                  </>
-                )}
-                {selectedConfigItem.status === 'draft' && (
-                  <>
-                    <button className="px-4 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-blue-600 transition-colors">
-                      保存并发送
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                      继续编辑
-                    </button>
-                  </>
-                )}
-                {selectedConfigItem.status === 'completed' && (
-                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
-                    查看结果
-                  </button>
-                )}
-                <button className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
-                  删除
-                </button>
-              </div>
-            </div>
+
 
             {/* Statistics (if completed) */}
             {selectedConfigItem.status === 'completed' && (
@@ -339,15 +307,18 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
       {/* Post Header */}
       <div className="flex items-start space-x-3">
         <img
-          src={selectedCard.author!.avatar}
-          alt={selectedCard.author!.name}
-          className="object-cover w-12 h-12 rounded-full"
+          src={selectedCard.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCard.author || 'User')}&background=6366f1&color=fff&size=48`}
+          alt={selectedCard.author || 'User'}
+          className="object-cover w-12 h-12 rounded-full border border-gray-200"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCard.author || 'User')}&background=6366f1&color=fff&size=48`;
+          }}
         />
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <h3 className="font-semibold text-gray-900">{selectedCard.author!.name}</h3>
-            {selectedCard.author!.verified && <VerifiedBadge />}
-            <span className="text-gray-500">{selectedCard.author!.handle}</span>
+            <h3 className="font-semibold text-gray-900">{selectedCard.author || 'Unknown User'}</h3>
+            <span className="text-gray-500">{selectedCard.handle || '@unknown'}</span>
           </div>
           <div className="flex items-center mt-1 space-x-2">
             <span className="text-sm text-gray-500">{selectedCard.time}</span>
@@ -358,7 +329,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
 
       {/* Post Content */}
       <div className="p-4 bg-gray-50 rounded-lg">
-        <p className="leading-relaxed text-gray-900">{selectedCard.content}</p>
+        <p className="leading-relaxed text-gray-900 whitespace-pre-line">{selectedCard.content}</p>
       </div>
 
       {/* Post Stats */}
@@ -390,7 +361,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
             <span className="text-sm font-medium text-blue-900">AI SUGGESTED REPLY</span>
           </div>
           <p className="mb-4 text-gray-700">
-            So true. The biggest paradox of building in public is that the transparency meant to liberate us often becomes another source of pressure. At Soshi we remind ourselves daily that progress isn't linear - and that's perfectly fine.
+            So true. The biggest paradox of building in public is that the transparency meant to liberate us often becomes another source of pressure. At XPilot we remind ourselves daily that progress isn't linear - and that's perfectly fine.
           </p>
           <div className="flex space-x-3">
             <button className="flex-1 px-4 py-2 text-red-600 rounded-lg border border-red-200 transition-colors hover:bg-red-50">

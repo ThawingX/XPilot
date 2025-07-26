@@ -12,10 +12,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   activeMenuItem
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeItem, setActiveItem] = useState<string | null>(null);
 
   const handleItemClick = (itemName: string) => {
-    setActiveItem(itemName);
     onMenuItemClick?.(itemName);
   };
 
@@ -45,10 +43,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             onClick={() => handleItemClick(item.name)}
             className={`w-full flex items-center px-3 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors mb-1 ${
               isExpanded ? 'justify-start' : 'justify-center'
-            } ${activeItem === item.name ? 'bg-blue-50 text-blue-600 border border-blue-200' : ''}`}
+            } ${activeMenuItem === item.name ? 'bg-[#4792E6]/10 text-[#4792E6] border border-[#4792E6]/20' : ''}`}
             title={!isExpanded ? item.name : undefined}
           >
-            <item.icon size={20} className={`${isExpanded ? "mr-3" : ""} ${activeItem === item.name ? 'text-blue-600' : ''}`} />
+            <item.icon size={20} className={`${isExpanded ? "mr-3" : ""} ${activeMenuItem === item.name ? 'text-[#4792E6]' : ''}`} />
             {isExpanded && (
               <span className="font-medium">{item.name}</span>
             )}

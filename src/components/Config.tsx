@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { MessageSquare, Repeat2, Activity, ToggleLeft, ToggleRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, MessageSquare, Repeat2, Clock } from 'lucide-react';
 
 interface ConfigProps {
-  onItemClick: (item: ConfigItem) => void;
+  onItemClick?: (item: ConfigItem) => void;
+  selectedItemId?: string;
 }
 
 type TabType = 'reply' | 'repost';
@@ -18,84 +19,127 @@ export interface ConfigItem {
   targetAccount?: string;
   // 新增字段
   prompt?: string; // 生成回复的prompt
-  style?: 'funny' | 'professional' | 'casual' | 'formal'; // 回复风格
+  style?: 'funny' | 'professional' | 'casual' | 'formal' | 'friendly' | 'encouraging' | 'energetic' | 'analytical'; // 回复风格
   enabled?: boolean; // 是否启用这个回复卡片能力
 }
-
 const mockConfigItems: ConfigItem[] = [
   {
     id: 1,
     type: 'reply',
-    title: '回复产品反馈',
-    content: '感谢您的宝贵建议！我们正在积极改进产品功能，您提到的问题将在下个版本中得到解决。',
-    time: '2小时前',
-    status: 'pending',
-    priority: 'high',
-    targetAccount: '@user123',
-    prompt: '请以友好和专业的语气回复用户的产品反馈，表达感谢并承诺改进',
+    title: 'Tech Product Review Replies',
+    content: 'Generate professional and insightful replies to tech product content',
+    time: '2024-01-15 14:30',
+    prompt: 'As a tech enthusiast, generate professional and insightful replies to tech product content. Include technical analysis, user experience sharing, or product comparisons. Maintain an objective and neutral tone while providing valuable information.',
     style: 'professional',
     enabled: true
   },
   {
     id: 2,
-    type: 'reply',
-    title: '客户咨询回复',
-    content: '您好！关于定价问题，我们提供多种套餐选择，建议您查看我们的官网或联系客服获取详细信息。',
-    time: '4小时前',
-    status: 'draft',
-    priority: 'medium',
-    targetAccount: '@customer456',
-    prompt: '回复客户关于定价的咨询，提供有用的信息和联系方式',
-    style: 'formal',
-    enabled: true
+    type: 'repost',
+    title: 'Lifestyle Content Sharing',
+    content: 'Automatically repost trending tech topics',
+    time: '2024-01-15 10:15',
+    prompt: 'Identify and repost high-quality lifestyle content including health, food, travel, and fashion topics. Add personal insights or related experience sharing to make content more personalized.',
+    style: 'casual',
+    enabled: false
   },
   {
     id: 3,
-    type: 'repost',
-    title: '行业洞察转发',
-    content: '转发：AI技术的发展正在重塑各个行业，我们需要拥抱变化，持续学习和创新。',
-    time: '1天前',
-    status: 'completed',
-    priority: 'medium',
-    targetAccount: '@industry_expert',
+    type: 'reply',
+    title: 'Business Insight Responses',
+    content: 'Reply to lifestyle, health, and food content',
+    time: '2024-01-14 16:45',
+    prompt: 'Provide deep business insights and analysis for business, entrepreneurship, and investment content. Replies should demonstrate business thinking including market analysis, business model discussions, and industry trend predictions.',
+    style: 'friendly',
     enabled: true
   },
   {
     id: 4,
-    type: 'repost',
-    title: '合作伙伴内容',
-    content: '转发：很高兴与优秀的团队合作，共同推动技术创新和产品发展。',
-    time: '2天前',
-    status: 'pending',
-    priority: 'low',
-    targetAccount: '@partner_company',
-    enabled: false
+    type: 'reply',
+    title: 'Educational Content Engagement',
+    content: 'Participate in business, investment, and entrepreneurship discussions',
+    time: '2024-01-14 09:20',
+    prompt: 'Reply to educational, learning, and knowledge-sharing content. Responses should be inspiring, supplementing knowledge points, sharing learning methods, or raising thought-provoking questions.',
+    style: 'professional',
+    enabled: true
   },
   {
     id: 5,
     type: 'reply',
-    title: '幽默回复模板',
-    content: '哈哈，这个问题问得好！让我想想... 🤔 其实答案很简单，就像我们的产品一样简单易用！',
-    time: '6小时前',
-    status: 'draft',
-    priority: 'low',
-    targetAccount: '@funny_user',
-    prompt: '用幽默轻松的方式回复用户的问题，保持友好和有趣',
-    style: 'funny',
+    title: 'Entertainment Content Replies',
+    content: 'Reply to education, learning methods, and skill improvement content',
+    time: '2024-01-13 20:10',
+    prompt: 'Reply to entertainment, film, music, and gaming content. Maintain a light and cheerful tone, share personal preferences, recommend related content, or initiate interesting discussions.',
+    style: 'encouraging',
+    enabled: false
+  },
+  {
+    id: 6,
+    type: 'reply',
+    title: 'Sports Event Sharing',
+    content: 'Reply to movies, music, games, literature and other entertainment content',
+    time: '2024-01-13 15:30',
+    prompt: 'Repost exciting sports-related content including game highlights, athlete performances, and sports news. Add personal opinions and emotional expressions to enhance content appeal.',
+    style: 'casual',
     enabled: true
+  },
+  {
+    id: 7,
+    type: 'reply',
+    title: 'News Commentary',
+    content: 'Reply to sports events, fitness, and sports-related content',
+    time: '2024-01-12 18:45',
+    prompt: 'Provide rational and objective commentary on news and current events. Analyze event background, impact, and significance, offer multi-perspective thinking, avoid extreme views, and promote rational discussion.',
+    style: 'energetic',
+    enabled: true
+  },
+  {
+    id: 8,
+    type: 'reply',
+    title: 'Arts & Culture Exchange',
+    content: 'Rational discussion of current news and social topics',
+    time: '2024-01-12 11:20',
+    prompt: 'Participate in discussions about art, culture, and literature. Replies should demonstrate cultural literacy, quote relevant works, share artistic insights, or recommend quality cultural content.',
+    style: 'analytical',
+    enabled: false
   }
 ];
 
-const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
+const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
   const [activeTab, setActiveTab] = useState<'reply' | 'repost'>('reply');
-  const [configItems, setConfigItems] = useState<ConfigItem[]>(mockConfigItems);
+  const [configItems, setConfigItems] = useState<ConfigItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Mock API request to fetch config items
+  const fetchConfigItems = async () => {
+    setLoading(true);
+    try {
+      // 模拟API请求延迟
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // 模拟从服务器获取配置数据
+      console.log('Fetching reply card configurations...');
+      setConfigItems(mockConfigItems);
+    } catch (error) {
+      console.error('Failed to fetch config items:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 组件加载时发送mock请求
+  useEffect(() => {
+    fetchConfigItems();
+  }, []);
 
   // Filter items based on active tab
-  const filteredItems = configItems.filter(item => item.type === activeTab);
+  const filteredItems = configItems.filter(item => {
+    return item.type === activeTab;
+  });
 
   // Toggle enabled status
-  const handleToggleEnabled = (id: number, enabled: boolean, event: React.MouseEvent) => {
-    event.stopPropagation(); // 防止触发卡片点击事件
+  const handleToggleEnabled = (id: number, enabled: boolean, e: React.MouseEvent | React.ChangeEvent) => {
+    e.stopPropagation();
     setConfigItems(prev => 
       prev.map(item => 
         item.id === id ? { ...item, enabled } : item
@@ -104,12 +148,12 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm w-full max-w-md">
       {/* Header */}
       <div className="flex-shrink-0 p-6 border-b border-gray-200">
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">配置管理</h2>
+        <h2 className="mb-4 text-xl font-semibold text-gray-900">Configuration Management</h2>
         
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Only Reply and Repost */}
         <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
           <button
             onClick={() => setActiveTab('reply')}
@@ -119,8 +163,8 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <MessageSquare size={16} className={activeTab === 'reply' ? 'text-[#4792E6]' : ''} />
-            <span className="hidden sm:inline">Reply</span>
+            <MessageSquare size={16} />
+            <span>Reply</span>
           </button>
           <button
             onClick={() => setActiveTab('repost')}
@@ -130,76 +174,84 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
                 : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Repeat2 size={16} className={activeTab === 'repost' ? 'text-[#4792E6]' : ''} />
-            <span className="hidden sm:inline">Repost</span>
+            <Repeat2 size={16} />
+            <span>Repost</span>
           </button>
         </div>
 
         {/* Items Count */}
         <div className="flex items-center space-x-2">
-          <Activity size={20} className="text-gray-600" />
+          <Settings size={20} className="text-gray-600" />
           <span className="text-sm font-medium text-gray-600">
-            {filteredItems.length} 项配置
+            {filteredItems.length} configurations
           </span>
         </div>
       </div>
       
       {/* Content */}
       <div className="overflow-y-auto flex-1 p-6 space-y-4">
-        {filteredItems.length === 0 ? (
+        {loading ? (
           <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
-              {activeTab === 'reply' ? (
-                <MessageSquare size={48} className="mx-auto" />
-              ) : (
-                <Repeat2 size={48} className="mx-auto" />
-              )}
-            </div>
-            <p className="text-gray-500">
-              暂无{activeTab === 'reply' ? '回复' : '转发'}配置
-            </p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-500">Loading configuration data...</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="text-center py-8">
+            <Settings size={48} className="mx-auto text-gray-400 mb-4" />
+            <p className="text-gray-500">No configuration items</p>
           </div>
         ) : (
           filteredItems.map((item) => (
-            <div 
-              key={item.id}
-              onClick={() => onItemClick(item)}
-              className="p-4 border border-gray-200 rounded-lg hover:border-[#4792E6] hover:shadow-md transition-all cursor-pointer bg-white"
-            >
+              <div
+                key={item.id}
+                onClick={() => onItemClick?.(item)}
+                className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
+                  selectedItemId === item.id
+                    ? 'border-blue-300 bg-blue-50 shadow-lg ring-2 ring-blue-100'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
+                }`}
+              >
               <div className="flex items-start justify-between">
                 <div className="flex items-start space-x-3 flex-1">
-                  {item.type === 'reply' ? (
-                    <MessageSquare size={16} className="text-[#4792E6] flex-shrink-0 mt-1" />
-                  ) : (
-                    <Repeat2 size={16} className="text-[#4792E6] flex-shrink-0 mt-1" />
-                  )}
+                  {/* Icon */}
+                  <div className={`p-2 rounded-lg ${
+                    item.type === 'reply' 
+                      ? 'bg-blue-50 text-blue-600' 
+                      : 'bg-green-50 text-green-600'
+                  }`}>
+                    {item.type === 'reply' ? (
+                      <MessageSquare size={20} />
+                    ) : (
+                      <Repeat2 size={20} />
+                    )}
+                  </div>
+                  
+                  {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 text-sm mb-2">{item.title}</h3>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.content}</p>
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>{item.targetAccount}</span>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
+                      {item.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-2 line-clamp-2">
+                      {item.content}
+                    </p>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <Clock size={12} />
                       <span>{item.time}</span>
                     </div>
                   </div>
-                </div>
-                
-                {/* 开关控件 */}
-                <div className="flex-shrink-0 ml-3">
-                  <button
-                    onClick={(e) => handleToggleEnabled(item.id, !item.enabled, e)}
-                    className={`p-1 rounded-full transition-colors ${
-                      item.enabled 
-                        ? 'text-blue-500 hover:text-blue-600' 
-                        : 'text-gray-400 hover:text-gray-500'
-                    }`}
-                    title={item.enabled ? '点击禁用' : '点击启用'}
-                  >
-                    {item.enabled ? (
-                      <ToggleRight className="w-6 h-6" />
-                    ) : (
-                      <ToggleLeft className="w-6 h-6" />
-                    )}
-                  </button>
+                  
+                  {/* Toggle Switch */}
+                  <div className="flex-shrink-0 ml-3">
+                    <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={item.enabled}
+                        onChange={(e) => handleToggleEnabled(item.id, e.target.checked, e)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
