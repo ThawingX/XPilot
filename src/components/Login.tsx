@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, UserPlus } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, UserPlus, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
 interface LoginProps {
@@ -13,26 +13,74 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [countdown, setCountdown] = useState(30)
 
   const { signIn, signUp, signInWithGoogle } = useAuth()
+
+  // 倒计时效果
+  useEffect(() => {
+    let timer: NodeJS.Timeout
+    if (showSuccessModal && countdown > 0) {
+      timer = setTimeout(() => {
+        setCountdown(countdown - 1)
+      }, 1000)
+    } else if (showSuccessModal && countdown === 0) {
+      // 倒计时结束，切换到登录模式
+      setShowSuccessModal(false)
+      setIsSignUp(false)
+      setSuccess('')
+      setEmail('')
+      setPassword('')
+      setCountdown(30) // 重置倒计时
+    }
+    return () => clearTimeout(timer)
+  }, [showSuccessModal, countdown])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
+    setSuccess('')
 
     try {
-      const { error } = isSignUp 
-        ? await signUp(email, password)
-        : await signIn(email, password)
-
-      if (error) {
-        setError(error.message)
-      } else {
-        if (isSignUp) {
-          setError('注册成功！请检查您的邮箱以验证账户。')
+      if (isSignUp) {
+        // 注册流程
+        const { error: signUpError } = await signUp(email, password)
+        
+        if (signUpError) {
+          console.error('注册错误:', signUpError)
+          if (signUpError.message.includes('email_address_invalid')) {
+            setError('邮箱地址格式无效，请使用有效的邮箱地址')
+          } else if (signUpError.message.includes('User already registered')) {
+            setError('该邮箱已被注册，请使用其他邮箱或直接登录')
+          } else {
+            setError(`注册失败: ${signUpError.message}`)
+          }
         } else {
-          onClose?.()
+          // 注册成功，显示醒目的成功模态框
+          setShowSuccessModal(true)
+          setCountdown(30) // 重置倒计时
+        }
+      } else {
+        // 登录流程
+        const { error } = await signIn(email, password)
+        
+        if (error) {
+          console.error('登录错误:', error)
+          if (error.message.includes('email_not_confirmed')) {
+            setError('请先验证您的邮箱地址。检查您的邮箱并点击验证链接。')
+          } else if (error.message.includes('Invalid login credentials')) {
+            setError('邮箱或密码错误，请检查后重试')
+          } else {
+            setError(`登录失败: ${error.message}`)
+          }
+        } else {
+          setSuccess('登录成功！')
+          setTimeout(() => {
+            onClose?.()
+          }, 1000)
         }
       }
     } catch (err) {
@@ -45,6 +93,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
   const handleGoogleSignIn = async () => {
     setLoading(true)
     setError('')
+    setSuccess('')
 
     try {
       const { error } = await signInWithGoogle()
@@ -60,6 +109,63 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+      {/* 注册成功模态框 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 transform">
+            <div className="text-center">
+              {/* 成功图标 */}
+              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mb-6">
+                <CheckCircle className="w-12 h-12 text-green-500" />
+              </div>
+              
+              {/* 标题 */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                注册成功！
+              </h2>
+              
+              {/* 主要提示信息 */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 mb-6">
+                <div className="flex items-start">
+                  <Mail className="w-6 h-6 text-blue-500 mt-1 mr-3 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="text-blue-800 font-semibold mb-2">
+                      Magic Link 已发送到您的邮箱
+                    </p>
+                    <p className="text-blue-700 text-sm leading-relaxed">
+                      请检查您的邮箱（包括垃圾邮件文件夹），点击邮件中的 Magic Link 验证您的邮箱地址，然后返回此页面登录平台。
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 倒计时提示 - 添加轻微闪烁效果 */}
+              <div className="flex items-center justify-center bg-gray-50 rounded-lg p-4 mb-6">
+                <Clock className={`w-5 h-5 text-gray-500 mr-2 ${countdown <= 10 ? 'animate-pulse' : ''}`} />
+                <span className={`text-gray-700 ${countdown <= 10 ? 'animate-pulse font-semibold text-orange-600' : ''}`}>
+                  {countdown} 秒后自动跳转到登录页面
+                </span>
+              </div>
+              
+              {/* 手动跳转按钮 */}
+              <button
+                onClick={() => {
+                  setShowSuccessModal(false)
+                  setIsSignUp(false)
+                  setSuccess('')
+                  setEmail('')
+                  setPassword('')
+                  setCountdown(30)
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                立即跳转到登录页面
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Header */}
@@ -75,10 +181,23 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
             </p>
           </div>
 
+          {/* Success Message */}
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start">
+                <CheckCircle className="w-5 h-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" />
+                <p className="text-green-700 text-sm">{success}</p>
+              </div>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600 text-sm">{error}</p>
+              <div className="flex items-start">
+                <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
             </div>
           )}
 
@@ -195,11 +314,24 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
                 onClick={() => {
                   setIsSignUp(!isSignUp)
                   setError('')
+                  setSuccess('')
                 }}
-                className="ml-1 font-medium hover:opacity-80 transition-opacity"
+                className="ml-1 font-medium relative inline-block group transition-all duration-300 ease-in-out transform hover:scale-105 hover:shadow-lg"
                 style={{ color: '#4792E6' }}
               >
-                {isSignUp ? '立即登录' : '立即注册'}
+                <span className="relative z-10 transition-all duration-300 ease-in-out group-hover:text-white">
+                  {isSignUp ? '立即登录' : '立即注册'}
+                </span>
+                {/* 背景动画效果 */}
+                <span 
+                  className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-300 ease-in-out transform scale-x-0 group-hover:scale-x-100 origin-left"
+                  style={{ backgroundColor: '#4792E6' }}
+                ></span>
+                {/* 发光效果 */}
+                <span 
+                  className="absolute inset-0 rounded-md opacity-0 group-hover:opacity-30 transition-all duration-500 ease-in-out blur-sm"
+                  style={{ backgroundColor: '#4792E6', transform: 'scale(1.1)' }}
+                ></span>
               </button>
             </p>
           </div>
