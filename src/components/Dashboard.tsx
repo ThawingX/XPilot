@@ -149,10 +149,17 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       section: 'Auto Engagement'
     },
     { 
+      title: 'Get Post/Thread', 
+      description: 'Manage and review post queue', 
+      icon: PenTool, 
+      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
+      section: 'Get Post/Thread'
+    },
+    { 
       title: 'Content Strategy', 
       description: 'Plan your content calendar', 
       icon: Calendar, 
-      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
+      color: 'bg-gradient-to-br from-[#4792E6]/60 to-[#06b6d4]',
       section: 'Content Strategy'
     }
   ];

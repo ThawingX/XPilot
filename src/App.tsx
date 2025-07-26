@@ -6,7 +6,7 @@ import ResultsArea from './components/ResultsArea';
 import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
-import { Card, InspirationAccount } from './types/index';
+import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
 
 function App() {
@@ -14,6 +14,7 @@ function App() {
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
 
@@ -24,6 +25,7 @@ function App() {
     setSelectedAccount(null);
     setSelectedConfigItem(null);
     setSelectedPostId(null);
+    setSelectedPost(null);
     // Reset profile section when navigating to profile from menu
     if (itemName === 'Profile') {
       setProfileInitialSection('overview');
@@ -36,6 +38,7 @@ function App() {
     setSelectedAccount(null);
     setSelectedConfigItem(null);
     setSelectedPostId(null);
+    setSelectedPost(null);
     // Set profile section if navigating to profile
     if (section === 'Profile' && profileSection) {
       setProfileInitialSection(profileSection);
@@ -47,6 +50,7 @@ function App() {
     setSelectedAccount(null);
     setSelectedConfigItem(null);
     setSelectedPostId(null);
+    setSelectedPost(null);
   };
 
   const handleAccountClick = (account: InspirationAccount) => {
@@ -54,6 +58,7 @@ function App() {
     setSelectedCard(null);
     setSelectedConfigItem(null);
     setSelectedPostId(null);
+    setSelectedPost(null);
   };
 
   const handleConfigItemClick = (item: ConfigItem) => {
@@ -61,10 +66,31 @@ function App() {
     setSelectedCard(null);
     setSelectedAccount(null);
     setSelectedPostId(null);
+    setSelectedPost(null);
   };
 
-  const handlePostClick = (postId: string) => {
-    setSelectedPostId(postId);
+  const handlePostClick = (queueItem: any) => {
+    // Convert QueueItem to Post format
+    const post: Post = {
+      id: queueItem.id,
+      type: queueItem.type,
+      content: queueItem.content,
+      createdTime: queueItem.createdTime,
+      status: queueItem.status,
+      platform: queueItem.platform,
+      aiGenerated: queueItem.aiGenerated,
+      tags: queueItem.tags || [],
+      stats: {
+        comments: 0,
+        retweets: 0,
+        likes: 0,
+        views: 0,
+        bookmarks: 0
+      }
+    };
+    
+    setSelectedPostId(post.id);
+    setSelectedPost(post);
     setSelectedCard(null);
     setSelectedAccount(null);
     setSelectedConfigItem(null);
@@ -153,10 +179,12 @@ function App() {
               </div>
             ) : (
               <ResultsArea 
-                selectedCard={selectedCard} 
-                selectedAccount={selectedAccount}
-                selectedConfigItem={selectedConfigItem}
-              />
+              selectedCard={selectedCard} 
+              selectedAccount={selectedAccount} 
+              selectedConfigItem={selectedConfigItem}
+              selectedPostId={selectedPostId}
+              selectedPost={selectedPost}
+            />
             )}
           </div>
         )}

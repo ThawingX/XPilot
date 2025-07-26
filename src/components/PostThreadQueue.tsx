@@ -2,21 +2,24 @@ import React, { useState } from 'react';
 import { 
   MessageSquare, 
   FileText, 
+  Clock, 
+  Calendar, 
   Activity, 
-  Calendar,
-  Clock,
-  Send,
+  Send, 
+  Trash2, 
+  Bot, 
+  Sparkles, 
+  Globe, 
+  Twitter, 
+  Linkedin,
+  Copy,
+  Edit3,
   X,
-  MoreHorizontal,
-  Heart,
-  MessageCircle,
-  Repeat2,
-  Share,
-  User
+  ArrowLeft
 } from 'lucide-react';
 
 interface PostThreadQueueProps {
-  onPostClick?: (postId: string) => void;
+  onPostClick?: (post: QueueItem) => void;
   selectedPostId?: string;
 }
 
@@ -29,11 +32,8 @@ interface QueueItem {
   status: 'draft' | 'scheduled' | 'published';
   platform: 'twitter' | 'linkedin' | 'both';
   threadCount?: number;
-  author: {
-    name: string;
-    username: string;
-    avatar?: string;
-  };
+  aiGenerated: boolean;
+  tags?: string[];
 }
 
 const PostThreadQueue: React.FC<PostThreadQueueProps> = ({ 
@@ -41,7 +41,6 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
   selectedPostId 
 }) => {
   const [activeTab, setActiveTab] = useState<'posts' | 'threads'>('posts');
-  const [selectedPost, setSelectedPost] = useState<QueueItem | null>(null);
 
   // Mock data for posts and threads
   const mockPosts: QueueItem[] = [
@@ -53,11 +52,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       scheduledTime: '2024-01-15 14:30',
       status: 'scheduled',
       platform: 'twitter',
-      author: {
-        name: 'XPilot Team',
-        username: '@xpilot_ai',
-        avatar: '🤖'
-      }
+      aiGenerated: true,
+      tags: ['AI', 'ProductLaunch', 'ContentCreation']
     },
     {
       id: '2',
@@ -66,11 +62,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       createdTime: '2024-01-14 16:45',
       status: 'draft',
       platform: 'linkedin',
-      author: {
-        name: 'XPilot Team',
-        username: '@xpilot_ai',
-        avatar: '🤖'
-      }
+      aiGenerated: true,
+      tags: ['BuildingInPublic', 'UserFeedback', 'Growth']
     },
     {
       id: '3',
@@ -80,11 +73,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       scheduledTime: '2024-01-16 09:00',
       status: 'scheduled',
       platform: 'both',
-      author: {
-        name: 'XPilot Team',
-        username: '@xpilot_ai',
-        avatar: '🤖'
-      }
+      aiGenerated: true,
+      tags: ['AI', 'Automation', 'Creativity']
     }
   ];
 
@@ -98,11 +88,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       status: 'scheduled',
       platform: 'twitter',
       threadCount: 12,
-      author: {
-        name: 'XPilot Team',
-        username: '@xpilot_ai',
-        avatar: '🤖'
-      }
+      aiGenerated: true,
+      tags: ['SaaS', 'ProductDevelopment', 'Guide']
     },
     {
       id: '5',
@@ -112,11 +99,8 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       status: 'draft',
       platform: 'twitter',
       threadCount: 8,
-      author: {
-        name: 'XPilot Team',
-        username: '@xpilot_ai',
-        avatar: '🤖'
-      }
+      aiGenerated: true,
+      tags: ['Psychology', 'ViralContent', 'Engagement']
     }
   ];
 
@@ -126,19 +110,19 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-yellow-100 text-yellow-700';
-      case 'scheduled': return 'bg-blue-100 text-blue-700';
-      case 'published': return 'bg-green-100 text-green-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'draft': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'scheduled': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'published': return 'bg-green-100 text-green-700 border-green-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getPlatformIcon = (platform: string) => {
     switch (platform) {
-      case 'twitter': return '🐦';
-      case 'linkedin': return '💼';
-      case 'both': return '🌐';
-      default: return '📱';
+      case 'twitter': return <Twitter size={16} className="text-blue-500" />;
+      case 'linkedin': return <Linkedin size={16} className="text-blue-600" />;
+      case 'both': return <Globe size={16} className="text-gray-600" />;
+      default: return <Globe size={16} className="text-gray-600" />;
     }
   };
 
@@ -154,76 +138,96 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
     return date.toLocaleDateString();
   };
 
-  const handlePostClick = (item: QueueItem) => {
-    setSelectedPost(item);
-    onPostClick?.(item.id);
+  const handleCardClick = (item: QueueItem) => {
+    onPostClick?.(item);
   };
 
-  const handleDrop = (itemId: string) => {
-    console.log('Dropping post:', itemId);
-    // Handle drop logic here
+  const handleDelete = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      console.log('Deleting post:', itemId);
+      // Handle delete logic here
+    }
   };
 
-  const handlePost = (itemId: string) => {
-    console.log('Posting:', itemId);
-    // Handle post logic here
+  const handlePublish = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Publishing post:', itemId);
+    // Handle publish logic here
+  };
+
+  const handleEdit = (itemId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('Editing post:', itemId);
+    // Handle edit logic here
+  };
+
+  const handleCopy = (content: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(content);
+    // Could show a toast notification here
   };
 
   const displayItems = getDisplayItems();
 
   return (
-    <div className="flex h-full bg-white">
-      {/* Main Content */}
-      <div className={`${selectedPost ? 'w-1/2' : 'w-full'} flex flex-col border-r border-gray-200`}>
-        {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-200">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900">Get Post/Thread</h2>
-          
-          {/* Tab Navigation */}
-          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
-            <button
-              onClick={() => setActiveTab('posts')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'posts'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <MessageSquare size={16} />
-              <span className="hidden sm:inline">Posts</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('threads')}
-              className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'threads'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <FileText size={16} />
-              <span className="hidden sm:inline">Threads</span>
-            </button>
-          </div>
-
-          {/* Items Count */}
+    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+      {/* Header */}
+      <div className="flex-shrink-0 p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <Activity size={20} className="text-gray-600" />
-            <span className="text-sm font-medium text-gray-600">
-              {displayItems.length} {activeTab}
-            </span>
+            <Bot className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">AI Generated Content</h2>
           </div>
         </div>
-        
-        {/* Content */}
-        <div className="overflow-y-auto flex-1">
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1 mb-4">
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'posts'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <MessageSquare size={16} />
+            <span className="hidden sm:inline">Posts</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('threads')}
+            className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              activeTab === 'threads'
+                ? 'bg-white text-blue-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <FileText size={16} />
+            <span className="hidden sm:inline">Threads</span>
+          </button>
+        </div>
+
+        {/* Items Count */}
+        <div className="flex items-center space-x-2">
+          <Activity size={20} className="text-gray-600" />
+          <span className="text-sm font-medium text-gray-600">
+            {displayItems.length} {activeTab}
+          </span>
+        </div>
+      </div>
+      
+      {/* Content Area */}
+      <div className="overflow-y-auto flex-1 p-6">
+        {/* Posts List View */}
+        <div className="space-y-4">
           {displayItems.length === 0 ? (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               {activeTab === 'posts' ? (
                 <MessageSquare size={48} className="mx-auto text-gray-400 mb-4" />
               ) : (
                 <FileText size={48} className="mx-auto text-gray-400 mb-4" />
               )}
-              <p className="text-gray-500">
+              <p className="text-gray-500 text-lg">
                 No {activeTab} in queue
               </p>
             </div>
@@ -231,201 +235,109 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
             displayItems.map((item) => (
               <div
                 key={item.id}
-                className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  selectedPostId === item.id ? 'bg-blue-50 border-blue-200' : ''
+                className={`border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md bg-white hover:border-gray-300 ${
+                  selectedPostId === item.id ? 'border-blue-500 bg-blue-50' : ''
                 }`}
-                onClick={() => handlePostClick(item)}
+                onClick={() => handleCardClick(item)}
               >
-                <div className="p-4">
-                  {/* Post Header */}
-                  <div className="flex items-start space-x-3 mb-3">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-lg">
-                      {item.author.avatar || <User size={20} className="text-gray-500" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-gray-900">{item.author.name}</span>
-                        <span className="text-gray-500">{item.author.username}</span>
-                        <span className="text-gray-500">·</span>
-                        <span className="text-gray-500 text-sm">{formatTime(item.createdTime)}</span>
-                        <span className="text-lg">{getPlatformIcon(item.platform)}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                          {item.status}
-                        </span>
-                        {item.type === 'thread' && (
-                          <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                            {item.threadCount} tweets
-                          </span>
-                        )}
-                        {item.scheduledTime && (
-                          <div className="flex items-center space-x-1 text-xs text-gray-500">
-                            <Clock size={12} />
-                            <span>Scheduled: {item.scheduledTime}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <MoreHorizontal size={16} />
-                    </button>
+                {/* Card Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className={`text-xs font-medium px-2 py-1 rounded-full border ${getStatusColor(item.status)}`}>
+                      {item.status}
+                    </span>
+                    {item.aiGenerated && (
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 flex items-center">
+                        <Sparkles size={12} className="mr-1" />
+                        AI Generated
+                      </span>
+                    )}
                   </div>
-
-                  {/* Post Content */}
-                  <div className="ml-13 mb-3">
-                    <p className="text-gray-900 whitespace-pre-wrap">
-                      {item.content.length > 200 ? `${item.content.substring(0, 200)}...` : item.content}
-                    </p>
-                  </div>
-
-                  {/* Post Actions */}
-                  <div className="ml-13 flex items-center justify-between">
-                    <div className="flex items-center space-x-6 text-gray-500">
-                      <button className="flex items-center space-x-2 hover:text-blue-600 transition-colors">
-                        <MessageCircle size={16} />
-                        <span className="text-sm">0</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-green-600 transition-colors">
-                        <Repeat2 size={16} />
-                        <span className="text-sm">0</span>
-                      </button>
-                      <button className="flex items-center space-x-2 hover:text-red-600 transition-colors">
-                        <Heart size={16} />
-                        <span className="text-sm">0</span>
-                      </button>
-                      <button className="hover:text-blue-600 transition-colors">
-                        <Share size={16} />
-                      </button>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDrop(item.id);
-                        }}
-                        className="px-3 py-1 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
-                      >
-                        Drop
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePost(item.id);
-                        }}
-                        className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        Post
-                      </button>
-                    </div>
+                  <div className="flex items-center space-x-2">
+                    {getPlatformIcon(item.platform)}
+                    <span className="text-xs text-gray-500">{formatTime(item.createdTime)}</span>
                   </div>
                 </div>
+
+                {/* Content Preview */}
+                <div className="mb-3">
+                  <p className="text-gray-900 text-sm leading-relaxed">
+                    {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
+                  </p>
+                </div>
+
+                {/* Meta Info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    {item.type === 'thread' && (
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">
+                        {item.threadCount} tweets
+                      </span>
+                    )}
+                    {item.scheduledTime && (
+                      <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <Clock size={12} />
+                        <span>{new Date(item.scheduledTime).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Action Buttons */}
+                  <div className="flex items-center space-x-1">
+                    <button
+                      onClick={(e) => handleCopy(item.content, e)}
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      title="Copy content"
+                    >
+                      <Copy size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => handleEdit(item.id, e)}
+                      className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      title="Edit post"
+                    >
+                      <Edit3 size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => handleDelete(item.id, e)}
+                      className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                      title="Delete post"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <button
+                      onClick={(e) => handlePublish(item.id, e)}
+                      className="p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                      title="Publish post"
+                    >
+                      <Send size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {item.tags && item.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {item.tags.slice(0, 3).map((tag, index) => (
+                      <span
+                        key={index}
+                        className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                    {item.tags.length > 3 && (
+                      <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                        +{item.tags.length - 3}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
       </div>
-
-      {/* Post Detail Panel */}
-      {selectedPost && (
-        <div className="w-1/2 flex flex-col bg-white">
-          {/* Detail Header */}
-          <div className="flex-shrink-0 p-4 border-b border-gray-200 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Post Details</h3>
-            <button
-              onClick={() => setSelectedPost(null)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X size={20} />
-            </button>
-          </div>
-          
-          {/* Detail Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="max-w-lg mx-auto">
-              {/* Post Header */}
-              <div className="flex items-start space-x-3 mb-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-xl">
-                  {selectedPost.author.avatar || <User size={24} className="text-gray-500" />}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-bold text-gray-900">{selectedPost.author.name}</span>
-                    <span className="text-gray-500">{selectedPost.author.username}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <span className="text-gray-500 text-sm">{selectedPost.createdTime}</span>
-                    <span className="text-lg">{getPlatformIcon(selectedPost.platform)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Post Content */}
-              <div className="mb-4">
-                <p className="text-gray-900 text-lg leading-relaxed whitespace-pre-wrap">
-                  {selectedPost.content}
-                </p>
-              </div>
-
-              {/* Post Meta */}
-              <div className="flex items-center space-x-4 mb-4 text-sm text-gray-500">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedPost.status)}`}>
-                  {selectedPost.status}
-                </span>
-                {selectedPost.type === 'thread' && (
-                  <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                    {selectedPost.threadCount} tweets
-                  </span>
-                )}
-                {selectedPost.scheduledTime && (
-                  <div className="flex items-center space-x-1">
-                    <Clock size={14} />
-                    <span>Scheduled: {selectedPost.scheduledTime}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Post Actions */}
-              <div className="flex items-center justify-between py-3 border-t border-gray-200">
-                <div className="flex items-center space-x-8 text-gray-500">
-                  <button className="flex items-center space-x-2 hover:text-blue-600 transition-colors">
-                    <MessageCircle size={18} />
-                    <span>0</span>
-                  </button>
-                  <button className="flex items-center space-x-2 hover:text-green-600 transition-colors">
-                    <Repeat2 size={18} />
-                    <span>0</span>
-                  </button>
-                  <button className="flex items-center space-x-2 hover:text-red-600 transition-colors">
-                    <Heart size={18} />
-                    <span>0</span>
-                  </button>
-                  <button className="hover:text-blue-600 transition-colors">
-                    <Share size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex space-x-3 mt-6">
-                <button
-                  onClick={() => handleDrop(selectedPost.id)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-red-600 border border-red-200 rounded-md hover:bg-red-50 transition-colors"
-                >
-                  Drop
-                </button>
-                <button
-                  onClick={() => handlePost(selectedPost.id)}
-                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-                >
-                  Post Now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

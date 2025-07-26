@@ -78,5 +78,25 @@ export interface Card {
   };
 }
 
+// Post interface for PostThreadQueue
+export interface Post {
+  id: string;
+  type: 'post' | 'thread';
+  content: string;
+  createdTime: string;
+  scheduledTime?: string;
+  status: 'draft' | 'scheduled' | 'published';
+  platform: 'twitter' | 'linkedin' | 'both';
+  threadCount?: number;
+  aiGenerated: boolean;
+  tags?: string[];
+  stats?: {
+    comments: number;
+    retweets: number;
+    likes: number;
+    views: number;
+  };
+}
+
 export type CardType = Card['type'];
 export type Priority = Metadata['priority'];

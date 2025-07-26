@@ -1,17 +1,257 @@
 import React from 'react';
-import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye, MapPin, Link, MessageCircle, Share, BarChart3, Target, Zap, CheckCircle, AlertCircle, ChevronRight, FileText, Lightbulb, TrendingDown, Activity } from 'lucide-react';
-import { Card, InspirationAccount } from '../types';
+import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye, MapPin, Link, MessageCircle, Share, BarChart3, Target, Zap, CheckCircle, AlertCircle, ChevronRight, FileText, Lightbulb, TrendingDown, Activity, Twitter, Linkedin, Globe, Sparkles, Copy, Edit3, Trash2, Send } from 'lucide-react';
+import { Card, InspirationAccount, Post } from '../types';
 import { ConfigItem } from './Config';
 import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
 import { mockAccountPosts, mockAccountAnalytics } from '../data/mockData';
+
+// Post/Thread types
+interface QueueItem {
+  id: string;
+  type: 'post' | 'thread';
+  content: string;
+  createdTime: string;
+  scheduledTime?: string;
+  status: 'draft' | 'scheduled' | 'published';
+  platform: 'twitter' | 'linkedin' | 'both';
+  threadCount?: number;
+  aiGenerated?: boolean;
+  tags?: string[];
+}
 
 interface ResultsAreaProps {
   selectedCard: Card | null;
   selectedAccount: InspirationAccount | null;
   selectedConfigItem: ConfigItem | null;
+  selectedPostId?: string | null;
+  selectedPost?: Post | null;
 }
 
-const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount, selectedConfigItem }) => {
+const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount, selectedConfigItem, selectedPostId, selectedPost }) => {
+  // Mock data for posts and threads
+  const mockPosts: QueueItem[] = [
+    {
+      id: '1',
+      type: 'post',
+      content: 'Just launched our new AI-powered content generation feature! 🚀 This has been months in the making and we\'re excited to see how it helps creators streamline their workflow. #AI #ContentCreation #ProductLaunch',
+      createdTime: '2024-01-15 10:30',
+      scheduledTime: '2024-01-15 14:30',
+      status: 'scheduled',
+      platform: 'twitter',
+      aiGenerated: true,
+      tags: ['AI', 'ProductLaunch', 'ContentCreation']
+    },
+    {
+      id: '2',
+      type: 'post',
+      content: 'Building in public: Here\'s what we learned from our first 1000 users... The feedback has been incredible and we\'ve made significant improvements based on your suggestions. Thank you for being part of this journey! 🙏',
+      createdTime: '2024-01-14 16:45',
+      status: 'draft',
+      platform: 'linkedin',
+      aiGenerated: true,
+      tags: ['BuildingInPublic', 'UserFeedback', 'Growth']
+    },
+    {
+      id: '3',
+      type: 'post',
+      content: 'The future of social media automation is here. What do you think? 🤔 We believe that AI should enhance human creativity, not replace it. Our tools are designed to help you express your ideas more effectively.',
+      createdTime: '2024-01-14 09:15',
+      scheduledTime: '2024-01-16 09:00',
+      status: 'scheduled',
+      platform: 'both',
+      aiGenerated: true,
+      tags: ['AI', 'Automation', 'Creativity']
+    }
+  ];
+
+  const mockThreads: QueueItem[] = [
+    {
+      id: '4',
+      type: 'thread',
+      content: '1/ How to build a successful SaaS product in 2024: A comprehensive guide 🧵\n\nAfter building multiple products and learning from countless mistakes, here are the key insights that actually matter...',
+      createdTime: '2024-01-14 14:20',
+      scheduledTime: '2024-01-15 16:00',
+      status: 'scheduled',
+      platform: 'twitter',
+      threadCount: 12,
+      aiGenerated: true,
+      tags: ['SaaS', 'ProductDevelopment', 'Guide']
+    },
+    {
+      id: '5',
+      type: 'thread',
+      content: '1/ The psychology behind viral content: What makes people share? 🧠\n\nAfter analyzing thousands of viral posts, we\'ve identified the key psychological triggers that drive engagement...',
+      createdTime: '2024-01-13 11:30',
+      status: 'draft',
+      platform: 'twitter',
+      threadCount: 8,
+      aiGenerated: true,
+      tags: ['Psychology', 'ViralContent', 'Engagement']
+    }
+  ];
+
+  // Helper functions for post display
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'scheduled': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'published': return 'bg-green-100 text-green-700 border-green-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getPlatformIcon = (platform: string) => {
+    switch (platform) {
+      case 'twitter': return <Twitter size={16} className="text-blue-500" />;
+      case 'linkedin': return <Linkedin size={16} className="text-blue-600" />;
+      case 'both': return <Globe size={16} className="text-gray-600" />;
+      default: return <Globe size={16} className="text-gray-600" />;
+    }
+  };
+
+  const handleCopy = (content: string) => {
+    navigator.clipboard.writeText(content);
+  };
+
+  const handleEdit = (postId: string) => {
+    console.log('Editing post:', postId);
+  };
+
+  const handleDelete = (postId: string) => {
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      console.log('Deleting post:', postId);
+    }
+  };
+
+  const handlePublish = (postId: string) => {
+    console.log('Publishing post:', postId);
+  };
+
+  const renderPostDetails = (post: Post) => {
+    return (
+      <div className="h-full overflow-y-auto">
+        {/* Post Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-start space-x-4">
+            <div className="flex justify-center items-center w-16 h-16 bg-white/20 rounded-full">
+              <Bot size={24} className="text-white" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-2xl font-bold">
+                  {post.type === 'thread' ? 'Thread Details' : 'Post Details'}
+                </h1>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(post.status)} bg-white/90`}>
+                  {post.status}
+                </span>
+                {post.aiGenerated && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-purple-100/90 text-purple-700 border border-purple-200 flex items-center">
+                    <Sparkles size={14} className="mr-1" />
+                    AI Generated
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-4 text-sm text-blue-100">
+                <div className="flex items-center space-x-2">
+                  {getPlatformIcon(post.platform)}
+                  <span className="capitalize">{post.platform}</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Calendar size={14} />
+                  <span>Created: {post.createdTime}</span>
+                </div>
+                {post.scheduledTime && (
+                  <div className="flex items-center space-x-1">
+                    <Clock size={14} />
+                    <span>Scheduled: {post.scheduledTime}</span>
+                  </div>
+                )}
+                {post.type === 'thread' && (
+                  <div className="flex items-center space-x-1">
+                    <FileText size={14} />
+                    <span>{post.threadCount} tweets</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Post Content */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <MessageSquare className="w-5 h-5 mr-2 text-blue-500" />
+              Content
+            </h2>
+            <div className="bg-gray-50 rounded-lg p-6 border">
+              <p className="text-gray-900 leading-relaxed whitespace-pre-wrap text-base">
+                {post.content}
+              </p>
+            </div>
+          </div>
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Tag className="w-5 h-5 mr-2 text-blue-500" />
+                Tags
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="text-sm px-3 py-1 bg-blue-100 text-blue-700 rounded-full border border-blue-200"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <Zap className="w-5 h-5 mr-2 text-blue-500" />
+              Actions
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handleCopy(post.content)}
+                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+              >
+                <Copy size={16} />
+                <span>Copy</span>
+              </button>
+              <button
+                onClick={() => handleEdit(post.id)}
+                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-blue-600 border border-blue-300 rounded-md hover:bg-blue-50 transition-colors"
+              >
+                <Edit3 size={16} />
+                <span>Edit</span>
+              </button>
+              <button
+                onClick={() => handleDelete(post.id)}
+                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-red-600 border border-red-300 rounded-md hover:bg-red-50 transition-colors"
+              >
+                <Trash2 size={16} />
+                <span>Delete</span>
+              </button>
+              <button
+                onClick={() => handlePublish(post.id)}
+                className="flex items-center justify-center space-x-2 px-4 py-3 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <Send size={16} />
+                <span>Publish</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
@@ -149,7 +389,17 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
       </div>
     );
   };
-  if (!selectedCard && !selectedAccount && !selectedConfigItem) {
+  // If a post is selected, show post details
+  if (selectedPostId && selectedPost) {
+    return (
+      <div className="h-full bg-gray-50">
+        {renderPostDetails(selectedPost)}
+      </div>
+    );
+  }
+
+  // If no item is selected, show default message
+  if (!selectedCard && !selectedAccount && !selectedConfigItem && !selectedPostId) {
     return (
       <div className="flex flex-1 justify-center items-center bg-white h-full">
         <div className="text-center">
@@ -302,234 +552,6 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     );
   }
 
-  const renderPostDetails = () => (
-    <div className="space-y-6">
-      {/* Post Header */}
-      <div className="flex items-start space-x-3">
-        <img
-          src={selectedCard.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCard.author || 'User')}&background=6366f1&color=fff&size=48`}
-          alt={selectedCard.author || 'User'}
-          className="object-cover w-12 h-12 rounded-full border border-gray-200"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCard.author || 'User')}&background=6366f1&color=fff&size=48`;
-          }}
-        />
-        <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <h3 className="font-semibold text-gray-900">{selectedCard.author || 'Unknown User'}</h3>
-            <span className="text-gray-500">{selectedCard.handle || '@unknown'}</span>
-          </div>
-          <div className="flex items-center mt-1 space-x-2">
-            <span className="text-sm text-gray-500">{selectedCard.time}</span>
-            <ExternalLink size={14} className="text-gray-400" />
-          </div>
-        </div>
-      </div>
-
-      {/* Post Content */}
-      <div className="p-4 bg-gray-50 rounded-lg">
-        <p className="leading-relaxed text-gray-900 whitespace-pre-line">{selectedCard.content}</p>
-      </div>
-
-      {/* Post Stats */}
-      {selectedCard.stats && (
-        <div className="flex items-center py-3 space-x-6 border-gray-200 border-y">
-          <div className="flex items-center space-x-2 text-gray-600">
-            <MessageSquare size={18} />
-            <span>{formatNumber(selectedCard.stats.comments)} Comments</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <Repeat2 size={18} />
-            <span>{formatNumber(selectedCard.stats.retweets)} Retweets</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <Heart size={18} />
-            <span>{formatNumber(selectedCard.stats.likes)} Likes</span>
-          </div>
-          <div className="flex items-center space-x-2 text-gray-600">
-            <span>{formatNumber(selectedCard.stats.views)} Views</span>
-          </div>
-        </div>
-      )}
-
-      {/* Suggested Reply */}
-      {selectedCard.id === 1 && (
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center mb-3 space-x-2">
-            <Bot size={16} className="text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">AI SUGGESTED REPLY</span>
-          </div>
-          <p className="mb-4 text-gray-700">
-            So true. The biggest paradox of building in public is that the transparency meant to liberate us often becomes another source of pressure. At XPilot we remind ourselves daily that progress isn't linear - and that's perfectly fine.
-          </p>
-          <div className="flex space-x-3">
-            <button className="flex-1 px-4 py-2 text-red-600 rounded-lg border border-red-200 transition-colors hover:bg-red-50">
-              Reject
-            </button>
-            <button className="flex-1 px-4 py-2 text-white bg-green-600 rounded-lg transition-colors hover:bg-green-700">
-              Post Reply
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Comments Section */}
-      <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Recent Comments</h4>
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex p-3 space-x-3 bg-gray-50 rounded-lg">
-              <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
-              <div className="flex-1">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-900">User {i}</span>
-                  <span className="text-xs text-gray-500">2h ago</span>
-                </div>
-                <p className="mt-1 text-sm text-gray-700">This is a sample comment on the post...</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderStrategyDetails = () => (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3">
-        <div className="flex justify-center items-center w-12 h-12 bg-purple-100 rounded-lg">
-          <TrendingUp size={24} className="text-purple-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">{selectedCard.title}</h2>
-          <p className="text-gray-500">{selectedCard.time}</p>
-        </div>
-      </div>
-
-      <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-        <p className="text-gray-700">{selectedCard.content}</p>
-      </div>
-
-      {selectedCard.metadata && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center mb-2 space-x-2">
-              <Tag size={16} className="text-gray-600" />
-              <span className="font-medium text-gray-900">Category</span>
-            </div>
-            <p className="text-gray-700">{selectedCard.metadata.category}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center mb-2 space-x-2">
-              <Calendar size={16} className="text-gray-600" />
-              <span className="font-medium text-gray-900">Priority</span>
-            </div>
-            <span className={`px-2 py-1 rounded-full text-sm font-medium ${
-              selectedCard.metadata.priority === 'High' 
-                ? 'bg-red-100 text-red-700' 
-                : 'bg-yellow-100 text-yellow-700'
-            }`}>
-              {selectedCard.metadata.priority}
-            </span>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Implementation Steps</h4>
-        <div className="space-y-2">
-          {['Identify target audience segments', 'Create content calendar', 'Develop key messaging', 'Monitor engagement metrics'].map((step, i) => (
-            <div key={i} className="flex items-center p-3 space-x-3 bg-gray-50 rounded-lg">
-              <div className="flex justify-center items-center w-6 h-6 bg-purple-100 rounded-full">
-                <span className="text-sm font-medium text-purple-600">{i + 1}</span>
-              </div>
-              <span className="text-gray-700">{step}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderActionDetails = () => (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-3">
-        <div className="flex justify-center items-center w-12 h-12 bg-orange-100 rounded-lg">
-          <Clock size={24} className="text-orange-600" />
-        </div>
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">{selectedCard.title}</h2>
-          <p className="text-gray-500">{selectedCard.time}</p>
-        </div>
-      </div>
-
-      <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-        <p className="text-gray-700">{selectedCard.content}</p>
-      </div>
-
-      {selectedCard.metadata && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center mb-2 space-x-2">
-              <User size={16} className="text-gray-600" />
-              <span className="font-medium text-gray-900">Assignee</span>
-            </div>
-            <p className="text-gray-700">{selectedCard.metadata.assignee}</p>
-          </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center mb-2 space-x-2">
-              <Calendar size={16} className="text-gray-600" />
-              <span className="font-medium text-gray-900">Status</span>
-            </div>
-            <span className={`px-2 py-1 rounded-full text-sm font-medium ${
-              selectedCard.metadata.status === 'In Progress' 
-                ? 'bg-blue-100 text-blue-700' 
-                : 'bg-green-100 text-green-700'
-            }`}>
-              {selectedCard.metadata.status}
-            </span>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Action Items</h4>
-        <div className="space-y-2">
-          {['Review customer feedback', 'Identify pain points', 'Create improvement plan', 'Implement changes'].map((action, i) => (
-            <div key={i} className="flex items-center p-3 space-x-3 bg-gray-50 rounded-lg">
-              <div className="flex justify-center items-center w-6 h-6 bg-orange-100 rounded-full">
-                <span className="text-sm font-medium text-orange-600">{i + 1}</span>
-              </div>
-              <span className="text-gray-700">{action}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderContent = () => {
-    switch (selectedCard.type) {
-      case 'post':
-      case 'tweet':
-        return renderPostDetails();
-      case 'strategy':
-        return renderStrategyDetails();
-      case 'action':
-        return renderActionDetails();
-      default:
-        return renderPostDetails();
-    }
-  };
-
-  return (
-    <div className="overflow-y-auto flex-1 bg-white">
-      <div className="p-6">
-        {renderContent()}
-      </div>
-    </div>
-  );
 };
 
 export default ResultsArea;
