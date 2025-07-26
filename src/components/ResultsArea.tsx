@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye, MapPin, Link, MessageCircle, Share, BarChart3, Target, Zap, CheckCircle, AlertCircle, ChevronRight, FileText, Lightbulb, TrendingDown, Activity, Twitter, Linkedin, Globe, Sparkles, Copy, Edit3, Trash2, Send } from 'lucide-react';
+import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye, MapPin, Link, MessageCircle, Share, BarChart3, Target, Zap, CheckCircle, AlertCircle, ChevronRight, FileText, Lightbulb, TrendingDown, Activity, Globe, Sparkles, Copy, Edit3, Trash2, Send } from 'lucide-react';
 import { Card, InspirationAccount, Post } from '../types';
 import { ConfigItem } from './Config';
 import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
@@ -13,10 +13,10 @@ interface QueueItem {
   createdTime: string;
   scheduledTime?: string;
   status: 'draft' | 'scheduled' | 'published';
-  platform: 'twitter' | 'linkedin' | 'both';
+  platform: 'twitter';
   threadCount?: number;
-  aiGenerated?: boolean;
-  tags?: string[];
+  aiGenerated: boolean;
+  tags: string[];
 }
 
 interface ResultsAreaProps {
@@ -59,7 +59,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
       createdTime: '2024-01-14 09:15',
       scheduledTime: '2024-01-16 09:00',
       status: 'scheduled',
-      platform: 'both',
+      platform: 'twitter',
       aiGenerated: true,
       tags: ['AI', 'Automation', 'Creativity']
     }
@@ -101,13 +101,10 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'twitter': return <Twitter size={16} className="text-blue-500" />;
-      case 'linkedin': return <Linkedin size={16} className="text-blue-600" />;
-      case 'both': return <Globe size={16} className="text-gray-600" />;
-      default: return <Globe size={16} className="text-gray-600" />;
-    }
+  const getTypeIcon = (type: string) => {
+    return type === 'post' ? 
+      <MessageSquare size={16} className="text-blue-500" /> : 
+      <FileText size={16} className="text-green-500" />;
   };
 
   const handleCopy = (content: string) => {
@@ -148,8 +145,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
               </div>
               <div className="flex items-center space-x-4 text-sm text-blue-100">
                 <div className="flex items-center space-x-2">
-                  {getPlatformIcon(post.platform)}
-                  <span className="capitalize">{post.platform}</span>
+                  {getTypeIcon(post.type)}
+                  <span className="capitalize">{post.type}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Calendar size={14} />

@@ -9,9 +9,7 @@ import {
   Trash2, 
   Bot, 
   Sparkles, 
-  Globe, 
-  Twitter, 
-  Linkedin,
+  Twitter,
   Copy,
   Edit3,
   X,
@@ -32,7 +30,7 @@ interface QueueItem {
   createdTime: string;
   scheduledTime?: string;
   status: 'draft' | 'scheduled' | 'published';
-  platform: 'twitter' | 'linkedin' | 'both';
+  platform: 'twitter';
   threadCount?: number;
   aiGenerated: boolean;
   tags?: string[];
@@ -56,33 +54,12 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       platform: 'twitter',
       aiGenerated: true,
       tags: ['AI', 'ProductLaunch', 'ContentCreation']
-    },
-    {
-      id: '2',
-      type: 'post',
-      content: 'Building in public: Here\'s what we learned from our first 1000 users... The feedback has been incredible and we\'ve made significant improvements based on your suggestions. Thank you for being part of this journey! 🙏',
-      createdTime: '2024-01-14 16:45',
-      status: 'draft',
-      platform: 'linkedin',
-      aiGenerated: true,
-      tags: ['BuildingInPublic', 'UserFeedback', 'Growth']
-    },
-    {
-      id: '3',
-      type: 'post',
-      content: 'The future of social media automation is here. What do you think? 🤔 We believe that AI should enhance human creativity, not replace it. Our tools are designed to help you express your ideas more effectively.',
-      createdTime: '2024-01-14 09:15',
-      scheduledTime: '2024-01-16 09:00',
-      status: 'scheduled',
-      platform: 'both',
-      aiGenerated: true,
-      tags: ['AI', 'Automation', 'Creativity']
     }
   ];
 
   const mockThreads: QueueItem[] = [
     {
-      id: '4',
+      id: '8',
       type: 'thread',
       content: '1/ How to build a successful SaaS product in 2024: A comprehensive guide 🧵\n\nAfter building multiple products and learning from countless mistakes, here are the key insights that actually matter...',
       createdTime: '2024-01-14 14:20',
@@ -94,7 +71,7 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
       tags: ['SaaS', 'ProductDevelopment', 'Guide']
     },
     {
-      id: '5',
+      id: '9',
       type: 'thread',
       content: '1/ The psychology behind viral content: What makes people share? 🧠\n\nAfter analyzing thousands of viral posts, we\'ve identified the key psychological triggers that drive engagement...',
       createdTime: '2024-01-13 11:30',
@@ -119,13 +96,10 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
     }
   };
 
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case 'twitter': return <Twitter size={16} className="text-blue-500" />;
-      case 'linkedin': return <Linkedin size={16} className="text-blue-600" />;
-      case 'both': return <Globe size={16} className="text-gray-600" />;
-      default: return <Globe size={16} className="text-gray-600" />;
-    }
+  const getTypeIcon = (type: string) => {
+    return type === 'post' ? 
+      <MessageSquare size={16} className="text-blue-500" /> : 
+      <FileText size={16} className="text-green-500" />;
   };
 
   const formatTime = (timeString: string) => {
@@ -270,7 +244,7 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    {getPlatformIcon(item.platform)}
+                    {getTypeIcon(item.type)}
                     <span className="text-xs text-gray-500">{formatTime(item.createdTime)}</span>
                   </div>
                 </div>

@@ -86,10 +86,10 @@ export interface Post {
   createdTime: string;
   scheduledTime?: string;
   status: 'draft' | 'scheduled' | 'published';
-  platform: 'twitter' | 'linkedin' | 'both';
+  platform: 'twitter';
   threadCount?: number;
   aiGenerated: boolean;
-  tags?: string[];
+  tags: string[];
   stats?: {
     comments: number;
     retweets: number;
