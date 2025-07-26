@@ -22,7 +22,9 @@ import {
   Sparkles,
   Crown,
   Globe,
-  Rocket
+  Rocket,
+  Crosshair,
+  PenTool
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -135,29 +137,22 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     { 
       title: 'Inspiration Accounts', 
       description: 'Manage target accounts for inspiration', 
-      icon: Users, 
+      icon: Crosshair, 
       color: 'bg-gradient-to-br from-[#4792E6] to-[#3b82f6]',
       section: 'Inspiration Accounts'
     },
     { 
       title: 'Auto Engagement', 
       description: 'Configure automated interactions', 
-      icon: Heart, 
+      icon: Users, 
       color: 'bg-gradient-to-br from-[#4792E6]/80 to-[#6366f1]',
-      section: 'Engagement'
-    },
-    { 
-      title: 'Generate Post', 
-      description: 'Create AI-powered content', 
-      icon: Sparkles, 
-      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
-      section: 'Generate Post'
+      section: 'Auto Engagement'
     },
     { 
       title: 'Content Strategy', 
       description: 'Plan your content calendar', 
-      icon: Target, 
-      color: 'bg-gradient-to-br from-[#4792E6]/60 to-[#06b6d4]',
+      icon: Calendar, 
+      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
       section: 'Content Strategy'
     }
   ];

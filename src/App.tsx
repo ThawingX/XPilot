@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import EngagementQueue from './components/EngagementQueue';
+import PostThreadQueue from './components/PostThreadQueue';
 import ResultsArea from './components/ResultsArea';
 import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
@@ -12,6 +13,7 @@ function App() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
 
@@ -21,6 +23,7 @@ function App() {
     setSelectedCard(null);
     setSelectedAccount(null);
     setSelectedConfigItem(null);
+    setSelectedPostId(null);
     // Reset profile section when navigating to profile from menu
     if (itemName === 'Profile') {
       setProfileInitialSection('overview');
@@ -32,6 +35,7 @@ function App() {
     setSelectedCard(null);
     setSelectedAccount(null);
     setSelectedConfigItem(null);
+    setSelectedPostId(null);
     // Set profile section if navigating to profile
     if (section === 'Profile' && profileSection) {
       setProfileInitialSection(profileSection);
@@ -42,22 +46,34 @@ function App() {
     setSelectedCard(card);
     setSelectedAccount(null);
     setSelectedConfigItem(null);
+    setSelectedPostId(null);
   };
 
   const handleAccountClick = (account: InspirationAccount) => {
     setSelectedAccount(account);
     setSelectedCard(null);
     setSelectedConfigItem(null);
+    setSelectedPostId(null);
   };
 
   const handleConfigItemClick = (item: ConfigItem) => {
     setSelectedConfigItem(item);
     setSelectedCard(null);
     setSelectedAccount(null);
+    setSelectedPostId(null);
+  };
+
+  const handlePostClick = (postId: string) => {
+    setSelectedPostId(postId);
+    setSelectedCard(null);
+    setSelectedAccount(null);
+    setSelectedConfigItem(null);
   };
 
   const showDashboard = activeMenuItem === 'Dashboard';
   const showInspirationAccounts = activeMenuItem === 'Inspiration Accounts';
+  const showAutoEngagement = activeMenuItem === 'Auto Engagement';
+  const showPostThreadQueue = activeMenuItem === 'Get Post/Thread';
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
 
@@ -85,6 +101,11 @@ function App() {
             <Config 
               onItemClick={handleConfigItemClick} 
               selectedItemId={selectedConfigItem?.id?.toString()}
+            />
+          ) : showPostThreadQueue ? (
+            <PostThreadQueue 
+              onPostClick={handlePostClick}
+              selectedPostId={selectedPostId || undefined}
             />
           ) : (
             <EngagementQueue 
