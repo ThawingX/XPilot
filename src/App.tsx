@@ -4,6 +4,7 @@ import EngagementQueue from './components/EngagementQueue';
 import ResultsArea from './components/ResultsArea';
 import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
+import Dashboard from './components/Dashboard';
 import { Card, InspirationAccount } from './types/index';
 import AIAssistant from './components/AIAssistant';
 
@@ -11,11 +12,18 @@ function App() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
-  const [activeMenuItem, setActiveMenuItem] = useState<string>('');
+  const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
 
   const handleMenuItemClick = (itemName: string) => {
     setActiveMenuItem(itemName);
-    // 清除其他选择状态
+    // Clear other selection states
+    setSelectedCard(null);
+    setSelectedAccount(null);
+    setSelectedConfigItem(null);
+  };
+
+  const handleDashboardNavigate = (section: string) => {
+    setActiveMenuItem(section);
     setSelectedCard(null);
     setSelectedAccount(null);
     setSelectedConfigItem(null);
@@ -39,6 +47,7 @@ function App() {
     setSelectedAccount(null);
   };
 
+  const showDashboard = activeMenuItem === 'Dashboard';
   const showInspirationAccounts = activeMenuItem === 'Inspiration Accounts';
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
@@ -53,9 +62,11 @@ function App() {
       
       {/* Main Content Area */}
       <div className="flex overflow-hidden flex-1">
-        {/* Activity Queue / Config / Profile - 增大宽度以适应内容 */}
-        <div className={`${showInspirationAccounts ? 'w-1/3' : showConfig ? 'w-1/3' : showProfile ? 'w-1/3' : 'w-2/5'} min-w-0`}>
-          {showProfile ? (
+        {/* Activity Queue / Config / Profile / Dashboard - increased width to fit content */}
+        <div className={`${showDashboard ? 'w-1/3' : showInspirationAccounts ? 'w-1/3' : showConfig ? 'w-1/3' : showProfile ? 'w-1/3' : 'w-2/5'} min-w-0`}>
+          {showDashboard ? (
+            <Dashboard onNavigate={handleDashboardNavigate} />
+          ) : showProfile ? (
             <Profile />
           ) : showConfig ? (
             <Config 

@@ -1,5 +1,5 @@
 import { Card, InspirationAccount } from '../types';
-import { Target, PenTool, Users, Calendar, User, Settings } from 'lucide-react';
+import { Crosshair, PenTool, Users, Calendar, User, Settings, LayoutDashboard } from 'lucide-react';
 
 // Mock posts for account profiles
 export const mockAccountPosts = {
@@ -378,7 +378,8 @@ export const mockChatMessages = [
 
 // Menu items mock data
 export const mockMenuItems = [
-  { name: 'Inspiration Accounts', icon: Target },
+  { name: 'Dashboard', icon: LayoutDashboard },
+  { name: 'Inspiration Accounts', icon: Crosshair },
   { name: 'Engagement', icon: Users },
   { name: 'Tweet Generation', icon: PenTool },
   { name: 'Content Strategy', icon: Calendar },

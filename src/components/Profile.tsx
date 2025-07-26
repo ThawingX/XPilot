@@ -104,9 +104,8 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'stats', label: 'Statistics', icon: BarChart3 },
-    { id: 'achievements', label: 'Achievements', icon: Award },
     { id: 'activity', label: 'Recent Activity', icon: Clock },
+    { id: 'stats', label: 'Statistics', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
@@ -411,24 +410,30 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
   const renderContent = () => {
     switch (activeSection) {
       case 'overview': return renderOverview();
-      case 'stats': return renderStats();
-      case 'achievements': return renderAchievements();
       case 'activity': return renderActivity();
+      case 'stats': return renderStats();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-gray-200 shadow-sm relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+      </div>
+      
       {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-gray-200">
+      <div className="flex-shrink-0 p-6 border-b border-white/50 backdrop-blur-sm bg-white/30 relative z-10">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
           {!isEditing ? (
             <button
               onClick={handleEdit}
-              className="flex items-center space-x-2 px-3 py-2 text-[#4792E6] hover:bg-[#4792E6]/10 rounded-lg transition-colors"
+              className="flex items-center space-x-2 px-3 py-2 text-[#4792E6] hover:bg-white/50 rounded-lg transition-colors backdrop-blur-sm"
             >
               <Edit3 size={16} />
               <span className="text-sm font-medium">Edit</span>
@@ -437,7 +442,7 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
             <div className="flex space-x-2">
               <button
                 onClick={handleCancel}
-                className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="flex items-center space-x-1 px-3 py-2 text-gray-600 hover:bg-white/50 rounded-lg transition-colors backdrop-blur-sm"
               >
                 <X size={16} />
                 <span className="text-sm">Cancel</span>
@@ -454,14 +459,14 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
         </div>
 
         {/* Navigation Menu */}
-        <div className="flex space-x-1 mt-4 bg-gray-100 rounded-lg p-1">
+        <div className="flex space-x-1 mt-4 bg-white/40 backdrop-blur-sm rounded-lg p-1 border border-white/50">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveSection(item.id)}
               className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                 activeSection === item.id
-                  ? 'bg-white text-[#4792E6] shadow-sm transform scale-105'
+                  ? 'bg-white text-[#4792E6] shadow-sm transform scale-105 backdrop-blur-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
               }`}
             >
@@ -473,7 +478,7 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
       </div>
 
       {/* Content */}
-      <div className="overflow-y-auto flex-1 p-6">
+      <div className="overflow-y-auto flex-1 p-6 relative z-10">
         {renderContent()}
       </div>
     </div>

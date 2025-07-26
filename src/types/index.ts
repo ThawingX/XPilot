@@ -1,4 +1,4 @@
-// 统一的类型定义
+// Unified type definitions
 export interface Author {
   name: string;
   handle: string;
@@ -41,7 +41,7 @@ export interface AccountAnalytics {
   audienceGender: string;
 }
 
-// 对标账号接口
+// Inspiration account interface
 export interface InspirationAccount {
   id: number;
   name: string;
