@@ -376,13 +376,280 @@ export const mockChatMessages = [
   }
 ];
 
+// Marketing Strategy data
+export interface MarketingStrategy {
+  id: string;
+  type: 'content' | 'operation' | 'engagement' | 'growth' | 'analytics';
+  title: string;
+  description: string;
+  status: 'active' | 'draft' | 'completed';
+  priority: 'high' | 'medium' | 'low';
+  createdDate: string;
+  lastUpdated: string;
+  metrics?: {
+    reach?: number;
+    engagement?: number;
+    conversion?: number;
+  };
+}
+
+export interface ContentScheduleItem {
+  id: string;
+  day: string;
+  timeSlot: string;
+  activity: 'post' | 'engagement' | 'analysis' | 'planning';
+  content: string;
+  platform: string[];
+  status: 'scheduled' | 'completed' | 'pending';
+}
+
+export const mockMarketingStrategies: MarketingStrategy[] = [
+  {
+    id: 'ms1',
+    type: 'content',
+    title: 'Content Strategy - Q1 2024',
+    description: 'Focus on educational content that showcases our expertise while building trust with potential customers. Emphasize case studies and behind-the-scenes content.',
+    status: 'active',
+    priority: 'high',
+    createdDate: '2024-01-01',
+    lastUpdated: '2024-01-15',
+    metrics: {
+      reach: 125000,
+      engagement: 8.5,
+      conversion: 3.2
+    }
+  },
+  {
+    id: 'ms2',
+    type: 'engagement',
+    title: 'Engagement Strategy - Community Building',
+    description: 'Enhance brand influence through active interaction and community engagement. Focus on interactions with industry KOLs and potential customers.',
+    status: 'active',
+    priority: 'high',
+    createdDate: '2024-01-05',
+    lastUpdated: '2024-01-20',
+    metrics: {
+      reach: 89000,
+      engagement: 12.3,
+      conversion: 5.1
+    }
+  },
+  {
+    id: 'ms3',
+    type: 'operation',
+    title: 'Operation Strategy - Automation Process',
+    description: 'Optimize content publishing workflow, implement automated replies and interactions. Improve operational efficiency and response speed.',
+    status: 'draft',
+    priority: 'medium',
+    createdDate: '2024-01-10',
+    lastUpdated: '2024-01-22',
+    metrics: {
+      reach: 45000,
+      engagement: 6.8,
+      conversion: 2.9
+    }
+  },
+  {
+    id: 'ms4',
+    type: 'growth',
+    title: 'Growth Strategy - User Acquisition',
+    description: 'Expand user base through multi-channel marketing and partnerships. Focus on high-value user segments.',
+    status: 'active',
+    priority: 'high',
+    createdDate: '2024-01-12',
+    lastUpdated: '2024-01-25',
+    metrics: {
+      reach: 156000,
+      engagement: 9.7,
+      conversion: 4.3
+    }
+  },
+  {
+    id: 'ms5',
+    type: 'analytics',
+    title: 'Analytics Strategy - Data Intelligence',
+    description: 'Establish comprehensive data tracking and analysis system to optimize marketing ROI and user conversion paths.',
+    status: 'draft',
+    priority: 'medium',
+    createdDate: '2024-01-15',
+    lastUpdated: '2024-01-28',
+    metrics: {
+      reach: 32000,
+      engagement: 5.4,
+      conversion: 2.1
+    }
+  }
+];
+
+export const mockContentSchedule: ContentScheduleItem[] = [
+  // Monday
+  {
+    id: 'cs1',
+    day: 'Monday',
+    timeSlot: '09:00',
+    activity: 'post',
+    content: 'Publish tech tutorial: How to optimize social media marketing with AI',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs2',
+    day: 'Monday',
+    timeSlot: '14:00',
+    activity: 'engagement',
+    content: 'Reply to user comments, participate in industry discussions',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs3',
+    day: 'Monday',
+    timeSlot: '18:00',
+    activity: 'post',
+    content: 'Share customer success stories',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  // Tuesday
+  {
+    id: 'cs4',
+    day: 'Tuesday',
+    timeSlot: '10:00',
+    activity: 'post',
+    content: 'Publish product updates and new feature introductions',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs5',
+    day: 'Tuesday',
+    timeSlot: '15:00',
+    activity: 'engagement',
+    content: 'Interact with KOLs, build partnerships',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs6',
+    day: 'Tuesday',
+    timeSlot: '19:00',
+    activity: 'analysis',
+    content: 'Analyze yesterday\'s content performance, adjust strategy',
+    platform: ['Dashboard'],
+    status: 'pending'
+  },
+  // Wednesday
+  {
+    id: 'cs7',
+    day: 'Wednesday',
+    timeSlot: '09:30',
+    activity: 'post',
+    content: 'Publish industry insights and trend analysis',
+    platform: ['LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs8',
+    day: 'Wednesday',
+    timeSlot: '13:00',
+    activity: 'engagement',
+    content: 'Participate in Twitter Space discussions',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs9',
+    day: 'Wednesday',
+    timeSlot: '17:00',
+    activity: 'post',
+    content: 'Share behind-the-scenes team stories',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  // Thursday
+  {
+    id: 'cs10',
+    day: 'Thursday',
+    timeSlot: '11:00',
+    activity: 'post',
+    content: 'Publish user-generated content and feedback',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs11',
+    day: 'Thursday',
+    timeSlot: '16:00',
+    activity: 'engagement',
+    content: 'Reply to DMs, handle customer inquiries',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs12',
+    day: 'Thursday',
+    timeSlot: '20:00',
+    activity: 'planning',
+    content: 'Plan next week\'s content calendar',
+    platform: ['Dashboard'],
+    status: 'pending'
+  },
+  // Friday
+  {
+    id: 'cs13',
+    day: 'Friday',
+    timeSlot: '10:30',
+    activity: 'post',
+    content: 'Publish weekly summary and next week preview',
+    platform: ['Twitter', 'LinkedIn'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs14',
+    day: 'Friday',
+    timeSlot: '14:30',
+    activity: 'engagement',
+    content: 'Thank active users this week, build community relationships',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs15',
+    day: 'Friday',
+    timeSlot: '18:30',
+    activity: 'analysis',
+    content: 'Weekly data analysis and report generation',
+    platform: ['Dashboard'],
+    status: 'pending'
+  },
+  // Weekend
+  {
+    id: 'cs16',
+    day: 'Saturday',
+    timeSlot: '12:00',
+    activity: 'post',
+    content: 'Share casual content, add human touch',
+    platform: ['Twitter'],
+    status: 'scheduled'
+  },
+  {
+    id: 'cs17',
+    day: 'Sunday',
+    timeSlot: '15:00',
+    activity: 'planning',
+    content: 'Prepare next week\'s content materials and creative ideas',
+    platform: ['Dashboard'],
+    status: 'pending'
+  }
+];
+
 // Menu items mock data
 export const mockMenuItems = [
   { name: 'Dashboard', icon: LayoutDashboard },
   { name: 'Inspiration Accounts', icon: Crosshair },
   { name: 'Auto Engagement', icon: Users },
   { name: 'Get Post/Thread', icon: PenTool },
-  { name: 'Content Strategy', icon: Calendar },
+  { name: 'Marketing Strategy', icon: Calendar },
   { name: 'Config', icon: Settings },
   { name: 'Profile', icon: User },
 ];

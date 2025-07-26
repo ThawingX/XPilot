@@ -6,7 +6,9 @@ import ResultsArea from './components/ResultsArea';
 import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
+import MarketingStrategy from './components/MarketingStrategy';
 import { Card, InspirationAccount, Post } from './types/index';
+import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
 
 function App() {
@@ -15,6 +17,7 @@ function App() {
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategyType | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
 
@@ -26,6 +29,7 @@ function App() {
     setSelectedConfigItem(null);
     setSelectedPostId(null);
     setSelectedPost(null);
+    setSelectedStrategy(null);
     // Reset profile section when navigating to profile from menu
     if (itemName === 'Profile') {
       setProfileInitialSection('overview');
@@ -39,6 +43,7 @@ function App() {
     setSelectedConfigItem(null);
     setSelectedPostId(null);
     setSelectedPost(null);
+    setSelectedStrategy(null);
     // Set profile section if navigating to profile
     if (section === 'Profile' && profileSection) {
       setProfileInitialSection(profileSection);
@@ -51,6 +56,7 @@ function App() {
     setSelectedConfigItem(null);
     setSelectedPostId(null);
     setSelectedPost(null);
+    setSelectedStrategy(null);
   };
 
   const handleAccountClick = (account: InspirationAccount) => {
@@ -59,12 +65,23 @@ function App() {
     setSelectedConfigItem(null);
     setSelectedPostId(null);
     setSelectedPost(null);
+    setSelectedStrategy(null);
   };
 
   const handleConfigItemClick = (item: ConfigItem) => {
     setSelectedConfigItem(item);
     setSelectedCard(null);
     setSelectedAccount(null);
+    setSelectedPostId(null);
+    setSelectedPost(null);
+    setSelectedStrategy(null);
+  };
+
+  const handleStrategyClick = (strategy: MarketingStrategyType) => {
+    setSelectedStrategy(strategy);
+    setSelectedCard(null);
+    setSelectedAccount(null);
+    setSelectedConfigItem(null);
     setSelectedPostId(null);
     setSelectedPost(null);
   };
@@ -100,6 +117,7 @@ function App() {
   const showInspirationAccounts = activeMenuItem === 'Inspiration Accounts';
   const showAutoEngagement = activeMenuItem === 'Auto Engagement';
   const showPostThreadQueue = activeMenuItem === 'Get Post/Thread';
+  const showMarketingStrategy = activeMenuItem === 'Marketing Strategy';
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
 
@@ -113,7 +131,7 @@ function App() {
       
       {/* Main Content Area */}
       <div className="flex overflow-hidden flex-1">
-        {/* Activity Queue / Config / Profile / Dashboard */}
+        {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
         <div className={`${
           showDashboard ? 'w-full' : 
           showProfile ? 'w-2/3' : 
@@ -127,6 +145,11 @@ function App() {
             <Config 
               onItemClick={handleConfigItemClick} 
               selectedItemId={selectedConfigItem?.id?.toString()}
+            />
+          ) : showMarketingStrategy ? (
+            <MarketingStrategy 
+              onStrategyClick={handleStrategyClick}
+              selectedStrategyId={selectedStrategy?.id}
             />
           ) : showPostThreadQueue ? (
             <PostThreadQueue 
@@ -184,6 +207,7 @@ function App() {
               selectedConfigItem={selectedConfigItem}
               selectedPostId={selectedPostId}
               selectedPost={selectedPost}
+              selectedStrategy={selectedStrategy}
             />
             )}
           </div>
