@@ -14,7 +14,7 @@ const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: '欢迎使用 Vibe X Operation！我是你的智能操作助手，可以帮助你进行各种操作和分析。',
+      content: 'Welcome to Vibe X Operation! I am your intelligent operation assistant, ready to help you with various operations and analysis.',
       isUser: false,
       timestamp: new Date()
     }
@@ -36,9 +36,9 @@ const AIAssistant: React.FC = () => {
     
     // Simulate AI response
     setTimeout(() => {
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: '我正在分析你的请求并执行相应操作，请稍等...',
+      const assistantMessage: Message = {
+        id: Date.now().toString(),
+        content: 'I am analyzing your request and executing the corresponding operation, please wait...',
         isUser: false,
         timestamp: new Date()
       };
@@ -68,7 +68,7 @@ const AIAssistant: React.FC = () => {
         <button
           onClick={() => setIsMinimized(!isMinimized)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label={isMinimized ? "展开操作面板" : "折叠操作面板"}
+          aria-label={isMinimized ? "Expand operation panel" : "Collapse operation panel"}
         >
           {isMinimized ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </button>
@@ -106,7 +106,7 @@ const AIAssistant: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="输入操作指令或问题..."
+                placeholder="Enter your operation request..."
                 className="flex-1 resize-none border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm min-h-[40px] max-h-[120px]"
                 rows={1}
               />

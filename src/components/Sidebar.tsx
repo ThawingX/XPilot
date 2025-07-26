@@ -29,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label={isExpanded ? "折叠菜单" : "展开菜单"}
+            aria-label={isExpanded ? "Collapse menu" : "Expand menu"}
           >
             {isExpanded ? <X size={20} /> : <Menu size={20} />}
           </button>

@@ -156,8 +156,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
           <div className="flex justify-center items-center mx-auto mb-6 w-20 h-20 bg-blue-50 rounded-full">
             <MessageSquare size={32} className="text-[#4792E6]" />
           </div>
-          <h3 className="mb-3 text-xl font-semibold text-gray-900">选择内容查看详情</h3>
-          <p className="text-gray-500 text-base">从左侧选择一个项目来查看详细信息</p>
+          <h3 className="mb-3 text-xl font-semibold text-gray-900">Select Content to View Details</h3>
+          <p className="text-gray-500 text-base">Choose an item from the left to view detailed information</p>
         </div>
       </div>
     );
@@ -187,12 +187,12 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                       selectedConfigItem.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedConfigItem.enabled ? '已启用' : '已禁用'}
+                      {selectedConfigItem.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>目标账号: {selectedConfigItem.targetAccount}</span>
-                    <span>创建时间: {selectedConfigItem.time}</span>
+                    <span>Target Account: {selectedConfigItem.targetAccount}</span>
+                    <span>Created: {selectedConfigItem.time}</span>
                   </div>
                 </div>
               </div>
@@ -206,7 +206,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                       <Bot className="w-5 h-5 mr-2 text-blue-500" />
-                      生成提示词
+                      Generation Prompt
                     </h2>
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <p className="text-gray-900 leading-relaxed">{selectedConfigItem.prompt}</p>
@@ -219,20 +219,20 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   <div className="bg-white rounded-lg border border-gray-200 p-6">
                     <h2 className="text-lg font-semibold text-gray-400 mb-4 flex items-center">
                       <Tag className="w-5 h-5 mr-2 text-gray-400" />
-                      回复风格 (暂时禁用)
+                      Reply Style (Temporarily Disabled)
                     </h2>
                     <div className="space-y-3">
                       <div className="flex items-center space-x-3">
-                        <span className="text-sm text-gray-400">当前风格:</span>
+                        <span className="text-sm text-gray-400">Current Style:</span>
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                           selectedConfigItem.style === 'funny' ? 'bg-gray-100 text-gray-600' :
                           selectedConfigItem.style === 'professional' ? 'bg-gray-100 text-gray-600' :
                           selectedConfigItem.style === 'casual' ? 'bg-gray-100 text-gray-600' :
                           'bg-gray-100 text-gray-600'
                         }`}>
-                          {selectedConfigItem.style === 'funny' ? '幽默风趣' :
-                           selectedConfigItem.style === 'professional' ? '专业正式' :
-                           selectedConfigItem.style === 'casual' ? '轻松随意' : '正式严肃'}
+                          {selectedConfigItem.style === 'funny' ? 'Humorous' :
+                           selectedConfigItem.style === 'professional' ? 'Professional' :
+                           selectedConfigItem.style === 'casual' ? 'Casual' : 'Formal'}
                         </span>
                       </div>
                       <select 
@@ -240,10 +240,10 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                         defaultValue={selectedConfigItem.style}
                         disabled
                       >
-                        <option value="professional">专业正式</option>
-                        <option value="funny">幽默风趣</option>
-                        <option value="casual">轻松随意</option>
-                        <option value="formal">正式严肃</option>
+                        <option value="professional">Professional</option>
+                        <option value="funny">Humorous</option>
+                        <option value="casual">Casual</option>
+                        <option value="formal">Formal</option>
                       </select>
                     </div>
                   </div>
@@ -254,7 +254,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
             {/* Content */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                {selectedConfigItem.type === 'reply' ? '回复内容' : '转发内容'}
+                {selectedConfigItem.type === 'reply' ? 'Reply Content' : 'Repost Content'}
               </h2>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-gray-900 leading-relaxed">{selectedConfigItem.content}</p>
@@ -266,23 +266,23 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
             {/* Statistics (if completed) */}
             {selectedConfigItem.status === 'completed' && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">执行结果</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Execution Results</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">12</div>
-                    <div className="text-sm text-gray-600">互动数</div>
+                    <div className="text-sm text-gray-600">Interactions</div>
                   </div>
                   <div className="bg-green-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">89</div>
-                    <div className="text-sm text-gray-600">点赞数</div>
+                    <div className="text-sm text-gray-600">Likes</div>
                   </div>
                   <div className="bg-purple-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-purple-600">1.2K</div>
-                    <div className="text-sm text-gray-600">浏览量</div>
+                    <div className="text-sm text-gray-600">Views</div>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">5</div>
-                    <div className="text-sm text-gray-600">转发数</div>
+                    <div className="text-sm text-gray-600">Reposts</div>
                   </div>
                 </div>
               </div>

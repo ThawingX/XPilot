@@ -17,10 +17,10 @@ export interface ConfigItem {
   status: 'pending' | 'completed' | 'draft';
   priority: 'high' | 'medium' | 'low';
   targetAccount?: string;
-  // 新增字段
-  prompt?: string; // 生成回复的prompt
-  style?: 'funny' | 'professional' | 'casual' | 'formal' | 'friendly' | 'encouraging' | 'energetic' | 'analytical'; // 回复风格
-  enabled?: boolean; // 是否启用这个回复卡片能力
+  // New fields
+  prompt?: string; // Prompt for generating replies
+  style?: 'funny' | 'professional' | 'casual' | 'formal' | 'friendly' | 'encouraging' | 'energetic' | 'analytical'; // Reply style
+  enabled?: boolean; // Whether this reply card capability is enabled
 }
 const mockConfigItems: ConfigItem[] = [
   {
@@ -114,10 +114,10 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
   const fetchConfigItems = async () => {
     setLoading(true);
     try {
-      // 模拟API请求延迟
+      // Simulate API request delay
       await new Promise(resolve => setTimeout(resolve, 800));
       
-      // 模拟从服务器获取配置数据
+      // Simulate fetching configuration data from server
       console.log('Fetching reply card configurations...');
       setConfigItems(mockConfigItems);
     } catch (error) {
@@ -127,7 +127,7 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
     }
   };
 
-  // 组件加载时发送mock请求
+  // Load mock request when component mounts
   useEffect(() => {
     fetchConfigItems();
   }, []);
@@ -145,6 +145,12 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
         item.id === id ? { ...item, enabled } : item
       )
     );
+  };
+
+  // Format reply style for display
+  const formatReplyStyle = (style?: string) => {
+    if (!style) return 'Default';
+    return style.charAt(0).toUpperCase() + style.slice(1);
   };
 
   return (
@@ -211,10 +217,36 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
                     : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
+                {/* Reply Style Label and Toggle Switch - Top row */}
+                <div className="flex justify-between items-center mb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-600">Reply Style:</span>
+                    <span className="text-sm font-semibold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                      {formatReplyStyle(item.style)}
+                    </span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={item.enabled}
+                      onChange={(e) => handleToggleEnabled(item.id, e.target.checked, e)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
+                  </label>
+                </div>
+
+                {/* Title - New line */}
+                <div className="mb-3">
+                  <h3 className="font-semibold text-gray-900 text-base leading-tight">
+                    {item.title}
+                  </h3>
+                </div>
+
+                {/* Icon and Content */}
+                <div className="flex items-start space-x-3">
                   {/* Icon */}
-                  <div className={`p-2 rounded-lg ${
+                  <div className={`p-2 rounded-lg flex-shrink-0 ${
                     item.type === 'reply' 
                       ? 'bg-blue-50 text-blue-600' 
                       : 'bg-green-50 text-green-600'
@@ -228,9 +260,6 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
                   
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
-                      {item.title}
-                    </h3>
                     <p className="text-gray-600 text-sm mb-2 line-clamp-2">
                       {item.content}
                     </p>
@@ -239,22 +268,8 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
                       <span>{item.time}</span>
                     </div>
                   </div>
-                  
-                  {/* Toggle Switch */}
-                  <div className="flex-shrink-0 ml-3">
-                    <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={item.enabled}
-                        onChange={(e) => handleToggleEnabled(item.id, e.target.checked, e)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
-                    </label>
-                  </div>
                 </div>
               </div>
-            </div>
           ))
         )}
       </div>

@@ -28,7 +28,7 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
     return num.toString();
   };
 
-  // 根据粉丝量确定账号类型
+  // Determine account type based on follower count
   const getAccountType = (followers: number): { type: string; color: string } => {
     if (followers >= 50000000) {
       return { type: 'Large', color: 'bg-red-100 text-red-800' };
@@ -41,25 +41,25 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
 
   const accountType = getAccountType(account.followers);
 
-  // 截取描述文字，避免过长
+  // Truncate description text to avoid being too long
   const truncatedBio = account.bio.length > 80 ? account.bio.substring(0, 80) + '...' : account.bio;
 
   const handleStarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (account.starred) {
-      // 取消星标需要确认
-      if (window.confirm('确定要取消收藏该账号吗？')) {
+      // Unstarring requires confirmation
+      if (window.confirm('Are you sure you want to unstar this account?')) {
         onToggleStar(account.id, false);
         if (onShowToast) {
-          onShowToast('已取消收藏该账号', 'info');
+          onShowToast('Account unstarred', 'info');
         }
       }
     } else {
-      // 添加星标直接执行
+      // Adding star is executed directly
       onToggleStar(account.id, true);
       if (onShowToast) {
-        onShowToast('已收藏该账号', 'success');
+        onShowToast('Account starred', 'success');
       }
     }
   };
@@ -84,7 +84,7 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
       }`}
       onClick={handleCardClick}
     >
-      {/* Type Badge - 移到顶部 */}
+      {/* Type Badge - moved to top */}
       <div className="flex items-center justify-between mb-3">
         <span className={`text-xs font-medium px-2 py-1 rounded-full ${accountType.color}`}>
           {accountType.type}
@@ -98,7 +98,7 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
                 ? 'text-yellow-500 hover:text-yellow-600' 
                 : 'text-gray-400 hover:text-yellow-500'
             }`}
-            aria-label={account.starred ? '取消收藏' : '收藏账号'}
+            aria-label={account.starred ? 'Unstar account' : 'Star account'}
           >
             <Star 
               size={16} 
@@ -139,7 +139,7 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
         </div>
       </div>
 
-      {/* Bio - 缩短文字 */}
+      {/* Bio - shortened text */}
       <p className="text-gray-700 text-sm mb-3 leading-relaxed">
         {truncatedBio}
       </p>

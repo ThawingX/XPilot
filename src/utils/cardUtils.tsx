@@ -2,7 +2,7 @@ import React from 'react';
 import { MessageSquare, TrendingUp, Target, CheckCircle } from 'lucide-react';
 import { CardType, Priority } from '../types';
 
-// 卡片图标工具函数
+// Card icon utility function
 export const getCardIcon = (type: CardType) => {
   const iconProps = { size: 16 };
   
@@ -20,7 +20,7 @@ export const getCardIcon = (type: CardType) => {
   }
 };
 
-// 卡片边框颜色工具函数
+// Card border color utility function
 export const getCardBorderColor = (type: CardType): string => {
   switch (type) {
     case 'post':
@@ -36,7 +36,7 @@ export const getCardBorderColor = (type: CardType): string => {
   }
 };
 
-// 优先级样式工具函数
+// Priority style utility function
 export const getPriorityStyles = (priority: Priority): string => {
   switch (priority) {
     case 'High':
@@ -50,7 +50,7 @@ export const getPriorityStyles = (priority: Priority): string => {
   }
 };
 
-// 卡片背景颜色工具函数
+// Card background color utility function
 export const getCardBackgroundColor = (type: CardType): string => {
   switch (type) {
     case 'post':
@@ -66,7 +66,7 @@ export const getCardBackgroundColor = (type: CardType): string => {
   }
 };
 
-// 卡片主题色工具函数
+// Card theme color utility function
 export const getCardThemeColor = (type: CardType): string => {
   switch (type) {
     case 'post':
@@ -82,7 +82,7 @@ export const getCardThemeColor = (type: CardType): string => {
   }
 };
 
-// 格式化数字工具函数
+// Number formatting utility function
 export const formatNumber = (num: number): string => {
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M';
@@ -93,20 +93,20 @@ export const formatNumber = (num: number): string => {
   return num.toString();
 };
 
-// 时间格式化工具函数
+// Time formatting utility function
 export const formatTime = (timestamp: string): string => {
-  // 这里可以添加更复杂的时间格式化逻辑
+  // More complex time formatting logic can be added here
   return timestamp;
 };
 
-// 验证徽章组件
+// Verified badge component
 export const VerifiedBadge: React.FC = () => (
   <div className="flex justify-center items-center w-5 h-5 bg-blue-500 rounded-full">
     <span className="text-xs text-white">✓</span>
   </div>
 );
 
-// 状态指示器组件
+// Status indicator component
 export const StatusIndicator: React.FC<{ status: string }> = ({ status }) => (
   <div className="flex items-center space-x-1">
     <CheckCircle size={12} className="text-green-500" />

@@ -32,13 +32,13 @@
   display: none;
 }
 
-/* Firefox 滚动条样式 */
+/* Firefox scrollbar styles */
 * {
   scrollbar-width: thin;
   scrollbar-color: #4792E6 #f8fafc;
 }
 
-/* 平滑滚动 */
+/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }

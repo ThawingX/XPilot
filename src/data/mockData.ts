@@ -84,7 +84,7 @@ export const mockAccountAnalytics = {
   }
 };
 
-// 对标账号mock数据
+// Inspiration accounts mock data
 export const mockInspirationAccounts: InspirationAccount[] = [
   {
     id: 1,
@@ -124,7 +124,7 @@ export const mockInspirationAccounts: InspirationAccount[] = [
   }
 ];
 
-// 搜索用的额外账号数据
+// Additional account data for search
 export const mockSearchAccounts: InspirationAccount[] = [
   {
     id: 4,
@@ -212,7 +212,7 @@ export const mockSearchAccounts: InspirationAccount[] = [
   }
 ];
 
-// Mock数据集中管理
+// Centralized mock data management
 export const mockCards: Card[] = [
   {
     id: '1',
@@ -287,7 +287,7 @@ export const mockCards: Card[] = [
   }
 ];
 
-// AutoReply专用的mock数据
+// Mock data specifically for AutoReply
 export const mockAutoReplyData: Card[] = [
   {
     id: 'ar1',
@@ -354,7 +354,7 @@ export const mockAutoReplyData: Card[] = [
   }
 ];
 
-// 聊天消息mock数据
+// Chat messages mock data
 export const mockChatMessages = [
   {
     id: 1,
@@ -376,7 +376,7 @@ export const mockChatMessages = [
   }
 ];
 
-// 菜单项mock数据
+// Menu items mock data
 export const mockMenuItems = [
   { name: 'Inspiration Accounts', icon: Target },
   { name: 'Engagement', icon: Users },
