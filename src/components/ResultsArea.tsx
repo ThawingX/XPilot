@@ -1,15 +1,17 @@
 import React from 'react';
-import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye } from 'lucide-react';
+import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot, Calendar, Tag, TrendingUp, Star, Users, Eye, MapPin, Link, MessageCircle, Share, BarChart3, Target, Zap, CheckCircle, AlertCircle, ChevronRight, FileText, Lightbulb, TrendingDown, Activity } from 'lucide-react';
 import { Card, InspirationAccount } from '../types';
+import { ConfigItem } from './Config';
 import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
 import { mockAccountPosts, mockAccountAnalytics } from '../data/mockData';
 
 interface ResultsAreaProps {
   selectedCard: Card | null;
   selectedAccount: InspirationAccount | null;
+  selectedConfigItem: ConfigItem | null;
 }
 
-const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount }) => {
+const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount, selectedConfigItem }) => {
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
       return (num / 1000000).toFixed(1) + 'M';
@@ -147,15 +149,134 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
       </div>
     );
   };
-  if (!selectedCard && !selectedAccount) {
+  if (!selectedCard && !selectedAccount && !selectedConfigItem) {
     return (
-      <div className="flex flex-1 justify-center items-center bg-white">
+      <div className="flex flex-1 justify-center items-center bg-white h-full">
         <div className="text-center">
-          <div className="flex justify-center items-center mx-auto mb-4 w-16 h-16 bg-gray-100 rounded-full">
-            <MessageSquare size={24} className="text-gray-400" />
+          <div className="flex justify-center items-center mx-auto mb-6 w-20 h-20 bg-blue-50 rounded-full">
+            <MessageSquare size={32} className="text-[#4792E6]" />
           </div>
-          <h3 className="mb-2 text-lg font-medium text-gray-900">Select an item to view details</h3>
-          <p className="text-gray-500">Choose a post, tweet, strategy, or action from the queue to see detailed information and interactions.</p>
+          <h3 className="mb-3 text-xl font-semibold text-gray-900">选择内容查看详情</h3>
+          <p className="text-gray-500 text-base">从左侧选择一个项目来查看详细信息</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If a config item is selected, show config details
+  if (selectedConfigItem) {
+    return (
+      <div className="h-full bg-gray-50">
+        <div className="h-full overflow-y-auto">
+          <div className="p-6 space-y-6">
+            {/* Config Item Header */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start space-x-4">
+                <div className={`flex justify-center items-center w-12 h-12 rounded-lg ${
+                  selectedConfigItem.type === 'reply' ? 'bg-blue-100' : 'bg-green-100'
+                }`}>
+                  {selectedConfigItem.type === 'reply' ? (
+                    <MessageSquare size={24} className="text-[#4792E6]" />
+                  ) : (
+                    <Repeat2 size={24} className="text-green-600" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <h1 className="text-2xl font-bold text-gray-900">{selectedConfigItem.title}</h1>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedConfigItem.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedConfigItem.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedConfigItem.status === 'pending' ? '待处理' :
+                       selectedConfigItem.status === 'completed' ? '已完成' : '草稿'}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedConfigItem.priority === 'high' ? 'bg-red-100 text-red-800' :
+                      selectedConfigItem.priority === 'medium' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedConfigItem.priority === 'high' ? '高优先级' :
+                       selectedConfigItem.priority === 'medium' ? '中优先级' : '低优先级'}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-4 text-sm text-gray-600">
+                    <span>目标账号: {selectedConfigItem.targetAccount}</span>
+                    <span>创建时间: {selectedConfigItem.time}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">内容详情</h2>
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <p className="text-gray-900 leading-relaxed">{selectedConfigItem.content}</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">操作</h2>
+              <div className="flex space-x-3">
+                {selectedConfigItem.status === 'pending' && (
+                  <>
+                    <button className="px-4 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-blue-600 transition-colors">
+                      {selectedConfigItem.type === 'reply' ? '发送回复' : '执行转发'}
+                    </button>
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                      编辑内容
+                    </button>
+                  </>
+                )}
+                {selectedConfigItem.status === 'draft' && (
+                  <>
+                    <button className="px-4 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-blue-600 transition-colors">
+                      保存并发送
+                    </button>
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                      继续编辑
+                    </button>
+                  </>
+                )}
+                {selectedConfigItem.status === 'completed' && (
+                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                    查看结果
+                  </button>
+                )}
+                <button className="px-4 py-2 border border-red-300 text-red-700 rounded-lg hover:bg-red-50 transition-colors">
+                  删除
+                </button>
+              </div>
+            </div>
+
+            {/* Statistics (if completed) */}
+            {selectedConfigItem.status === 'completed' && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">执行结果</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">12</div>
+                    <div className="text-sm text-gray-600">互动数</div>
+                  </div>
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">89</div>
+                    <div className="text-sm text-gray-600">点赞数</div>
+                  </div>
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">1.2K</div>
+                    <div className="text-sm text-gray-600">浏览量</div>
+                  </div>
+                  <div className="bg-orange-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">5</div>
+                    <div className="text-sm text-gray-600">转发数</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

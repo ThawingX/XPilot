@@ -2,29 +2,44 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import EngagementQueue from './components/EngagementQueue';
 import ResultsArea from './components/ResultsArea';
+import Config, { ConfigItem } from './components/Config';
 import { Card, InspirationAccount } from './types/index';
 import AIAssistant from './components/AIAssistant';
 
 function App() {
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
+  const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('');
 
   const handleMenuItemClick = (itemName: string) => {
     setActiveMenuItem(itemName);
+    // 清除其他选择状态
+    setSelectedCard(null);
+    setSelectedAccount(null);
+    setSelectedConfigItem(null);
   };
 
   const handleCardClick = (card: Card) => {
     setSelectedCard(card);
-    setSelectedAccount(null); // Clear account selection when card is selected
+    setSelectedAccount(null);
+    setSelectedConfigItem(null);
   };
 
   const handleAccountClick = (account: InspirationAccount) => {
     setSelectedAccount(account);
-    setSelectedCard(null); // Clear card selection when account is selected
+    setSelectedCard(null);
+    setSelectedConfigItem(null);
+  };
+
+  const handleConfigItemClick = (item: ConfigItem) => {
+    setSelectedConfigItem(item);
+    setSelectedCard(null);
+    setSelectedAccount(null);
   };
 
   const showInspirationAccounts = activeMenuItem === 'Inspiration Accounts';
+  const showConfig = activeMenuItem === 'Config';
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -36,13 +51,17 @@ function App() {
       
       {/* Main Content Area */}
       <div className="flex overflow-hidden flex-1">
-        {/* Activity Queue - 1/4 of main content when showing inspiration accounts, 1/5 otherwise */}
+        {/* Activity Queue / Config - 1/4 of main content when showing inspiration accounts, 1/5 otherwise */}
         <div className={`${showInspirationAccounts ? 'w-1/4' : 'w-1/5'} min-w-0`}>
-          <EngagementQueue 
-            showInspirationAccounts={showInspirationAccounts} 
-            onCardClick={handleCardClick}
-            onAccountClick={handleAccountClick}
-          />
+          {showConfig ? (
+            <Config onItemClick={handleConfigItemClick} />
+          ) : (
+            <EngagementQueue 
+              showInspirationAccounts={showInspirationAccounts} 
+              onCardClick={handleCardClick}
+              onAccountClick={handleAccountClick}
+            />
+          )}
         </div>
         
         {/* Results Area - remaining space */}
@@ -50,6 +69,7 @@ function App() {
           <ResultsArea 
             selectedCard={selectedCard} 
             selectedAccount={selectedAccount}
+            selectedConfigItem={selectedConfigItem}
           />
         </div>
       </div>
