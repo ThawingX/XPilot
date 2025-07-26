@@ -185,20 +185,9 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   <div className="flex items-center space-x-3 mb-2">
                     <h1 className="text-2xl font-bold text-gray-900">{selectedConfigItem.title}</h1>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedConfigItem.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      selectedConfigItem.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                      selectedConfigItem.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                     }`}>
-                      {selectedConfigItem.status === 'pending' ? '待处理' :
-                       selectedConfigItem.status === 'completed' ? '已完成' : '草稿'}
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      selectedConfigItem.priority === 'high' ? 'bg-red-100 text-red-800' :
-                      selectedConfigItem.priority === 'medium' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {selectedConfigItem.priority === 'high' ? '高优先级' :
-                       selectedConfigItem.priority === 'medium' ? '中优先级' : '低优先级'}
+                      {selectedConfigItem.enabled ? '已启用' : '已禁用'}
                     </span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
@@ -209,9 +198,63 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
               </div>
             </div>
 
+            {/* Reply-specific fields */}
+            {selectedConfigItem.type === 'reply' && (
+              <>
+                {/* Prompt Section */}
+                {selectedConfigItem.prompt && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Bot className="w-5 h-5 mr-2 text-blue-500" />
+                      生成提示词
+                    </h2>
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="text-gray-900 leading-relaxed">{selectedConfigItem.prompt}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Style Selection */}
+                {selectedConfigItem.style && (
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <Tag className="w-5 h-5 mr-2 text-purple-500" />
+                      回复风格
+                    </h2>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm text-gray-600">当前风格:</span>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          selectedConfigItem.style === 'funny' ? 'bg-yellow-100 text-yellow-800' :
+                          selectedConfigItem.style === 'professional' ? 'bg-blue-100 text-blue-800' :
+                          selectedConfigItem.style === 'casual' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {selectedConfigItem.style === 'funny' ? '幽默风趣' :
+                           selectedConfigItem.style === 'professional' ? '专业正式' :
+                           selectedConfigItem.style === 'casual' ? '轻松随意' : '正式严肃'}
+                        </span>
+                      </div>
+                      <select 
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        defaultValue={selectedConfigItem.style}
+                      >
+                        <option value="professional">专业正式</option>
+                        <option value="funny">幽默风趣</option>
+                        <option value="casual">轻松随意</option>
+                        <option value="formal">正式严肃</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
             {/* Content */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">内容详情</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {selectedConfigItem.type === 'reply' ? '回复内容' : '转发内容'}
+              </h2>
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-gray-900 leading-relaxed">{selectedConfigItem.content}</p>
               </div>

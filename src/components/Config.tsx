@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageSquare, Repeat2, Search, Activity, Star } from 'lucide-react';
+import { MessageSquare, Repeat2, Activity, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface ConfigProps {
   onItemClick: (item: ConfigItem) => void;
@@ -16,6 +16,10 @@ export interface ConfigItem {
   status: 'pending' | 'completed' | 'draft';
   priority: 'high' | 'medium' | 'low';
   targetAccount?: string;
+  // 新增字段
+  prompt?: string; // 生成回复的prompt
+  style?: 'funny' | 'professional' | 'casual' | 'formal'; // 回复风格
+  enabled?: boolean; // 是否启用这个回复卡片能力
 }
 
 const mockConfigItems: ConfigItem[] = [
@@ -27,7 +31,10 @@ const mockConfigItems: ConfigItem[] = [
     time: '2小时前',
     status: 'pending',
     priority: 'high',
-    targetAccount: '@user123'
+    targetAccount: '@user123',
+    prompt: '请以友好和专业的语气回复用户的产品反馈，表达感谢并承诺改进',
+    style: 'professional',
+    enabled: true
   },
   {
     id: 2,
@@ -37,7 +44,10 @@ const mockConfigItems: ConfigItem[] = [
     time: '4小时前',
     status: 'draft',
     priority: 'medium',
-    targetAccount: '@customer456'
+    targetAccount: '@customer456',
+    prompt: '回复客户关于定价的咨询，提供有用的信息和联系方式',
+    style: 'formal',
+    enabled: true
   },
   {
     id: 3,
@@ -47,7 +57,8 @@ const mockConfigItems: ConfigItem[] = [
     time: '1天前',
     status: 'completed',
     priority: 'medium',
-    targetAccount: '@industry_expert'
+    targetAccount: '@industry_expert',
+    enabled: true
   },
   {
     id: 4,
@@ -57,74 +68,39 @@ const mockConfigItems: ConfigItem[] = [
     time: '2天前',
     status: 'pending',
     priority: 'low',
-    targetAccount: '@partner_company'
+    targetAccount: '@partner_company',
+    enabled: false
+  },
+  {
+    id: 5,
+    type: 'reply',
+    title: '幽默回复模板',
+    content: '哈哈，这个问题问得好！让我想想... 🤔 其实答案很简单，就像我们的产品一样简单易用！',
+    time: '6小时前',
+    status: 'draft',
+    priority: 'low',
+    targetAccount: '@funny_user',
+    prompt: '用幽默轻松的方式回复用户的问题，保持友好和有趣',
+    style: 'funny',
+    enabled: true
   }
 ];
 
 const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('reply');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'reply' | 'repost'>('reply');
+  const [configItems, setConfigItems] = useState<ConfigItem[]>(mockConfigItems);
 
-  const filteredItems = mockConfigItems.filter(item => {
-    const matchesTab = item.type === activeTab;
-    const matchesSearch = searchQuery.trim() === '' || 
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (item.targetAccount && item.targetAccount.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    return matchesTab && matchesSearch;
-  });
+  // Filter items based on active tab
+  const filteredItems = configItems.filter(item => item.type === activeTab);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'completed':
-        return 'bg-green-100 text-green-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800';
-      case 'medium':
-        return 'bg-blue-100 text-blue-800';
-      case 'low':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return '待处理';
-      case 'completed':
-        return '已完成';
-      case 'draft':
-        return '草稿';
-      default:
-        return status;
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return '高';
-      case 'medium':
-        return '中';
-      case 'low':
-        return '低';
-      default:
-        return priority;
-    }
+  // Toggle enabled status
+  const handleToggleEnabled = (id: number, enabled: boolean, event: React.MouseEvent) => {
+    event.stopPropagation(); // 防止触发卡片点击事件
+    setConfigItems(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, enabled } : item
+      )
+    );
   };
 
   return (
@@ -159,20 +135,6 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search size={16} className="text-gray-400" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索配置项..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:border-transparent"
-          />
-        </div>
-
         {/* Items Count */}
         <div className="flex items-center space-x-2">
           <Activity size={20} className="text-gray-600" />
@@ -194,10 +156,7 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
               )}
             </div>
             <p className="text-gray-500">
-              {searchQuery.trim() 
-                ? '没有找到匹配的配置项' 
-                : `暂无${activeTab === 'reply' ? '回复' : '转发'}配置`
-              }
+              暂无{activeTab === 'reply' ? '回复' : '转发'}配置
             </p>
           </div>
         ) : (
@@ -207,30 +166,41 @@ const Config: React.FC<ConfigProps> = ({ onItemClick }) => {
               onClick={() => onItemClick(item)}
               className="p-4 border border-gray-200 rounded-lg hover:border-[#4792E6] hover:shadow-md transition-all cursor-pointer bg-white"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-2">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start space-x-3 flex-1">
                   {item.type === 'reply' ? (
-                    <MessageSquare size={16} className="text-[#4792E6] flex-shrink-0" />
+                    <MessageSquare size={16} className="text-[#4792E6] flex-shrink-0 mt-1" />
                   ) : (
-                    <Repeat2 size={16} className="text-[#4792E6] flex-shrink-0" />
+                    <Repeat2 size={16} className="text-[#4792E6] flex-shrink-0 mt-1" />
                   )}
-                  <h3 className="font-medium text-gray-900 text-sm">{item.title}</h3>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 text-sm mb-2">{item.title}</h3>
+                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.content}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>{item.targetAccount}</span>
+                      <span>{item.time}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(item.priority)}`}>
-                    {getPriorityText(item.priority)}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
-                    {getStatusText(item.status)}
-                  </span>
+                
+                {/* 开关控件 */}
+                <div className="flex-shrink-0 ml-3">
+                  <button
+                    onClick={(e) => handleToggleEnabled(item.id, !item.enabled, e)}
+                    className={`p-1 rounded-full transition-colors ${
+                      item.enabled 
+                        ? 'text-blue-500 hover:text-blue-600' 
+                        : 'text-gray-400 hover:text-gray-500'
+                    }`}
+                    title={item.enabled ? '点击禁用' : '点击启用'}
+                  >
+                    {item.enabled ? (
+                      <ToggleRight className="w-6 h-6" />
+                    ) : (
+                      <ToggleLeft className="w-6 h-6" />
+                    )}
+                  </button>
                 </div>
-              </div>
-              
-              <p className="text-gray-600 text-sm mb-3 line-clamp-2">{item.content}</p>
-              
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>{item.targetAccount}</span>
-                <span>{item.time}</span>
               </div>
             </div>
           ))

@@ -114,11 +114,11 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
   const title = showInspirationAccounts ? 'Inspiration Accounts' : 'Activity Queue';
 
   if (!showInspirationAccounts) {
-    // 原有的 Activity Queue 显示逻辑
+    // 原有的 Activity Queue 显示逻辑，使用与 Inspiration Accounts 一致的宽度
     return (
       <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
-          <h2 className="mb-2 text-xl font-semibold text-gray-900">{title}</h2>
+          <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
           <div className="flex items-center space-x-2">
             <Activity size={20} className="text-gray-600" />
             <span className="text-sm font-medium text-gray-600">
