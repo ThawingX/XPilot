@@ -3,11 +3,12 @@ import { User, Mail, Calendar, MapPin, Link, Twitter, Star, Crown, Settings, Edi
 
 interface ProfileProps {
   onClose?: () => void;
+  initialSection?: string;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onClose }) => {
+const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [activeSection, setActiveSection] = useState('overview');
+  const [activeSection, setActiveSection] = useState(initialSection);
   const [animatedStats, setAnimatedStats] = useState({
     totalReplies: 0,
     engagementRate: 0,
@@ -104,8 +105,7 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'activity', label: 'Recent Activity', icon: Clock },
-    { id: 'stats', label: 'Statistics', icon: BarChart3 },
+    { id: 'activity', label: 'History Activity', icon: Clock },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
@@ -202,6 +202,66 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
             <Heart className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform duration-300" />
           </div>
         </div>
+        <div className="bg-purple-50 p-4 rounded-lg hover:bg-purple-100 transition-colors duration-300 group">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-purple-600 group-hover:scale-110 transition-transform duration-300">
+                {animatedStats.accountsManaged}
+              </div>
+              <div className="text-sm text-gray-600">Accounts Managed</div>
+            </div>
+            <Users className="w-8 h-8 text-purple-600 group-hover:rotate-12 transition-transform duration-300" />
+          </div>
+        </div>
+        <div className="bg-orange-50 p-4 rounded-lg hover:bg-orange-100 transition-colors duration-300 group">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-2xl font-bold text-orange-600 group-hover:scale-110 transition-transform duration-300">
+                +{animatedStats.monthlyGrowth}%
+              </div>
+              <div className="text-sm text-gray-600">Monthly Growth</div>
+            </div>
+            <TrendingUp className="w-8 h-8 text-orange-600 group-hover:scale-110 transition-transform duration-300" />
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Statistics */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-300">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+          <BarChart3 className="w-5 h-5 mr-2 text-[#4792E6]" />
+          Detailed Statistics
+        </h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-[#4792E6]/10 p-4 rounded-lg">
+            <div className="text-2xl font-bold text-[#4792E6] mb-2">{animatedStats.totalReplies.toLocaleString()}</div>
+            <div className="text-sm text-gray-600 mb-3">Total Replies</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-[#4792E6] h-2 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <div className="text-2xl font-bold text-green-600 mb-2">{animatedStats.engagementRate}%</div>
+            <div className="text-sm text-gray-600 mb-3">Engagement Rate</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+            </div>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <div className="text-2xl font-bold text-purple-600 mb-2">{animatedStats.accountsManaged}</div>
+            <div className="text-sm text-gray-600 mb-3">Accounts Managed</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-purple-500 h-2 rounded-full" style={{ width: '60%' }}></div>
+            </div>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <div className="text-2xl font-bold text-orange-600 mb-2">+{animatedStats.monthlyGrowth}%</div>
+            <div className="text-sm text-gray-600 mb-3">Monthly Growth</div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-orange-500 h-2 rounded-full" style={{ width: '90%' }}></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Subscription Card */}
@@ -228,40 +288,7 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
     </div>
   );
 
-  const renderStats = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#4792E6]/10 p-6 rounded-lg">
-          <div className="text-3xl font-bold text-[#4792E6] mb-2">{animatedStats.totalReplies.toLocaleString()}</div>
-          <div className="text-sm text-gray-600 mb-4">Total Replies</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-[#4792E6] h-2 rounded-full" style={{ width: '75%' }}></div>
-          </div>
-        </div>
-        <div className="bg-green-50 p-6 rounded-lg">
-          <div className="text-3xl font-bold text-green-600 mb-2">{animatedStats.engagementRate}%</div>
-          <div className="text-sm text-gray-600 mb-4">Engagement Rate</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
-          </div>
-        </div>
-        <div className="bg-purple-50 p-6 rounded-lg">
-          <div className="text-3xl font-bold text-purple-600 mb-2">{animatedStats.accountsManaged}</div>
-          <div className="text-sm text-gray-600 mb-4">Accounts Managed</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-purple-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-          </div>
-        </div>
-        <div className="bg-orange-50 p-6 rounded-lg">
-          <div className="text-3xl font-bold text-orange-600 mb-2">+{animatedStats.monthlyGrowth}%</div>
-          <div className="text-sm text-gray-600 mb-4">Monthly Growth</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="bg-orange-500 h-2 rounded-full" style={{ width: '90%' }}></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+
 
   const renderAchievements = () => (
     <div className="space-y-4">
@@ -411,7 +438,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose }) => {
     switch (activeSection) {
       case 'overview': return renderOverview();
       case 'activity': return renderActivity();
-      case 'stats': return renderStats();
       case 'settings': return renderSettings();
       default: return renderOverview();
     }

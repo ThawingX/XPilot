@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 interface DashboardProps {
-  onNavigate?: (section: string) => void;
+  onNavigate?: (section: string, profileSection?: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
@@ -133,38 +133,34 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   const quickActions = [
     { 
-      title: 'Generate Tweet', 
+      title: 'Inspiration Accounts', 
+      description: 'Manage target accounts for inspiration', 
+      icon: Users, 
+      color: 'bg-gradient-to-br from-[#4792E6] to-[#3b82f6]',
+      section: 'Inspiration Accounts'
+    },
+    { 
+      title: 'Auto Engagement', 
+      description: 'Configure automated interactions', 
+      icon: Heart, 
+      color: 'bg-gradient-to-br from-[#4792E6]/80 to-[#6366f1]',
+      section: 'Engagement'
+    },
+    { 
+      title: 'Generate Post', 
       description: 'Create AI-powered content', 
       icon: Sparkles, 
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      section: 'Tweet Generation'
-    },
-    { 
-      title: 'View Analytics', 
-      description: 'Check performance metrics', 
-      icon: BarChart3, 
-      color: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      section: 'Profile'
-    },
-    { 
-      title: 'Manage Accounts', 
-      description: 'Update inspiration targets', 
-      icon: Users, 
-      color: 'bg-gradient-to-r from-green-500 to-emerald-500',
-      section: 'Inspiration Accounts'
+      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
+      section: 'Generate Post'
     },
     { 
       title: 'Content Strategy', 
       description: 'Plan your content calendar', 
-      icon: Calendar, 
-      color: 'bg-gradient-to-r from-orange-500 to-red-500',
+      icon: Target, 
+      color: 'bg-gradient-to-br from-[#4792E6]/60 to-[#06b6d4]',
       section: 'Content Strategy'
     }
   ];
-
-  const handleActivityClick = (section: string) => {
-    onNavigate?.(section);
-  };
 
   const handleQuickActionClick = (section: string) => {
     onNavigate?.(section);
@@ -262,13 +258,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <button
                 key={index}
                 onClick={() => handleQuickActionClick(action.section)}
-                className={`group p-4 rounded-lg ${action.color} hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-white relative overflow-hidden`}
+                className={`group p-5 rounded-xl ${action.color} hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-white relative overflow-hidden`}
               >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative z-10">
-                  <action.icon className="w-6 h-6 mb-2" />
-                  <h4 className="font-semibold text-sm">{action.title}</h4>
-                  <p className="text-xs opacity-90">{action.description}</p>
+                <div className="relative z-10 text-left">
+                  <action.icon className="w-7 h-7 mb-3" />
+                  <h4 className="font-semibold text-base mb-1">{action.title}</h4>
+                  <p className="text-sm opacity-90 leading-relaxed">{action.description}</p>
                 </div>
               </button>
             ))}
@@ -283,7 +279,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               Recent Activity
             </h3>
             <button 
-              onClick={() => handleActivityClick('Profile')}
+              onClick={() => onNavigate?.('Profile', 'activity')}
               className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors"
             >
               View All
@@ -294,7 +290,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             {recentActivity.map((activity) => (
               <div
                 key={activity.id}
-                onClick={() => handleActivityClick(activity.section)}
+                onClick={() => onNavigate?.(activity.section)}
                 className="flex items-center space-x-4 p-3 rounded-lg hover:bg-white/50 transition-colors cursor-pointer group"
               >
                 <div className={`p-2 ${activity.bgColor} rounded-full group-hover:scale-110 transition-transform duration-200`}>
