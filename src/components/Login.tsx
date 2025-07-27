@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Mail, Lock, Eye, EyeOff, Chrome, LogIn, UserPlus, CheckCircle, AlertCircle, Clock } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, LogIn, UserPlus, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import GoogleLoginButton from './GoogleLoginButton'
 
 interface LoginProps {
   onClose?: () => void
@@ -17,7 +18,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [countdown, setCountdown] = useState(30)
 
-  const { signIn, signUp, signInWithGoogle } = useAuth()
+  const { signIn, signUp } = useAuth()
 
   // 倒计时效果
   useEffect(() => {
@@ -90,22 +91,7 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
     }
   }
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true)
-    setError('')
-    setSuccess('')
 
-    try {
-      const { error } = await signInWithGoogle()
-      if (error) {
-        setError(error.message)
-      }
-    } catch (err) {
-      setError('Google登录失败，请重试')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
@@ -293,17 +279,11 @@ const Login: React.FC<LoginProps> = ({ onClose }) => {
           </div>
 
           {/* Google Sign In */}
-          <button
-            onClick={handleGoogleSignIn}
+          <GoogleLoginButton
+            onSuccess={() => setSuccess('正在跳转到Google登录...')}
+            onError={(errorMessage) => setError(errorMessage)}
             disabled={loading}
-            className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            style={{ '--tw-ring-color': '#4792E6' } as React.CSSProperties}
-          >
-            <div className="flex items-center justify-center">
-              <Chrome className="w-5 h-5 mr-2 text-blue-500" />
-              使用 Google 登录
-            </div>
-          </button>
+          />
 
           {/* Toggle Sign Up/Sign In */}
           <div className="mt-6 text-center">
