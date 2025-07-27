@@ -8,7 +8,6 @@ import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
 import MarketingStrategy from './components/MarketingStrategy';
 import Login from './components/Login';
-import UserProfile from './components/UserProfile';
 import { Card, InspirationAccount, Post } from './types/index';
 import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
@@ -154,14 +153,13 @@ const AppContent: React.FC = () => {
       <div className="flex overflow-hidden flex-1">
         {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
         <div className={`${
-          showDashboard ? 'w-full' : 
-          showProfile ? 'w-2/3' : 
+          showDashboard || showProfile ? 'w-full' : 
           'w-1/3'
         } min-w-0`}>
           {showDashboard ? (
             <Dashboard onNavigate={handleDashboardNavigate} />
           ) : showProfile ? (
-            <UserProfile />
+            <Profile initialSection={profileInitialSection} />
           ) : showConfig ? (
             <Config 
               onItemClick={handleConfigItemClick} 
@@ -188,41 +186,10 @@ const AppContent: React.FC = () => {
           )}
         </div>
         
-        {/* Results Area - only show when not Dashboard and not Profile without selection */}
-        {!showDashboard && (
-          <div className={`${showProfile ? 'w-1/3' : 'flex-1'} min-w-0`}>
-            {showProfile ? (
-              // Profile placeholder content
-              <div className="flex flex-col h-full bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50 rounded-lg border border-gray-200 shadow-sm relative overflow-hidden">
-                {/* Animated background elements */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-2xl animate-pulse"></div>
-                  <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-tr from-indigo-400/20 to-pink-400/20 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gradient-to-r from-cyan-400/10 to-blue-400/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-                </div>
-                
-                {/* Content */}
-                <div className="flex-1 flex items-center justify-center relative z-10">
-                  <div className="text-center">
-                    <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                      <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                        <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full animate-bounce"></div>
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-700 mb-2">Profile Overview</h3>
-                    <p className="text-gray-500 max-w-sm mx-auto">
-                      Manage your profile settings and view your social media analytics from the left panel.
-                    </p>
-                    <div className="mt-6 flex justify-center space-x-2">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <ResultsArea 
+        {/* Results Area - only show when not Dashboard and not Profile */}
+        {!showDashboard && !showProfile && (
+          <div className="flex-1 min-w-0">
+            <ResultsArea 
               selectedCard={selectedCard} 
               selectedAccount={selectedAccount} 
               selectedConfigItem={selectedConfigItem}
@@ -230,7 +197,6 @@ const AppContent: React.FC = () => {
               selectedPost={selectedPost}
               selectedStrategy={selectedStrategy}
             />
-            )}
           </div>
         )}
       </div>
