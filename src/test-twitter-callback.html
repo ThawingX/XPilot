@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试 Twitter 回调</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #1da1f2;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0d8bd9;
+        }
+        .success {
+            background: #28a745;
+        }
+        .success:hover {
+            background: #218838;
+        }
+        .error {
+            background: #dc3545;
+        }
+        .error:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Twitter 回调测试</h1>
+        <p>点击下面的按钮来测试不同的 Twitter 回调场景：</p>
+        
+        <h3>成功场景：</h3>
+        <button class="success" onclick="testSuccessCallback()">
+            测试成功回调
+        </button>
+        
+        <h3>错误场景：</h3>
+        <button class="error" onclick="testErrorCallback()">
+            测试错误回调
+        </button>
+        
+        <h3>用户取消：</h3>
+        <button onclick="testCancelCallback()">
+            测试用户取消
+        </button>
+        
+        <h3>直接跳转到 Profile：</h3>
+        <button onclick="testDirectProfile()">
+            直接跳转到 Profile (Twitter Auth)
+        </button>
+    </div>
+
+    <script>
+        function testSuccessCallback() {
+            // 模拟成功的 Twitter 回调
+            const url = '/auth/twitter/direct/callback?code=test_auth_code&state=test_state';
+            window.location.href = url;
+        }
+        
+        function testErrorCallback() {
+            // 模拟错误的 Twitter 回调
+            const url = '/auth/twitter/direct/callback?error=access_denied&error_description=User%20denied%20access';
+            window.location.href = url;
+        }
+        
+        function testCancelCallback() {
+            // 模拟用户取消授权
+            const url = '/auth/twitter/direct/callback?error=user_cancelled&error_description=User%20cancelled%20authorization';
+            window.location.href = url;
+        }
+        
+        function testDirectProfile() {
+            // 直接跳转到 Profile 页面的 Twitter Auth 部分
+            const url = '/?section=profile&tab=twitter-auth';
+            window.location.href = url;
+        }
+    </script>
+</body>
+</html>

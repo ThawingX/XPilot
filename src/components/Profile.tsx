@@ -1,40 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Calendar, MapPin, Link, Twitter, Star, Crown, Settings, Edit3, Check, X, Camera, Shield, Bell, CreditCard, Users, Activity, TrendingUp, Award, Zap, Target, MessageSquare, Heart, BarChart3, Clock, Gift, Sparkles, ExternalLink, CheckCircle, AlertCircle, LogOut } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, Link, Star, Crown, Settings, Edit3, Check, X, Camera, Shield, Bell, CreditCard, Users, Activity, TrendingUp, Award, Zap, Target, MessageSquare, Heart, BarChart3, Clock, Gift, Sparkles, ExternalLink, CheckCircle, AlertCircle, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { twitterService, TwitterConnection } from '../lib/twitterService';
 
 interface ProfileProps {
   onClose?: () => void;
   initialSection?: string;
+  onNavigate?: (section: string) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' }) => {
+const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview', onNavigate }) => {
   const { user, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [activeSection, setActiveSection] = useState(initialSection);
   const [isConnectingTwitter, setIsConnectingTwitter] = useState(false);
-  const [twitterConnected, setTwitterConnected] = useState(false);
+  const [twitterConnection, setTwitterConnection] = useState<TwitterConnection | null>(null);
   const [loading, setLoading] = useState(false);
-  const [animatedStats, setAnimatedStats] = useState({
-    totalReplies: 0,
-    engagementRate: 0,
-    accountsManaged: 0,
-    monthlyGrowth: 0
-  });
-  
-  // Use real user data from auth context
+  const [connectLoading, setConnectLoading] = useState(false);
+
   const [profileData, setProfileData] = useState({
-    name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
-    username: `@${user?.email?.split('@')[0] || 'user'}`,
-    email: user?.email || '',
+    name: '',
+    email: '',
     bio: 'Building the future of social media automation | XPilot user',
     location: 'San Francisco, CA',
     website: 'https://xpilot.com',
     joinDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
     avatar: user?.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
     provider: user?.user_metadata?.provider || 'email',
-    emailConfirmed: !!user?.email_confirmed_at,
     lastSignIn: user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('en-US') : 'Unknown',
-    userId: user?.id || ''
+    userId: user?.id || '',
+    emailConfirmed: user?.email_confirmed_at ? true : false
   });
 
   const [tempData, setTempData] = useState(profileData);
@@ -44,15 +39,13 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' 
     if (user) {
       const updatedData = {
         name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-        username: `@${user.email?.split('@')[0] || 'user'}`,
         email: user.email || '',
         bio: 'Building the future of social media automation | XPilot user',
         location: 'San Francisco, CA',
         website: 'https://xpilot.com',
-        joinDate: new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
-        avatar: user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-        provider: user.user_metadata?.provider || 'email',
-        emailConfirmed: !!user.email_confirmed_at,
+        joinDate: user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently',
+        avatar: user?.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+        provider: user?.user_metadata?.provider || 'email',
         lastSignIn: user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString('en-US') : 'Unknown',
         userId: user.id || ''
       };
@@ -61,70 +54,29 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' 
     }
   }, [user]);
 
-  const handleSignOut = async () => {
-    setLoading(true);
-    try {
-      await signOut();
-    } catch (error) {
-      console.error('Sign out failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!user) {
-    return (
-      <div className="flex overflow-hidden relative flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-gray-200 shadow-sm">
-        <div className="flex flex-1 justify-center items-center">
-          <div className="text-center">
-            <User className="mx-auto mb-4 w-16 h-16 text-gray-400" />
-            <h3 className="mb-2 text-xl font-semibold text-gray-700">Please Sign In</h3>
-            <p className="text-gray-500">You need to be signed in to view your profile.</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const stats = {
-    totalReplies: 1247,
-    engagementRate: 8.5,
-    accountsManaged: 3,
-    monthlyGrowth: 12.3
-  };
-
-  // Number animation effect
+  // Check Twitter connection status
   useEffect(() => {
-    const duration = 2000; // 2 second animation
-    const steps = 60; // 60 frames
-    const stepDuration = duration / steps;
-    
-    let currentStep = 0;
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-      
-      setAnimatedStats({
-        totalReplies: Math.floor(stats.totalReplies * easeOutQuart),
-        engagementRate: Number((stats.engagementRate * easeOutQuart).toFixed(1)),
-        accountsManaged: Math.floor(stats.accountsManaged * easeOutQuart),
-        monthlyGrowth: Number((stats.monthlyGrowth * easeOutQuart).toFixed(1))
-      });
-      
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setAnimatedStats(stats);
+    const checkTwitterConnection = async () => {
+      if (user) {
+        setConnectLoading(true);
+        try {
+          const connection = await twitterService.getUserConnection();
+          setTwitterConnection(connection);
+        } catch (error) {
+          console.error('Error checking Twitter connection:', error);
+        } finally {
+          setConnectLoading(false);
+        }
       }
-    }, stepDuration);
+    };
     
-    return () => clearInterval(timer);
-  }, []);
+    checkTwitterConnection();
+  }, [user]);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-    setTempData(profileData);
-  };
+  // Update active section when initialSection changes
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
 
   const handleSave = () => {
     setProfileData(tempData);
@@ -136,232 +88,247 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' 
     setIsEditing(false);
   };
 
-  const handleConnectTwitter = async () => {
-    setIsConnectingTwitter(true);
+  const handleInputChange = (field: string, value: string) => {
+    setTempData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleSignOut = async () => {
+    setLoading(true);
     try {
-      // Simulate API call - replace with actual Twitter OAuth flow
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setTwitterConnected(true);
-      // Here you would implement the actual Twitter API connection
-      console.log('Connecting to Twitter API...');
+      await signOut();
     } catch (error) {
-      console.error('Failed to connect to Twitter:', error);
+      console.error('Error signing out:', error);
     } finally {
-      setIsConnectingTwitter(false);
+      setLoading(false);
     }
   };
 
-  const handleDisconnectTwitter = () => {
-    setTwitterConnected(false);
-    // Here you would implement the actual Twitter API disconnection
-    console.log('Disconnecting from Twitter API...');
+  const handleConnectTwitter = async () => {
+    try {
+      // 检查Twitter API配置
+      if (!twitterService.isConfigured()) {
+        alert('Twitter API 配置不完整！\n\n请按以下步骤配置：\n1. 访问 Twitter Developer Portal (https://developer.twitter.com/)\n2. 创建应用并获取 Client ID 和 Client Secret\n3. 在项目根目录的 .env 文件中配置这些密钥\n4. 重启开发服务器');
+        return;
+      }
+
+      const authUrl = await twitterService.getAuthUrl();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Error connecting to Twitter:', error);
+      const errorMessage = error instanceof Error ? error.message : '连接Twitter时发生未知错误';
+      alert(`连接失败：${errorMessage}`);
+    }
   };
 
-  const subscriptionPlan = {
-    name: 'Pro Plan',
-    price: '$29/month',
-    features: ['Unlimited AI replies', 'Advanced analytics', 'Priority support', 'Custom templates'],
-    nextBilling: 'April 15, 2024',
-    status: 'active'
+  const handleDisconnectTwitter = async () => {
+    try {
+      const result = await twitterService.disconnectTwitter();
+      if (result.success) {
+        setTwitterConnection(null);
+        console.log('Twitter disconnected successfully');
+      } else {
+        console.error('Failed to disconnect Twitter:', result.error);
+      }
+    } catch (error) {
+      console.error('Error disconnecting Twitter:', error);
+    }
   };
-
-  const recentActivity = [
-    { id: 1, type: 'reply', content: 'Auto-replied to @techcrunch', time: '2 minutes ago', icon: MessageSquare },
-    { id: 2, type: 'engagement', content: 'Gained 15 new followers', time: '1 hour ago', icon: Users },
-    { id: 3, type: 'achievement', content: 'Reached 1000 replies milestone!', time: '3 hours ago', icon: Award },
-    { id: 4, type: 'analytics', content: 'Weekly report generated', time: '1 day ago', icon: BarChart3 }
-  ];
 
   const achievements = [
-    { id: 1, title: 'First Reply', description: 'Sent your first auto-reply', icon: MessageSquare, unlocked: true },
-    { id: 2, title: 'Engagement Master', description: 'Achieved 5%+ engagement rate', icon: Heart, unlocked: true },
+    { id: 1, title: 'First Reply', description: 'Send your first automated reply', icon: MessageSquare, unlocked: true },
+    { id: 2, title: 'Engagement Master', description: '100+ successful interactions', icon: Heart, unlocked: true },
     { id: 3, title: 'Growth Hacker', description: '10%+ monthly growth', icon: TrendingUp, unlocked: true },
     { id: 4, title: 'Social Butterfly', description: 'Manage 5+ accounts', icon: Users, unlocked: false },
     { id: 5, title: 'Reply Champion', description: 'Send 5000+ replies', icon: Zap, unlocked: false },
     { id: 6, title: 'Influence Builder', description: 'Reach 50K followers', icon: Crown, unlocked: false }
   ];
 
+  const recentActivity = [
+    { id: 1, content: 'Auto-replied to @techcrunch', time: '2 minutes ago', icon: MessageSquare },
+    { id: 2, content: 'Gained 15 new followers', time: '1 hour ago', icon: Users },
+    { id: 3, content: 'Reached 1000 replies milestone!', time: '3 hours ago', icon: Award },
+    { id: 4, content: 'Connected new Twitter account', time: '1 day ago', icon: Settings },
+    { id: 5, content: 'Updated profile information', time: '2 days ago', icon: User }
+  ];
+
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'connect', label: 'Connect', icon: Twitter },
+    { id: 'connect', label: 'X Connect', icon: () => (
+      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+      </svg>
+    ) },
     { id: 'activity', label: 'Activity History', icon: Clock },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   const renderOverview = () => (
     <div className="space-y-6">
-      {/* Profile Info */}
-      <div className="bg-gradient-to-r from-[#4792E6] to-blue-600 rounded-lg p-6 text-white transform hover:scale-[1.02] transition-transform duration-300">
-        <div className="flex items-start space-x-4">
-          <div className="relative group">
+      {/* Profile Header */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-start space-x-6">
+          <div className="relative">
             <img
               src={profileData.avatar}
-              alt={profileData.name}
-              className="object-cover w-20 h-20 rounded-full border-4 border-white shadow-lg transition-transform duration-300 group-hover:scale-110"
+              alt="Profile"
+              className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
             />
-            {isEditing && (
-              <button className="absolute -bottom-1 -right-1 w-8 h-8 bg-white text-[#4792E6] rounded-full flex items-center justify-center shadow-lg hover:bg-gray-50 transition-colors">
-                <Camera size={14} />
-              </button>
-            )}
-            <div className="flex absolute -top-1 -right-1 justify-center items-center w-6 h-6 bg-green-500 rounded-full border-2 border-white">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            </div>
+            <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
+              <Camera className="w-4 h-4" />
+            </button>
           </div>
+          
           <div className="flex-1">
-            {isEditing ? (
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={tempData.name}
-                  onChange={(e) => setTempData({ ...tempData, name: e.target.value })}
-                  className="px-3 py-2 w-full text-white rounded-lg border bg-white/20 border-white/30 placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  placeholder="Full name"
-                />
-                <input
-                  type="text"
-                  value={tempData.username}
-                  onChange={(e) => setTempData({ ...tempData, username: e.target.value })}
-                  className="px-3 py-2 w-full text-white rounded-lg border bg-white/20 border-white/30 placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  placeholder="Username"
-                />
-                <textarea
-                  value={tempData.bio}
-                  onChange={(e) => setTempData({ ...tempData, bio: e.target.value })}
-                  className="px-3 py-2 w-full text-white rounded-lg border resize-none bg-white/20 border-white/30 placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
-                  rows={3}
-                  placeholder="Bio"
-                />
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">{profileData.name}</h2>
+                <p className="text-gray-600">{profileData.email}</p>
               </div>
-            ) : (
-              <>
-                <div className="flex items-center mb-2 space-x-2">
-                  <h1 className="text-2xl font-bold">{profileData.name}</h1>
-                  <Crown className="w-5 h-5 text-yellow-400 animate-pulse" />
-                </div>
-                <p className="mb-2 text-blue-100">{profileData.username}</p>
-                <p className="mb-4 text-sm text-blue-100">{profileData.bio}</p>
-                <div className="flex items-center space-x-4 text-sm">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-4 h-4" />
-                    <span>{profileData.location}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>Joined {profileData.joinDate}</span>
-                  </div>
-                </div>
-              </>
-            )}
+              <button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+              >
+                <Edit3 className="w-4 h-4 mr-2" />
+                Edit Profile
+              </button>
+            </div>
+            
+            <p className="text-gray-700 mt-3">{profileData.bio}</p>
+            
+            <div className="flex items-center space-x-6 mt-4 text-sm text-gray-600">
+              <div className="flex items-center">
+                <MapPin className="w-4 h-4 mr-1" />
+                {profileData.location}
+              </div>
+              <div className="flex items-center">
+                <Link className="w-4 h-4 mr-1" />
+                <a href={profileData.website} className="text-blue-600 hover:underline">{profileData.website}</a>
+              </div>
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 mr-1" />
+                Joined {profileData.joinDate}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-[#4792E6]/10 p-4 rounded-lg hover:bg-[#4792E6]/20 transition-colors duration-300 group">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-2xl font-bold text-[#4792E6] group-hover:scale-110 transition-transform duration-300">
-                {animatedStats.totalReplies.toLocaleString()}
-              </div>
-              <div className="text-sm text-gray-600">Total Replies</div>
-            </div>
-            <MessageSquare className="w-8 h-8 text-[#4792E6] group-hover:rotate-12 transition-transform duration-300" />
-          </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+          <div className="text-2xl font-bold text-blue-600">1,247</div>
+          <div className="text-sm text-gray-600">Total Replies</div>
+          <div className="mt-2 text-xs text-green-600">+12% this week</div>
         </div>
-        <div className="p-4 bg-green-50 rounded-lg transition-colors duration-300 hover:bg-green-100 group">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-2xl font-bold text-green-600 transition-transform duration-300 group-hover:scale-110">
-                {animatedStats.engagementRate}%
-              </div>
-              <div className="text-sm text-gray-600">Engagement Rate</div>
-            </div>
-            <Heart className="w-8 h-8 text-green-600 transition-transform duration-300 group-hover:scale-110" />
-          </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+          <div className="text-2xl font-bold text-green-600">8.5%</div>
+          <div className="text-sm text-gray-600">Engagement Rate</div>
+          <div className="mt-2 text-xs text-green-600">+2.3% this month</div>
         </div>
-        <div className="p-4 bg-purple-50 rounded-lg transition-colors duration-300 hover:bg-purple-100 group">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-2xl font-bold text-purple-600 transition-transform duration-300 group-hover:scale-110">
-                {animatedStats.accountsManaged}
-              </div>
-              <div className="text-sm text-gray-600">Accounts Managed</div>
-            </div>
-            <Users className="w-8 h-8 text-purple-600 transition-transform duration-300 group-hover:rotate-12" />
-          </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+          <div className="text-2xl font-bold text-purple-600">3</div>
+          <div className="text-sm text-gray-600">Connected Accounts</div>
+          <div className="mt-2 text-xs text-blue-600">All active</div>
         </div>
-        <div className="p-4 bg-orange-50 rounded-lg transition-colors duration-300 hover:bg-orange-100 group">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-2xl font-bold text-orange-600 transition-transform duration-300 group-hover:scale-110">
-                +{animatedStats.monthlyGrowth}%
-              </div>
-              <div className="text-sm text-gray-600">Monthly Growth</div>
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+            <MessageSquare className="w-5 h-5 text-blue-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Auto-replied to @techcrunch</p>
+              <p className="text-xs text-gray-500">2 minutes ago</p>
             </div>
-            <TrendingUp className="w-8 h-8 text-orange-600 transition-transform duration-300 group-hover:scale-110" />
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
+            <Users className="w-5 h-5 text-green-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Gained 15 new followers</p>
+              <p className="text-xs text-gray-500">1 hour ago</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
+            <Award className="w-5 h-5 text-yellow-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Reached 1000 replies milestone!</p>
+              <p className="text-xs text-gray-500">3 hours ago</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Detailed Statistics */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200 transition-shadow duration-300 hover:shadow-lg">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
-          <BarChart3 className="w-5 h-5 mr-2 text-[#4792E6]" />
-          Detailed Statistics
-        </h3>
+      {/* Achievements */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Achievements</h3>
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#4792E6]/10 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-[#4792E6] mb-2">{animatedStats.totalReplies.toLocaleString()}</div>
-            <div className="mb-3 text-sm text-gray-600">Total Replies</div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="bg-[#4792E6] h-2 rounded-full" style={{ width: '75%' }}></div>
+          {achievements.map((achievement) => (
+            <div
+              key={achievement.id}
+              className={`p-4 rounded-lg border-2 transition-all ${
+                achievement.unlocked
+                  ? 'border-green-200 bg-green-50'
+                  : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-full ${
+                  achievement.unlocked ? 'bg-green-100' : 'bg-gray-100'
+                }`}>
+                  <achievement.icon className={`w-5 h-5 ${
+                    achievement.unlocked ? 'text-green-600' : 'text-gray-400'
+                  }`} />
+                </div>
+                <div className="flex-1">
+                  <h4 className={`font-medium ${
+                    achievement.unlocked ? 'text-gray-900' : 'text-gray-500'
+                  }`}>
+                    {achievement.title}
+                  </h4>
+                  <p className={`text-sm ${
+                    achievement.unlocked ? 'text-gray-600' : 'text-gray-400'
+                  }`}>
+                    {achievement.description}
+                  </p>
+                </div>
+                {achievement.unlocked && (
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                )}
+              </div>
             </div>
-          </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <div className="mb-2 text-2xl font-bold text-green-600">{animatedStats.engagementRate}%</div>
-            <div className="mb-3 text-sm text-gray-600">Engagement Rate</div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-2 bg-green-500 rounded-full" style={{ width: '85%' }}></div>
-            </div>
-          </div>
-          <div className="p-4 bg-purple-50 rounded-lg">
-            <div className="mb-2 text-2xl font-bold text-purple-600">{animatedStats.accountsManaged}</div>
-            <div className="mb-3 text-sm text-gray-600">Accounts Managed</div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-2 bg-purple-500 rounded-full" style={{ width: '60%' }}></div>
-            </div>
-          </div>
-          <div className="p-4 bg-orange-50 rounded-lg">
-            <div className="mb-2 text-2xl font-bold text-orange-600">+{animatedStats.monthlyGrowth}%</div>
-            <div className="mb-3 text-sm text-gray-600">Monthly Growth</div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-2 bg-orange-500 rounded-full" style={{ width: '90%' }}></div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Subscription Card */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200 transition-shadow duration-300 hover:shadow-lg">
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center space-x-2">
-            <Crown className="w-5 h-5 text-[#4792E6]" />
-            <h3 className="text-lg font-semibold text-gray-900">Subscription</h3>
+      {/* Account Info */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-gray-600">User ID</span>
+            <span className="text-gray-900 font-mono text-sm">{profileData.userId}</span>
           </div>
-          <span className="px-3 py-1 text-sm font-medium text-green-800 bg-green-100 rounded-full animate-pulse">
-            Active
-          </span>
-        </div>
-        <div className="flex justify-between items-center">
-          <div>
-            <div className="text-xl font-bold text-gray-900">{subscriptionPlan.name}</div>
-            <p className="text-gray-600">{subscriptionPlan.price}</p>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Sign-in Provider</span>
+            <span className="text-gray-900 capitalize">{profileData.provider}</span>
           </div>
-          <button className="px-4 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-[#4792E6]/90 transition-colors transform hover:scale-105 duration-200">
-            Manage
-          </button>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Last Sign In</span>
+            <span className="text-gray-900">{profileData.lastSignIn}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Account Status</span>
+            <span className="text-green-600 font-medium">Active</span>
+          </div>
         </div>
       </div>
     </div>
@@ -369,197 +336,128 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' 
 
   const renderConnect = () => (
     <div className="space-y-6">
-      {/* Twitter Connection Card */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200 transition-shadow duration-300 hover:shadow-lg">
-        <div className="flex justify-between items-center mb-6">
+      {/* X (Twitter) Connection */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Twitter className="w-6 h-6 text-blue-500" />
+            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900">Twitter Integration</h3>
-              <p className="text-sm text-gray-600">Connect your Twitter account to enable automated interactions</p>
+              <h3 className="text-lg font-semibold text-gray-900">X (formerly Twitter)</h3>
+              <p className="text-sm text-gray-500">
+                {connectLoading ? (
+                  <span className="flex items-center">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Checking connection...
+                  </span>
+                ) : (
+                  twitterConnection ? `Connected @${twitterConnection.platform_username}` : 'Not connected'
+                )}
+              </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {twitterConnected ? (
-              <div className="flex items-center space-x-2 text-green-600">
-                <CheckCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">Connected</span>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2 text-gray-500">
-                <AlertCircle className="w-5 h-5" />
-                <span className="text-sm font-medium">Not Connected</span>
-              </div>
-            )}
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+            connectLoading ? 'bg-blue-100 text-blue-800' :
+            twitterConnection ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+          }`}>
+            {connectLoading ? 'Checking...' : (twitterConnection ? 'Connected' : 'Disconnected')}
           </div>
         </div>
 
-        {twitterConnected ? (
+        {connectLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          </div>
+        ) : twitterConnection ? (
           <div className="space-y-4">
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <div className="flex items-start space-x-3">
-                <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium text-green-800">Successfully Connected</h4>
-                  <p className="mt-1 text-sm text-green-700">
-                    Your Twitter account is connected and ready for automated interactions. 
-                    You can now use Twitter API features for engagement automation.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center mb-2 space-x-2">
-                  <MessageSquare className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-900">Auto Replies</span>
-                </div>
-                <p className="text-xs text-gray-600">Automatically reply to mentions and DMs</p>
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Account Information</h4>
+                <p className="text-sm text-blue-700">Username: @{twitterConnection.platform_username}</p>
+                <p className="text-sm text-blue-700">Connected: {new Date(twitterConnection.connected_at).toLocaleDateString()}</p>
               </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center mb-2 space-x-2">
-                  <Heart className="w-4 h-4 text-red-600" />
-                  <span className="text-sm font-medium text-gray-900">Engagement</span>
-                </div>
-                <p className="text-xs text-gray-600">Like and retweet relevant content</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center mb-2 space-x-2">
-                  <BarChart3 className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-gray-900">Analytics</span>
-                </div>
-                <p className="text-xs text-gray-600">Track performance and engagement metrics</p>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center mb-2 space-x-2">
-                  <Users className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-gray-900">Followers</span>
-                </div>
-                <p className="text-xs text-gray-600">Manage and grow your follower base</p>
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">API Access</h4>
+                <p className="text-sm text-green-700">Status: Active</p>
+                <p className="text-sm text-green-700">Permissions: Read and Post</p>
               </div>
             </div>
-
+            
             <div className="flex space-x-3">
               <button
                 onClick={handleDisconnectTwitter}
-                className="px-4 py-2 text-red-700 rounded-lg border border-red-300 transition-colors hover:bg-red-50"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                Disconnect
-              </button>
-              <button className="flex items-center px-4 py-2 space-x-2 text-white bg-blue-600 rounded-lg transition-colors hover:bg-blue-700">
-                <ExternalLink className="w-4 h-4" />
-                <span>Manage API Settings</span>
+                Disconnect X
               </button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-start space-x-3">
-                <Twitter className="w-5 h-5 text-blue-600 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium text-blue-800">Connect Your Twitter Account</h4>
-                  <p className="mt-1 text-sm text-blue-700">
-                    Connect your Twitter account to enable automated replies, engagement tracking, 
-                    and advanced social media management features.
-                  </p>
-                </div>
-              </div>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h4 className="font-medium text-blue-900 mb-2">Connection Benefits</h4>
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Direct access to your X account via API</li>
+                <li>• Secure OAuth 2.0 authentication</li>
+                <li>• Support for reading and posting tweets</li>
+                <li>• Real-time account status synchronization</li>
+              </ul>
+            </div>
+            
+            <div className="bg-amber-50 p-4 rounded-lg">
+              <h4 className="font-medium text-amber-900 mb-2">Connection Requirements</h4>
+              <ul className="text-sm text-amber-700 space-y-1">
+                <li>• Valid X account</li>
+                <li>• Allow third-party app access</li>
+                <li>• Stable internet connection</li>
+                <li>• Properly configured Twitter API credentials</li>
+              </ul>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-3">
-                <h5 className="text-sm font-medium text-gray-900">What you'll get:</h5>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Automated reply generation</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Real-time engagement tracking</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Advanced analytics dashboard</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-500" />
-                    <span>Follower growth insights</span>
-                  </li>
-                </ul>
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <h4 className="font-medium text-red-900">Configuration Required</h4>
               </div>
-              <div className="space-y-3">
-                <h5 className="text-sm font-medium text-gray-900">Requirements:</h5>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 text-amber-500" />
-                    <span>Active Twitter account</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 text-amber-500" />
-                    <span>Twitter API access permissions</span>
-                  </li>
-                  <li className="flex items-center space-x-2">
-                    <AlertCircle className="w-4 h-4 text-amber-500" />
-                    <span>Account verification may be required</span>
-                  </li>
-                </ul>
+              <p className="text-sm text-red-700 mb-3">
+                Twitter API credentials are not configured. Please set up your Twitter API keys before connecting.
+              </p>
+              <div className="flex space-x-3">
+                <a
+                  href="/twitter/config"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-2 text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  <span>Check Configuration</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <a
+                  href="/twitter/diagnostics"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center space-x-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  <span>Run Diagnostics</span>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
               </div>
             </div>
-
+            
             <button
               onClick={handleConnectTwitter}
-              disabled={isConnectingTwitter}
-              className="flex justify-center items-center px-4 py-3 space-x-2 w-full text-white bg-blue-600 rounded-lg transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors font-medium"
             >
-              {isConnectingTwitter ? (
-                <>
-                  <div className="w-4 h-4 rounded-full border-2 border-white animate-spin border-t-transparent"></div>
-                  <span>Connecting...</span>
-                </>
-              ) : (
-                <>
-                  <Twitter className="w-5 h-5" />
-                  <span>Connect Twitter Account</span>
-                </>
-              )}
+              Connect X
             </button>
           </div>
         )}
       </div>
-
-      {/* Other Social Platforms (Coming Soon) */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200 opacity-60">
-        <h3 className="mb-4 text-lg font-semibold text-gray-900">Other Platforms</h3>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex items-center p-3 space-x-3 rounded-lg border border-gray-200">
-            <div className="p-2 bg-gray-100 rounded-full">
-              <Users className="w-5 h-5 text-gray-400" />
-            </div>
-            <div>
-              <h4 className="text-sm font-medium text-gray-900">LinkedIn</h4>
-              <p className="text-xs text-gray-500">Coming Soon</p>
-            </div>
-          </div>
-          <div className="flex items-center p-3 space-x-3 rounded-lg border border-gray-200">
-            <div className="p-2 bg-gray-100 rounded-full">
-              <Users className="w-5 h-5 text-gray-400" />
-            </div>
-            <div>
-              <h4 className="text-sm font-medium text-gray-900">Instagram</h4>
-              <p className="text-xs text-gray-500">Coming Soon</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
-
-
 
   const renderAchievements = () => (
     <div className="space-y-4">
@@ -773,6 +671,8 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview' 
       </div>
     </div>
   );
+
+
 
   const renderContent = () => {
     switch (activeSection) {

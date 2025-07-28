@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import EngagementQueue from './components/EngagementQueue';
 import PostThreadQueue from './components/PostThreadQueue';
@@ -8,6 +9,10 @@ import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
 import MarketingStrategy from './components/MarketingStrategy';
 import Login from './components/Login';
+import TwitterAuthCallback from './pages/TwitterAuthCallback';
+import TwitterDirectCallback from './components/TwitterDirectCallback';
+import TwitterConfigStatus from './components/TwitterConfigStatus';
+import TwitterDiagnostics from './pages/TwitterDiagnostics';
 import { Card, InspirationAccount, Post } from './types/index';
 import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
@@ -15,6 +20,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
@@ -23,6 +29,21 @@ const AppContent: React.FC = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategyType | null>(null);
   const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
+
+  // 处理 URL 参数
+  useEffect(() => {
+    const section = searchParams.get('section');
+    const tab = searchParams.get('tab');
+    
+    if (section === 'profile') {
+      setActiveMenuItem('Profile');
+      if (tab) {
+        setProfileInitialSection(tab);
+      }
+      // 清除 URL 参数，避免刷新时重复处理
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // 显示加载状态
   if (loading) {
@@ -159,7 +180,10 @@ const AppContent: React.FC = () => {
           {showDashboard ? (
             <Dashboard onNavigate={handleDashboardNavigate} />
           ) : showProfile ? (
-            <Profile initialSection={profileInitialSection} />
+            <Profile 
+              initialSection={profileInitialSection} 
+              onNavigate={handleDashboardNavigate}
+            />
           ) : showConfig ? (
             <Config 
               onItemClick={handleConfigItemClick} 
@@ -210,7 +234,15 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <Routes>
+          <Route path="/auth/supabase/twitter/callback" element={<TwitterAuthCallback />} />
+          <Route path="/auth/twitter/direct/callback" element={<TwitterDirectCallback />} />
+          <Route path="/twitter/config" element={<TwitterConfigStatus />} />
+          <Route path="/twitter/diagnostics" element={<TwitterDiagnostics />} />
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
+      </Router>
     </AuthProvider>
   );
 }
