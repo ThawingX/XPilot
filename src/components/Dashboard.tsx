@@ -5,49 +5,50 @@ import {
   MessageSquare, 
   Heart, 
   BarChart3, 
-  Clock, 
-  Award, 
   Zap, 
   Target,
   ArrowUpRight,
-  ArrowDownRight,
   Calendar,
-  Bell,
-  Star,
   Activity,
   Eye,
-  Share2,
-  Bookmark,
   ChevronRight,
-  Sparkles,
-  Crown,
-  Globe,
   Rocket,
   Crosshair,
   PenTool
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardProps {
   onNavigate?: (section: string, profileSection?: string) => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
+  const { user } = useAuth();
   const [animatedStats, setAnimatedStats] = useState({
     totalReplies: 0,
-    engagementRate: 0,
+    engagementTotal: 0,
     accountsManaged: 0,
     monthlyGrowth: 0,
-    totalViews: 0,
     avgResponseTime: 0
   });
 
   const stats = {
     totalReplies: 1247,
-    engagementRate: 8.5,
+    engagementTotal: 8.5,
     accountsManaged: 3,
     monthlyGrowth: 12.3,
-    totalViews: 89400,
     avgResponseTime: 2.4
+  };
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name;
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'User';
   };
 
   // Number animation effect
@@ -64,10 +65,9 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       
       setAnimatedStats({
         totalReplies: Math.floor(stats.totalReplies * easeOutQuart),
-        engagementRate: Number((stats.engagementRate * easeOutQuart).toFixed(1)),
+        engagementTotal: Number((stats.engagementTotal * easeOutQuart).toFixed(1)),
         accountsManaged: Math.floor(stats.accountsManaged * easeOutQuart),
         monthlyGrowth: Number((stats.monthlyGrowth * easeOutQuart).toFixed(1)),
-        totalViews: Math.floor(stats.totalViews * easeOutQuart),
         avgResponseTime: Number((stats.avgResponseTime * easeOutQuart).toFixed(1))
       });
       
@@ -89,12 +89,12 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       icon: MessageSquare,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-      section: 'Engagement'
+      section: 'Get Post/Thread'
     },
     { 
       id: 2, 
-      type: 'engagement', 
-      content: 'Gained 15 new followers from recent posts', 
+      type: 'follow', 
+      content: 'Added @elonmusk to inspiration accounts', 
       time: '1 hour ago', 
       icon: Users,
       color: 'text-green-600',
@@ -103,16 +103,6 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     },
     { 
       id: 3, 
-      type: 'achievement', 
-      content: 'Reached 1000 replies milestone! 🎉', 
-      time: '3 hours ago', 
-      icon: Award,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      section: 'Profile'
-    },
-    { 
-      id: 4, 
       type: 'analytics', 
       content: 'Weekly engagement report generated', 
       time: '1 day ago', 
@@ -122,7 +112,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       section: 'Profile'
     },
     { 
-      id: 5, 
+      id: 4, 
       type: 'strategy', 
       content: 'New content strategy template created', 
       time: '2 days ago', 
@@ -130,6 +120,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-50',
       section: 'Content Strategy'
+    },
+    { 
+      id: 5, 
+      type: 'engagement', 
+      content: 'Auto-engagement queue processed 50 interactions', 
+      time: '3 days ago', 
+      icon: Heart,
+      color: 'text-pink-600',
+      bgColor: 'bg-pink-50',
+      section: 'Auto Engagement'
     }
   ];
 
@@ -185,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <Rocket className="w-7 h-7 mr-3 text-blue-600" />
               Dashboard
             </h1>
-            <p className="text-gray-600 mt-1">Welcome back! Here's your social media overview</p>
+            <p className="text-gray-600 mt-1">Welcome back, {getUserDisplayName()}! Click the Quick Actions below to quickly use features.</p>
           </div>
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
@@ -199,7 +199,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       {/* Content */}
       <div className="overflow-y-auto flex-1 p-6 relative z-10 space-y-6">
         {/* Key Metrics */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
             <div className="flex items-center justify-between">
               <div>
@@ -220,31 +220,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-2xl font-bold text-green-600 group-hover:scale-110 transition-transform duration-300">
-                  {animatedStats.engagementRate}%
+                  {animatedStats.engagementTotal}%
                 </div>
-                <div className="text-sm text-gray-600">Engagement Rate</div>
+                <div className="text-sm text-gray-600">Engagement Total</div>
                 <div className="flex items-center mt-2 text-xs text-green-600">
                   <ArrowUpRight className="w-3 h-3 mr-1" />
                   +2.3% this month
                 </div>
               </div>
               <Heart className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform duration-300" />
-            </div>
-          </div>
-
-          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-purple-600 group-hover:scale-110 transition-transform duration-300">
-                  {animatedStats.totalViews.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600">Total Views</div>
-                <div className="flex items-center mt-2 text-xs text-green-600">
-                  <ArrowUpRight className="w-3 h-3 mr-1" />
-                  +8.7% this week
-                </div>
-              </div>
-              <Eye className="w-8 h-8 text-purple-600 group-hover:scale-110 transition-transform duration-300" />
             </div>
           </div>
         </div>
@@ -315,39 +299,31 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
               Growth Metrics
             </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Monthly Growth</span>
-                <span className="text-sm font-semibold text-green-600">+{animatedStats.monthlyGrowth}%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Accounts Managed</span>
-                <span className="text-sm font-semibold text-blue-600">{animatedStats.accountsManaged}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Avg Response Time</span>
-                <span className="text-sm font-semibold text-purple-600">{animatedStats.avgResponseTime}min</span>
+            <div className="flex items-center justify-center h-20">
+              <div className="text-center">
+                <div className="text-xl font-bold text-gray-600 mb-1">Coming Soon!</div>
+                <div className="text-sm text-gray-500">Feature in development</div>
               </div>
             </div>
           </div>
 
           <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
             <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-              <Crown className="w-5 h-5 mr-2 text-yellow-500" />
-              Achievements
+              <Activity className="w-5 h-5 mr-2 text-blue-500" />
+              System Status
             </h4>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm text-gray-700">1K Replies Milestone</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Auto Engagement Active</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Target className="w-4 h-4 text-blue-500" />
-                <span className="text-sm text-gray-700">High Engagement Rate</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Reply Queue Processing</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Globe className="w-4 h-4 text-green-500" />
-                <span className="text-sm text-gray-700">Multi-Account Master</span>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">All Accounts Connected</span>
               </div>
             </div>
           </div>

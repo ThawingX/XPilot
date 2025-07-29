@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Calendar, MapPin, Link, Star, Crown, Settings, Edit3, Check, X, Camera, Shield, Bell, CreditCard, Users, Activity, TrendingUp, Award, Zap, Target, MessageSquare, Heart, BarChart3, Clock, Gift, Sparkles, ExternalLink, CheckCircle, AlertCircle, LogOut, Loader2 } from 'lucide-react';
+import { User, Mail, Calendar, MapPin, Link, Star, Settings, Edit3, Check, X, Camera, Shield, Bell, CreditCard, Users, Activity, TrendingUp, MessageSquare, BarChart3, Clock, Gift, ExternalLink, AlertCircle, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { twitterService, TwitterConnection } from '../lib/twitterService';
 
@@ -140,21 +140,12 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
     }
   };
 
-  const achievements = [
-    { id: 1, title: 'First Reply', description: 'Send your first automated reply', icon: MessageSquare, unlocked: true },
-    { id: 2, title: 'Engagement Master', description: '100+ successful interactions', icon: Heart, unlocked: true },
-    { id: 3, title: 'Growth Hacker', description: '10%+ monthly growth', icon: TrendingUp, unlocked: true },
-    { id: 4, title: 'Social Butterfly', description: 'Manage 5+ accounts', icon: Users, unlocked: false },
-    { id: 5, title: 'Reply Champion', description: 'Send 5000+ replies', icon: Zap, unlocked: false },
-    { id: 6, title: 'Influence Builder', description: 'Reach 50K followers', icon: Crown, unlocked: false }
-  ];
-
   const recentActivity = [
     { id: 1, content: 'Auto-replied to @techcrunch', time: '2 minutes ago', icon: MessageSquare },
     { id: 2, content: 'Gained 15 new followers', time: '1 hour ago', icon: Users },
-    { id: 3, content: 'Reached 1000 replies milestone!', time: '3 hours ago', icon: Award },
-    { id: 4, content: 'Connected new Twitter account', time: '1 day ago', icon: Settings },
-    { id: 5, content: 'Updated profile information', time: '2 days ago', icon: User }
+    { id: 3, content: 'Connected new Twitter account', time: '1 day ago', icon: Settings },
+    { id: 4, content: 'Updated profile information', time: '2 days ago', icon: User },
+    { id: 5, content: 'Generated weekly analytics report', time: '3 days ago', icon: BarChart3 }
   ];
 
   const menuItems = [
@@ -256,55 +247,13 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
               <p className="text-xs text-gray-500">1 hour ago</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
-            <Award className="w-5 h-5 text-yellow-600" />
+          <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
+            <BarChart3 className="w-5 h-5 text-purple-600" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">Reached 1000 replies milestone!</p>
-              <p className="text-xs text-gray-500">3 hours ago</p>
+              <p className="text-sm font-medium text-gray-900">Generated weekly analytics report</p>
+              <p className="text-xs text-gray-500">3 days ago</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Achievements */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Achievements</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {achievements.map((achievement) => (
-            <div
-              key={achievement.id}
-              className={`p-4 rounded-lg border-2 transition-all ${
-                achievement.unlocked
-                  ? 'border-green-200 bg-green-50'
-                  : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center space-x-3">
-                <div className={`p-2 rounded-full ${
-                  achievement.unlocked ? 'bg-green-100' : 'bg-gray-100'
-                }`}>
-                  <achievement.icon className={`w-5 h-5 ${
-                    achievement.unlocked ? 'text-green-600' : 'text-gray-400'
-                  }`} />
-                </div>
-                <div className="flex-1">
-                  <h4 className={`font-medium ${
-                    achievement.unlocked ? 'text-gray-900' : 'text-gray-500'
-                  }`}>
-                    {achievement.title}
-                  </h4>
-                  <p className={`text-sm ${
-                    achievement.unlocked ? 'text-gray-600' : 'text-gray-400'
-                  }`}>
-                    {achievement.description}
-                  </p>
-                </div>
-                {achievement.unlocked && (
-                  <CheckCircle className="w-5 h-5 text-green-600" />
-                )}
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -454,43 +403,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
             </button>
           </div>
         )}
-      </div>
-    </div>
-  );
-
-  const renderAchievements = () => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4">
-        {achievements.map((achievement) => (
-          <div
-            key={achievement.id}
-            className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-              achievement.unlocked
-                ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 hover:shadow-lg'
-                : 'bg-gray-50 border-gray-200 opacity-60'
-            }`}
-          >
-            <div className="flex items-center space-x-4">
-              <div className={`p-3 rounded-full ${
-                achievement.unlocked ? 'bg-yellow-100' : 'bg-gray-200'
-              }`}>
-                <achievement.icon className={`w-6 h-6 ${
-                  achievement.unlocked ? 'text-yellow-600' : 'text-gray-400'
-                }`} />
-              </div>
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900">{achievement.title}</h4>
-                <p className="text-sm text-gray-600">{achievement.description}</p>
-              </div>
-              {achievement.unlocked && (
-                <div className="flex items-center space-x-1 text-yellow-600">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm font-medium">Unlocked!</span>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
