@@ -148,15 +148,18 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
     { id: 5, content: 'Generated weekly analytics report', time: '3 days ago', icon: BarChart3 }
   ];
 
+  // Custom X/Twitter icon component
+  const XIcon = ({ size = 16 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+    </svg>
+  );
+
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: Activity },
-    { id: 'connect', label: 'X Connect', icon: () => (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-      </svg>
-    ) },
-    { id: 'activity', label: 'Activity History', icon: Clock },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'overview', label: 'Overview', icon: User },
+    { id: 'connect', label: 'X Connect', icon: XIcon },
+    { id: 'activity', label: 'Activity History', icon: Activity },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const renderOverview = () => (
@@ -170,37 +173,21 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
               alt="Profile"
               className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
             />
-            <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
-              <Camera className="w-4 h-4" />
-            </button>
           </div>
           
           <div className="flex-1">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900">{profileData.name}</h2>
-                <p className="text-gray-600">{profileData.email}</p>
-              </div>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center px-4 py-2 text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                <Edit3 className="w-4 h-4 mr-2" />
-                Edit Profile
-              </button>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{profileData.name}</h2>
+              <p className="text-gray-600">{profileData.email}</p>
             </div>
             
-            <p className="text-gray-700 mt-3">{profileData.bio}</p>
+            <div className="flex items-center mt-3 space-x-2">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[#4792E6] text-white">
+                X Piloter
+              </span>
+            </div>
             
-            <div className="flex items-center space-x-6 mt-4 text-sm text-gray-600">
-              <div className="flex items-center">
-                <MapPin className="w-4 h-4 mr-1" />
-                {profileData.location}
-              </div>
-              <div className="flex items-center">
-                <Link className="w-4 h-4 mr-1" />
-                <a href={profileData.website} className="text-blue-600 hover:underline">{profileData.website}</a>
-              </div>
+            <div className="flex items-center mt-4 text-sm text-gray-600">
               <div className="flex items-center">
                 <Calendar className="w-4 h-4 mr-1" />
                 Joined {profileData.joinDate}
@@ -211,7 +198,7 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
           <div className="text-2xl font-bold text-blue-600">1,247</div>
           <div className="text-sm text-gray-600">Total Replies</div>
@@ -219,13 +206,8 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
           <div className="text-2xl font-bold text-green-600">8.5%</div>
-          <div className="text-sm text-gray-600">Engagement Rate</div>
+          <div className="text-sm text-gray-600">Engagement Total</div>
           <div className="mt-2 text-xs text-green-600">+2.3% this month</div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-          <div className="text-2xl font-bold text-purple-600">3</div>
-          <div className="text-sm text-gray-600">Connected Accounts</div>
-          <div className="mt-2 text-xs text-blue-600">All active</div>
         </div>
       </div>
 
@@ -261,10 +243,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
         <div className="space-y-3">
-          <div className="flex justify-between">
-            <span className="text-gray-600">User ID</span>
-            <span className="text-gray-900 font-mono text-sm">{profileData.userId}</span>
-          </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Sign-in Provider</span>
             <span className="text-gray-900 capitalize">{profileData.provider}</span>
@@ -428,134 +406,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
 
   const renderSettings = () => (
     <div className="space-y-6">
-      {/* Account Information */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
-          <User className="w-5 h-5 mr-2 text-[#4792E6]" />
-          Account Information
-        </h3>
-        <div className="space-y-4">
-          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-            <Mail className="mr-3 w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Email Address</p>
-              <p className="text-sm text-gray-600">{profileData.email}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-            <Calendar className="mr-3 w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Member Since</p>
-              <p className="text-sm text-gray-600">{profileData.joinDate}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-            <Shield className="mr-3 w-5 h-5 text-gray-400" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Account Status</p>
-              <p className="text-sm text-gray-600">
-                {profileData.emailConfirmed ? (
-                  <span className="flex items-center text-green-600">
-                    <CheckCircle className="mr-1 w-4 h-4" />
-                    Verified
-                  </span>
-                ) : (
-                  <span className="flex items-center text-yellow-600">
-                    <AlertCircle className="mr-1 w-4 h-4" />
-                    Pending Verification
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
-
-          {profileData.provider && (
-            <div className="flex items-center p-3 bg-gray-50 rounded-lg">
-              <Settings className="mr-3 w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Sign-in Method</p>
-                <p className="text-sm text-gray-600 capitalize">
-                  {profileData.provider === 'google' ? 'Google Account' : profileData.provider}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Contact Info */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
-          <Mail className="w-5 h-5 mr-2 text-[#4792E6]" />
-          Contact Information
-        </h3>
-        <div className="space-y-3">
-          {isEditing ? (
-            <>
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Location</label>
-                <input
-                  type="text"
-                  value={tempData.location}
-                  onChange={(e) => setTempData({ ...tempData, location: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Website</label>
-                <input
-                  type="url"
-                  value={tempData.website}
-                  onChange={(e) => setTempData({ ...tempData, website: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:border-transparent"
-                />
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex items-center space-x-3">
-                <MapPin className="w-4 h-4 text-gray-400" />
-                <span className="text-gray-700">{profileData.location}</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Link className="w-4 h-4 text-gray-400" />
-                <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-[#4792E6] hover:underline">
-                  {profileData.website}
-                </a>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="p-6 bg-white rounded-lg border border-gray-200">
-        <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
-          <Settings className="w-5 h-5 mr-2 text-[#4792E6]" />
-          Quick Actions
-        </h3>
-        <div className="grid grid-cols-2 gap-3">
-          <button className="flex items-center p-3 space-x-2 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50">
-            <Bell className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Notifications</span>
-          </button>
-          <button className="flex items-center p-3 space-x-2 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50">
-            <Shield className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Privacy</span>
-          </button>
-          <button className="flex items-center p-3 space-x-2 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50">
-            <CreditCard className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Billing</span>
-          </button>
-          <button className="flex items-center p-3 space-x-2 rounded-lg border border-gray-200 transition-colors hover:bg-gray-50">
-            <Gift className="w-4 h-4 text-gray-600" />
-            <span className="text-sm text-gray-700">Referrals</span>
-          </button>
-        </div>
-      </div>
-
       {/* Account Management */}
       <div className="p-6 bg-white rounded-lg border border-gray-200">
         <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
@@ -574,7 +424,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
           
           <div className="pt-4 mt-4 border-t border-gray-200">
             <div className="space-y-1 text-xs text-gray-500">
-              <p>User ID: {profileData.userId}</p>
               <p>Last Sign In: {profileData.lastSignIn}</p>
             </div>
           </div>
@@ -608,32 +457,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
       <div className="relative z-10 flex-shrink-0 p-6 border-b backdrop-blur-sm border-white/50 bg-white/30">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-900">Profile</h2>
-          {!isEditing ? (
-            <button
-              onClick={handleEdit}
-              className="flex items-center space-x-2 px-3 py-2 text-[#4792E6] hover:bg-white/50 rounded-lg transition-colors backdrop-blur-sm"
-            >
-              <Edit3 size={16} />
-              <span className="text-sm font-medium">Edit</span>
-            </button>
-          ) : (
-            <div className="flex space-x-2">
-              <button
-                onClick={handleCancel}
-                className="flex items-center px-3 py-2 space-x-1 text-gray-600 rounded-lg backdrop-blur-sm transition-colors hover:bg-white/50"
-              >
-                <X size={16} />
-                <span className="text-sm">Cancel</span>
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex items-center space-x-1 px-3 py-2 bg-[#4792E6] text-white rounded-lg hover:bg-[#4792E6]/90 transition-colors"
-              >
-                <Check size={16} />
-                <span className="text-sm">Save</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Navigation Menu */}
@@ -644,8 +467,12 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
               onClick={() => setActiveSection(item.id)}
               className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                 activeSection === item.id
-                  ? 'bg-white text-[#4792E6] shadow-sm transform scale-105 backdrop-blur-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                  ? item.id === 'connect'
+                    ? 'bg-gradient-to-r from-[#4792E6] to-[#4792E6]/90 text-white shadow-lg transform scale-105 backdrop-blur-sm'
+                    : 'bg-white text-[#4792E6] shadow-sm transform scale-105 backdrop-blur-sm'
+                  : item.id === 'connect'
+                    ? 'text-[#4792E6] hover:text-[#4792E6] hover:bg-[#4792E6]/10 font-semibold'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
               }`}
             >
               <item.icon size={16} />
