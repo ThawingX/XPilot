@@ -153,7 +153,7 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm w-full max-w-md">
+    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm w-full">
       {/* Header */}
       <div className="flex-shrink-0 p-6 border-b border-gray-200">
         <h2 className="mb-4 text-xl font-semibold text-gray-900">Configuration Management</h2>
@@ -212,8 +212,8 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
                 onClick={() => onItemClick?.(item)}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
                   selectedItemId === item.id
-                    ? 'border-blue-300 bg-blue-50 shadow-lg ring-2 ring-blue-100'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200 border-l-4 border-l-blue-500'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 {/* Reply Style Label and Toggle Switch - Top row */}
