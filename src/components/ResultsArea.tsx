@@ -627,6 +627,216 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
       </div>
     );
   };
+  // Render card details function
+  const renderCardDetails = (card: Card) => {
+    return (
+      <div className="h-full overflow-y-auto">
+        {/* Card Header */}
+        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+          <div className="flex items-start space-x-4">
+            <div className="flex justify-center items-center w-16 h-16 bg-white/20 rounded-full">
+              {card.avatar ? (
+                <img src={card.avatar} alt={card.author} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                <User size={24} className="text-white" />
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <h1 className="text-2xl font-bold">
+                  {card.title || 'Card Details'}
+                </h1>
+                {card.type && (
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-white/20 border border-white/30">
+                    {card.type}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-4 text-sm text-blue-100">
+                {card.author && (
+                  <div className="flex items-center space-x-2">
+                    <User size={14} />
+                    <span>{card.author}</span>
+                  </div>
+                )}
+                {card.handle && (
+                  <div className="flex items-center space-x-1">
+                    <span>@{card.handle}</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-1">
+                  <Clock size={14} />
+                  <span>{card.time}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Card Content */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <MessageSquare className="w-5 h-5 mr-2 text-blue-500" />
+              Content
+            </h2>
+            <div className="bg-gray-50 rounded-lg p-6 border">
+              <p className="text-gray-900 leading-relaxed whitespace-pre-wrap text-base">
+                {card.content}
+              </p>
+            </div>
+          </div>
+
+          {/* Suggested Reply */}
+          {card.suggestedReply && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Bot className="w-5 h-5 mr-2 text-green-500" />
+                Suggested Reply
+              </h2>
+              <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+                <p className="text-gray-900 leading-relaxed whitespace-pre-wrap text-base">
+                  {card.suggestedReply}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Stats */}
+          {(card.stats || card.likes || card.retweets || card.replies || card.views) && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <BarChart3 className="w-5 h-5 mr-2 text-blue-500" />
+                Engagement Stats
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {(card.stats?.likes || card.likes) && (
+                  <div className="bg-red-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                      {formatNumber(card.stats?.likes || card.likes || 0)}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <Heart size={14} className="mr-1" />
+                      Likes
+                    </div>
+                  </div>
+                )}
+                {(card.stats?.retweets || card.retweets) && (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {formatNumber(card.stats?.retweets || card.retweets || 0)}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <Repeat2 size={14} className="mr-1" />
+                      Retweets
+                    </div>
+                  </div>
+                )}
+                {(card.stats?.comments || card.replies) && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {formatNumber(card.stats?.comments || card.replies || 0)}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <MessageCircle size={14} className="mr-1" />
+                      Replies
+                    </div>
+                  </div>
+                )}
+                {(card.stats?.views || card.views) && (
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600">
+                      {formatNumber(card.stats?.views || card.views || 0)}
+                    </div>
+                    <div className="text-sm text-gray-600 flex items-center">
+                      <Eye size={14} className="mr-1" />
+                      Views
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Metadata */}
+          {card.metadata && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Tag className="w-5 h-5 mr-2 text-blue-500" />
+                Metadata
+              </h2>
+              <div className="space-y-3">
+                {card.metadata.category && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Category:</span>
+                    <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                      {card.metadata.category}
+                    </span>
+                  </div>
+                )}
+                {card.metadata.priority && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Priority:</span>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      card.metadata.priority === 'High' ? 'bg-red-100 text-red-700' :
+                      card.metadata.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {card.metadata.priority}
+                    </span>
+                  </div>
+                )}
+                {card.metadata.deadline && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Deadline:</span>
+                    <span className="text-gray-900">{card.metadata.deadline}</span>
+                  </div>
+                )}
+                {card.metadata.assignee && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Assignee:</span>
+                    <span className="text-gray-900">{card.metadata.assignee}</span>
+                  </div>
+                )}
+                {card.metadata.status && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className="text-gray-900">{card.metadata.status}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Inspiration Account */}
+          {card.inspirationAccount && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Users className="w-5 h-5 mr-2 text-blue-500" />
+                Related Account
+              </h2>
+              <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                <img 
+                  src={card.inspirationAccount.avatar} 
+                  alt={card.inspirationAccount.name}
+                  className="w-12 h-12 rounded-full object-cover"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2">
+                    <h3 className="font-semibold text-gray-900">{card.inspirationAccount.name}</h3>
+                    {card.inspirationAccount.verified && <VerifiedBadge />}
+                  </div>
+                  <p className="text-gray-600">@{card.inspirationAccount.handle}</p>
+                  <p className="text-sm text-gray-500 mt-1">{card.inspirationAccount.bio}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // If a strategy is selected, show strategy details
   if (selectedStrategy) {
     return (
@@ -786,6 +996,15 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
             )}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // If a card is selected, show card details
+  if (selectedCard) {
+    return (
+      <div className="h-full bg-gray-50">
+        {renderCardDetails(selectedCard)}
       </div>
     );
   }

@@ -174,7 +174,7 @@ const AppContent: React.FC = () => {
         {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
         <div className={`${
           showDashboard || showProfile ? 'w-full' : 
-          'w-1/3'
+          'w-1/2'
         } min-w-0`}>
           {showDashboard ? (
             <Dashboard onNavigate={handleDashboardNavigate} />
