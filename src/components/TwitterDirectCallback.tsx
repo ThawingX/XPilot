@@ -8,7 +8,6 @@ export const TwitterDirectCallback: React.FC = () => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('正在验证授权信息...');
-  const [debugInfo, setDebugInfo] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(3);
 
   useEffect(() => {
@@ -17,18 +16,6 @@ export const TwitterDirectCallback: React.FC = () => {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
-
-        // 添加调试信息
-        const debug = `URL参数: code=${code ? '存在' : '缺失'}, state=${state ? '存在' : '缺失'}, error=${error || '无'}`;
-        setDebugInfo(debug);
-        console.log('Twitter回调调试信息:', debug);
-
-        // 检查localStorage中的OAuth数据
-        const storedState = localStorage.getItem('twitter_oauth_state');
-        const storedCodeVerifier = localStorage.getItem('twitter_code_verifier');
-        const localStorageDebug = `localStorage: state=${storedState ? '存在' : '缺失'}, codeVerifier=${storedCodeVerifier ? '存在' : '缺失'}`;
-        setDebugInfo(prev => prev + '\n' + localStorageDebug);
-        console.log('localStorage调试信息:', localStorageDebug);
 
         if (error) {
           throw new Error(`Twitter授权被拒绝: ${error}`);
@@ -39,6 +26,9 @@ export const TwitterDirectCallback: React.FC = () => {
         }
 
         // 检查localStorage中是否有必要的OAuth数据
+        const storedState = localStorage.getItem('twitter_oauth_state');
+        const storedCodeVerifier = localStorage.getItem('twitter_code_verifier');
+        
         if (!storedState || !storedCodeVerifier) {
           throw new Error('OAuth会话已过期，请重新开始授权流程');
         }
@@ -46,17 +36,11 @@ export const TwitterDirectCallback: React.FC = () => {
         setMessage('正在验证授权信息...');
         await new Promise(resolve => setTimeout(resolve, 500)); // 短暂延迟提升用户体验
 
-        // 检查配置
-        const configStatus = twitterService.getConfigStatus();
-        console.log('Twitter配置状态:', configStatus);
-
         setMessage('正在获取访问令牌...');
         await new Promise(resolve => setTimeout(resolve, 300));
 
         // 处理OAuth回调
-        console.log('开始处理Twitter回调...');
         const result = await twitterService.handleCallback(code, state);
-        console.log('Twitter回调结果:', result);
 
         if (result.success) {
           setMessage('正在获取用户信息...');
@@ -101,15 +85,6 @@ export const TwitterDirectCallback: React.FC = () => {
         } else {
           setMessage(errorMessage);
         }
-        
-        // 添加更多调试信息
-        if (error instanceof Error) {
-          if (error.message.includes('Failed to fetch')) {
-            setDebugInfo(prev => prev + '\n网络请求失败，可能是CORS问题或API配置错误');
-          } else if (error.message.includes('state')) {
-            setDebugInfo(prev => prev + '\nState验证失败，可能是会话过期或浏览器存储问题');
-          }
-        }
       }
     };
 
@@ -132,11 +107,6 @@ export const TwitterDirectCallback: React.FC = () => {
               <div className="space-y-4">
                 <Loader className="mx-auto w-8 h-8 text-blue-500 animate-spin" />
                 <p className="text-gray-600">{message}</p>
-                {debugInfo && (
-                  <div className="p-2 text-xs text-gray-500 bg-gray-50 rounded">
-                    <pre className="whitespace-pre-wrap">{debugInfo}</pre>
-                  </div>
-                )}
               </div>
             )}
 
@@ -173,12 +143,6 @@ export const TwitterDirectCallback: React.FC = () => {
                   <p className="text-lg font-semibold text-red-600">授权失败</p>
                   <p className="text-sm text-gray-600">{message}</p>
                 </div>
-                {debugInfo && (
-                  <details className="p-3 text-xs text-gray-500 bg-gray-50 rounded">
-                    <summary className="cursor-pointer font-medium">查看详细信息</summary>
-                    <pre className="mt-2 whitespace-pre-wrap">{debugInfo}</pre>
-                  </details>
-                )}
                 <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
                   <button
                     onClick={() => window.location.reload()}
@@ -188,7 +152,7 @@ export const TwitterDirectCallback: React.FC = () => {
                   </button>
                   <button
                     onClick={() => navigate('/?section=profile&tab=twitter-auth')}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                   >
                     返回个人资料
                   </button>

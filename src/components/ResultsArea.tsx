@@ -112,17 +112,17 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
   };
 
   const handleEdit = (postId: string) => {
-    console.log('Editing post:', postId);
+    // Handle edit logic
   };
 
   const handleDelete = (postId: string) => {
     if (window.confirm('Are you sure you want to delete this post?')) {
-      console.log('Deleting post:', postId);
+      // Handle delete logic
     }
   };
 
   const handlePublish = (postId: string) => {
-    console.log('Publishing post:', postId);
+    // Handle publish logic
   };
 
   const renderPostDetails = (post: Post) => {

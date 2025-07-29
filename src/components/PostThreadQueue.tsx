@@ -121,20 +121,17 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
   const handleDelete = (itemId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this post?')) {
-      console.log('Deleting post:', itemId);
       // Handle delete logic here
     }
   };
 
   const handlePublish = (itemId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Publishing post:', itemId);
     // Handle publish logic here
   };
 
   const handleEdit = (itemId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Editing post:', itemId);
     // Handle edit logic here
   };
 
@@ -145,7 +142,6 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
   };
 
   const handleCreateNew = () => {
-    console.log('Creating new post/thread');
     // Handle create new post/thread logic here
   };
 

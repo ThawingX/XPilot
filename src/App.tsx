@@ -11,8 +11,7 @@ import MarketingStrategy from './components/MarketingStrategy';
 import Login from './components/Login';
 import TwitterAuthCallback from './pages/TwitterAuthCallback';
 import TwitterDirectCallback from './components/TwitterDirectCallback';
-import TwitterConfigStatus from './components/TwitterConfigStatus';
-import TwitterDiagnostics from './pages/TwitterDiagnostics';
+
 import { Card, InspirationAccount, Post } from './types/index';
 import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
@@ -238,8 +237,6 @@ function App() {
         <Routes>
           <Route path="/auth/supabase/twitter/callback" element={<TwitterAuthCallback />} />
           <Route path="/auth/twitter/direct/callback" element={<TwitterDirectCallback />} />
-          <Route path="/twitter/config" element={<TwitterConfigStatus />} />
-          <Route path="/twitter/diagnostics" element={<TwitterDiagnostics />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </Router>

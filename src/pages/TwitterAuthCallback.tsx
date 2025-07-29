@@ -10,62 +10,60 @@ export const TwitterAuthCallback: React.FC = () => {
   const [message, setMessage] = React.useState<string>('');
 
   useEffect(() => {
-    handleAuthCallback();
-  }, []);
+    const handleCallback = async () => {
+      try {
+        setStatus('loading');
+        setMessage('正在处理 Twitter 授权...');
 
-  const handleAuthCallback = async () => {
-    try {
-      console.log('TwitterAuthCallback: 开始处理回调...');
-      
-      // 检查URL参数中是否有错误信息
-      const errorParam = searchParams.get('error');
-      const errorDescription = searchParams.get('error_description');
-      
-      if (errorParam) {
-        console.error('Twitter OAuth 回调错误:', errorParam, errorDescription);
-        throw new Error(`Twitter 返回错误: ${errorDescription || errorParam}`);
-      }
-      
-      // 处理 Supabase Auth 回调
-      const { data, error } = await supabase.auth.getSession();
-      
-      console.log('Supabase 会话状态:', data.session ? '已获取会话' : '无会话', error ? `错误: ${error.message}` : '无错误');
-      
-      if (error) {
-        throw new Error(`认证失败: ${error.message}`);
-      }
-
-      if (data.session) {
-        // 检查是否有 provider_token (Twitter token)
-        const twitterToken = data.session.provider_token;
+        // 检查URL参数中是否有错误信息
+        const errorParam = searchParams.get('error');
+        const errorDescription = searchParams.get('error_description');
         
-        console.log('Twitter token 状态:', twitterToken ? '已获取' : '未获取');
-        
-        if (twitterToken) {
-          setStatus('success');
-          setMessage('Twitter 账户连接成功！正在跳转...');
-          
-          // 延迟跳转，让用户看到成功消息
-          setTimeout(() => {
-            navigate('/profile', { replace: true });
-          }, 2000);
-        } else {
-          throw new Error('未能获取 Twitter token，请确保您已授权应用访问您的Twitter账户');
+        if (errorParam) {
+          console.error('Twitter OAuth 回调错误:', errorParam, errorDescription);
+          throw new Error(`Twitter 返回错误: ${errorDescription || errorParam}`);
         }
-      } else {
-        throw new Error('未能建立用户会话，请确保您已登录');
+
+        // 获取当前 Supabase 会话
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) {
+          throw new Error(`会话获取失败: ${error.message}`);
+        }
+
+        if (!data.session) {
+          throw new Error('未找到有效会话，请重新登录');
+        }
+
+        // 检查是否有 Twitter token
+        const twitterToken = data.session.provider_token;
+
+        if (!twitterToken) {
+          throw new Error('未获取到 Twitter 访问令牌');
+        }
+
+        setStatus('success');
+        setMessage('Twitter 授权成功！正在跳转...');
+
+        // 延迟跳转，让用户看到成功消息
+        setTimeout(() => {
+          navigate('/?section=profile&tab=twitter-auth');
+        }, 2000);
+
+      } catch (error) {
+        console.error('Twitter 授权回调处理失败:', error);
+        setStatus('error');
+        setMessage(error instanceof Error ? error.message : '授权处理失败');
+        
+        // 错误情况下也跳转回主页，但延长时间让用户看到错误信息
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 5000);
       }
-    } catch (error) {
-      console.error('Twitter 认证回调错误:', error);
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : '认证过程中发生未知错误');
-      
-      // 错误情况下也跳转回主页，但延长时间让用户看到错误信息
-      setTimeout(() => {
-        navigate('/', { replace: true });
-      }, 5000);
-    }
-  };
+    };
+
+    handleCallback();
+  }, [navigate, searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">

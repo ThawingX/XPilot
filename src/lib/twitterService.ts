@@ -134,20 +134,8 @@ class TwitterService {
   // 处理OAuth回调
   async handleCallback(code: string, state: string): Promise<{ success: boolean; data?: TwitterConnection; error?: string }> {
     try {
-      console.log('处理Twitter回调 - 开始验证参数:', {
-        hasCode: !!code,
-        hasState: !!state,
-        stateValue: state,
-        codeLength: code?.length || 0
-      });
-
       // 验证state
       const storedState = localStorage.getItem('twitter_oauth_state');
-      console.log('State验证:', {
-        receivedState: state,
-        storedState: storedState,
-        statesMatch: storedState === state
-      });
 
       if (!storedState) {
         console.error('localStorage中未找到存储的state参数');
@@ -164,10 +152,6 @@ class TwitterService {
 
       // 获取code_verifier
       const codeVerifier = localStorage.getItem('twitter_code_verifier');
-      console.log('Code verifier检查:', {
-        hasCodeVerifier: !!codeVerifier,
-        codeVerifierLength: codeVerifier?.length || 0
-      });
 
       if (!codeVerifier) {
         console.error('localStorage中未找到code_verifier');
@@ -177,7 +161,6 @@ class TwitterService {
       // 清理localStorage
       localStorage.removeItem('twitter_oauth_state');
       localStorage.removeItem('twitter_code_verifier');
-      console.log('已清理localStorage中的OAuth临时数据');
 
       // 交换访问令牌
       const tokenResponse = await this.exchangeCodeForTokens(code, codeVerifier);
@@ -188,7 +171,6 @@ class TwitterService {
       // 保存连接信息到数据库
       const connection = await this.saveConnection(tokenResponse, userInfo);
 
-      console.log('Twitter回调处理成功');
       return { success: true, data: connection };
     } catch (error) {
       console.error('处理Twitter回调失败:', error);
@@ -199,14 +181,6 @@ class TwitterService {
 
   // 交换访问令牌 - 使用代理避免CORS问题
   private async exchangeCodeForTokens(code: string, codeVerifier: string): Promise<any> {
-    console.log('Token exchange request details:', {
-      redirectUri: this.redirectUri,
-      clientId: this.clientId,
-      hasClientSecret: !!this.clientSecret,
-      codeLength: code.length,
-      codeVerifierLength: codeVerifier.length
-    });
-
     try {
       // 使用 Supabase Edge Function 作为代理
       const { data, error } = await supabase.functions.invoke('twitter-token-exchange', {
@@ -223,12 +197,6 @@ class TwitterService {
         console.error('Token exchange failed:', error);
         throw new Error(`Token exchange failed: ${error.message}`);
       }
-
-      console.log('Token exchange successful:', { 
-        hasAccessToken: !!data.access_token,
-        tokenType: data.token_type,
-        scope: data.scope 
-      });
       
       return data;
     } catch (error) {

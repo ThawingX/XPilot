@@ -77,6 +77,18 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
     setToast(prev => ({ ...prev, isVisible: false }));
   };
 
+  const handleRejectReply = (cardId: string) => {
+    // Remove the card from autoReplyData
+    setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
+    showToast('Reply rejected successfully', 'info');
+  };
+
+  const handlePostReply = (cardId: string, reply: string) => {
+    // Remove the card from autoReplyData after posting
+    setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
+    showToast('Reply posted successfully', 'success');
+  };
+
   const handleToggleTarget = (id: number, isTargeted: boolean) => {
     setInspirationAccounts(prev => 
       prev.map(account => 
@@ -306,6 +318,8 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
                   card={card}
                   isSelected={selectedCardId === card.id}
                   onClick={() => onCardClick?.(card)}
+                  onReject={handleRejectReply}
+                  onPost={handlePostReply}
                 />
               ))}
             </div>

@@ -118,7 +118,6 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
       await new Promise(resolve => setTimeout(resolve, 800));
       
       // Simulate fetching configuration data from server
-      console.log('Fetching reply card configurations...');
       setConfigItems(mockConfigItems);
     } catch (error) {
       console.error('Failed to fetch config items:', error);

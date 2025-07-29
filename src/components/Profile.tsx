@@ -132,7 +132,6 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
       const result = await twitterService.disconnectTwitter();
       if (result.success) {
         setTwitterConnection(null);
-        console.log('Twitter disconnected successfully');
       } else {
         console.error('Failed to disconnect Twitter:', result.error);
       }

@@ -14,8 +14,6 @@ export class TwitterAuthService {
    */
   async signInWithTwitter(): Promise<{ data: any; error: any }> {
     try {
-      console.log('开始 Twitter OAuth 登录流程...');
-      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'twitter',
         options: {
@@ -33,7 +31,6 @@ export class TwitterAuthService {
         throw new Error(`Twitter 登录失败: ${error.message}`);
       }
 
-      console.log('Twitter OAuth 重定向成功');
       return { data, error: null };
     } catch (error) {
       console.error('Twitter OAuth 登录失败:', error);
