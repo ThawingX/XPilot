@@ -14,10 +14,13 @@ export class TwitterAuthService {
    */
   async signInWithTwitter(): Promise<{ data: any; error: any }> {
     try {
+      // 使用环境变量中的APP_URL，如果没有则回退到当前域名
+      const redirectUrl = import.meta.env.VITE_APP_URL || window.location.origin
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'twitter',
         options: {
-          redirectTo: `${window.location.origin}/auth/supabase/twitter/callback`,
+          redirectTo: `${redirectUrl}/auth/supabase/twitter/callback`,
           scopes: 'tweet.read tweet.write users.read offline.access',
           queryParams: {
             access_type: 'offline',
