@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { CopilotKit } from '@copilotkit/react-core';
 import Sidebar from './components/Sidebar';
 import EngagementQueue from './components/EngagementQueue';
 import PostThreadQueue from './components/PostThreadQueue';
@@ -162,71 +163,73 @@ const AppContent: React.FC = () => {
   const showProfile = activeMenuItem === 'Profile';
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Left Sidebar */}
-      <Sidebar 
-        onMenuItemClick={handleMenuItemClick} 
-        activeMenuItem={activeMenuItem}
-      />
-      
-      {/* Main Content Area */}
-      <div className="flex overflow-hidden flex-1">
-        {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
-        <div className={`${
-          showDashboard || showProfile ? 'w-full' : 
-          'w-1/2'
-        } min-w-0`}>
-          {showDashboard ? (
-            <Dashboard onNavigate={handleDashboardNavigate} />
-          ) : showProfile ? (
-            <Profile 
-              initialSection={profileInitialSection} 
-              onNavigate={handleDashboardNavigate}
-            />
-          ) : showConfig ? (
-            <Config 
-              onItemClick={handleConfigItemClick} 
-              selectedItemId={selectedConfigItem?.id?.toString()}
-            />
-          ) : showMarketingStrategy ? (
-            <MarketingStrategy 
-              onStrategyClick={handleStrategyClick}
-              selectedStrategyId={selectedStrategy?.id}
-            />
-          ) : showPostThreadQueue ? (
-            <PostThreadQueue 
-              onPostClick={handlePostClick}
-              selectedPostId={selectedPostId || undefined}
-            />
-          ) : (
-            <EngagementQueue 
-              showInspirationAccounts={showInspirationAccounts} 
-              onCardClick={handleCardClick}
-              onAccountClick={handleAccountClick}
-              selectedCardId={selectedCard?.id}
-              selectedAccountId={selectedAccount?.id}
-            />
+    <CopilotKit runtimeUrl="https://pilotapi.producthot.top/api/copilotkit">
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* Left Sidebar */}
+        <Sidebar 
+          onMenuItemClick={handleMenuItemClick} 
+          activeMenuItem={activeMenuItem}
+        />
+        
+        {/* Main Content Area */}
+        <div className="flex overflow-hidden flex-1">
+          {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
+          <div className={`${
+            showDashboard || showProfile ? 'w-full' : 
+            'w-1/2'
+          } min-w-0 overflow-hidden`}>
+            {showDashboard ? (
+              <Dashboard onNavigate={handleDashboardNavigate} />
+            ) : showProfile ? (
+              <Profile 
+                initialSection={profileInitialSection} 
+                onNavigate={handleDashboardNavigate}
+              />
+            ) : showConfig ? (
+              <Config 
+                onItemClick={handleConfigItemClick} 
+                selectedItemId={selectedConfigItem?.id?.toString()}
+              />
+            ) : showMarketingStrategy ? (
+              <MarketingStrategy 
+                onStrategyClick={handleStrategyClick}
+                selectedStrategyId={selectedStrategy?.id}
+              />
+            ) : showPostThreadQueue ? (
+              <PostThreadQueue 
+                onPostClick={handlePostClick}
+                selectedPostId={selectedPostId || undefined}
+              />
+            ) : (
+              <EngagementQueue 
+                showInspirationAccounts={showInspirationAccounts} 
+                onCardClick={handleCardClick}
+                onAccountClick={handleAccountClick}
+                selectedCardId={selectedCard?.id}
+                selectedAccountId={selectedAccount?.id}
+              />
+            )}
+          </div>
+          
+          {/* Results Area - only show when not Dashboard and not Profile */}
+          {!showDashboard && !showProfile && (
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <ResultsArea 
+                selectedCard={selectedCard} 
+                selectedAccount={selectedAccount} 
+                selectedConfigItem={selectedConfigItem}
+                selectedPostId={selectedPostId}
+                selectedPost={selectedPost}
+                selectedStrategy={selectedStrategy}
+              />
+            </div>
           )}
         </div>
         
-        {/* Results Area - only show when not Dashboard and not Profile */}
-        {!showDashboard && !showProfile && (
-          <div className="flex-1 min-w-0">
-            <ResultsArea 
-              selectedCard={selectedCard} 
-              selectedAccount={selectedAccount} 
-              selectedConfigItem={selectedConfigItem}
-              selectedPostId={selectedPostId}
-              selectedPost={selectedPost}
-              selectedStrategy={selectedStrategy}
-            />
-          </div>
-        )}
+        {/* Vibe X Operation - Right Sidebar */}
+        <AIAssistant />
       </div>
-      
-      {/* Vibe X Operation - Right Sidebar */}
-      <AIAssistant />
-    </div>
+    </CopilotKit>
   );
 };
 

@@ -2,29 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom scrollbar styles */
+/* Completely hide all scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
+  display: none;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-  border: none;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  display: none;
 }
 
 ::-webkit-scrollbar-corner {
-  background: transparent;
+  display: none;
 }
 
 /* Hide scrollbar arrows */
@@ -32,13 +26,22 @@
   display: none;
 }
 
-/* Firefox scrollbar styles */
+/* Firefox scrollbar styles - completely hidden */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: #4792E6 #f8fafc;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
+/* Prevent scrolling on html and body */
+html, body {
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure root div takes full height without scrolling */
+#root {
+  height: 100vh;
+  overflow: hidden;
 }
