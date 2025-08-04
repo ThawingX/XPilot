@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // 定义消息类型
@@ -36,6 +36,7 @@ const CAPABILITY_OPTIONS = [
 const AIAssistant: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [showCapabilitySelector, setShowCapabilitySelector] = useState(false);
   const [selectedCapabilityIndex, setSelectedCapabilityIndex] = useState(0);
@@ -46,18 +47,36 @@ const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [threadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [retryCount, setRetryCount] = useState(0);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // 生成唯一ID
   const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // 发送消息到后端
-  const sendMessageToBackend = async (message: string) => {
+  // 自动滚动到底部
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 监听消息变化，自动滚动到底部
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
+
+  // 发送消息到后端（带重试机制）
+  const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string) => {
     setIsLoading(true);
     setError(null);
+    setRetryCount(currentRetryCount);
+
+    // 将 currentAssistantMessageId 移到函数顶部，确保在 catch 块中也能访问
+    let currentAssistantMessageId = assistantMessageId;
 
     try {
       // 构建符合后端要求的请求体
@@ -102,23 +121,36 @@ const AIAssistant: React.FC = () => {
         throw new Error('无法读取响应流');
       }
 
-      // 添加用户消息到本地状态
-      const userMessage: Message = {
-        id: generateId(),
-        content: message,
-        role: 'user',
-        timestamp: new Date().toISOString()
-      };
+      // 只在第一次调用时添加用户消息和助手消息
+      if (currentRetryCount === 0) {
+        // 添加用户消息到本地状态
+        const userMessage: Message = {
+          id: generateId(),
+          content: message,
+          role: 'user',
+          timestamp: new Date().toISOString()
+        };
 
-      // 创建助手消息
-      const assistantMessage: Message = {
-        id: generateId(),
-        content: '',
-        role: 'assistant',
-        timestamp: new Date().toISOString()
-      };
+        // 创建助手消息
+        const assistantMessage: Message = {
+          id: generateId(),
+          content: '',
+          role: 'assistant',
+          timestamp: new Date().toISOString()
+        };
 
-      setMessages(prev => [...prev, userMessage, assistantMessage]);
+        currentAssistantMessageId = assistantMessage.id;
+        setMessages(prev => [...prev, userMessage, assistantMessage]);
+      } else {
+        // 重试时更新助手消息显示重试状态
+        if (currentAssistantMessageId) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === currentAssistantMessageId 
+              ? { ...msg, content: `网络重试中 (${currentRetryCount}/5)...` }
+              : msg
+          ));
+        }
+      }
 
       // 读取流式响应
       const decoder = new TextDecoder();
@@ -147,7 +179,7 @@ const AIAssistant: React.FC = () => {
                   
                   // 更新助手消息内容
                   setMessages(prev => prev.map(msg => 
-                    msg.id === assistantMessage.id 
+                    msg.id === currentAssistantMessageId 
                       ? { ...msg, content: assistantContent }
                       : msg
                   ));
@@ -168,7 +200,7 @@ const AIAssistant: React.FC = () => {
               else if (data.content) {
                 assistantContent += data.content;
                 setMessages(prev => prev.map(msg => 
-                  msg.id === assistantMessage.id 
+                  msg.id === currentAssistantMessageId 
                     ? { ...msg, content: assistantContent }
                     : msg
                 ));
@@ -182,16 +214,41 @@ const AIAssistant: React.FC = () => {
 
     } catch (error: any) {
       console.error('发送消息失败:', error);
-      if (error.message?.includes('404') || 
-          error.message?.includes('network') || 
-          error.message?.includes('fetch') ||
-          error.status === 404) {
-        setError('网络异常，请重试！');
-      } else {
-        setError('出问题了，请重试！');
+      
+      // 检查是否需要重试
+      if (currentRetryCount < 5) {
+        console.log(`网络错误，正在重试 (${currentRetryCount + 1}/5)...`);
+        
+        // 更新重试状态
+        setRetryCount(currentRetryCount + 1);
+        
+        // 更新助手消息显示重试状态
+        if (currentAssistantMessageId) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === currentAssistantMessageId 
+              ? { ...msg, content: `网络重试中 (${currentRetryCount + 1}/5)...` }
+              : msg
+          ));
+        }
+        
+        // 延迟重试，避免频繁请求
+        setTimeout(() => {
+          sendMessageToBackend(message, currentRetryCount + 1, currentAssistantMessageId);
+        }, 1000 * (currentRetryCount + 1)); // 递增延迟
+        return;
+      }
+      
+      // 5次重试后仍然失败，更新消息内容为网络异常
+      if (currentAssistantMessageId) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === currentAssistantMessageId 
+            ? { ...msg, content: '网络异常，请重试！' }
+            : msg
+        ));
       }
     } finally {
       setIsLoading(false);
+      setRetryCount(0);
     }
   };
 
@@ -429,6 +486,11 @@ const AIAssistant: React.FC = () => {
     );
   };
 
+  // 渲染重试状态（已合并到消息气泡中，此函数保留为空）
+  const renderRetryStatus = () => {
+    return null;
+  };
+
   // 渲染选中的能力标签
   const renderSelectedCapability = () => {
     if (!selectedCapability) return null;
@@ -623,8 +685,9 @@ const AIAssistant: React.FC = () => {
     <div 
       ref={containerRef}
       onClick={handleContainerFocus}
-      className={`bg-white border-l border-gray-200 h-screen flex flex-col transition-all duration-300 ${
+      className={`bg-white border-l border-gray-200 h-screen flex flex-col transition-all duration-500 ease-in-out ${
         isMinimized ? 'w-12' : 
+        isExpanded ? 'w-[55vw] min-w-[600px] max-w-[800px]' :
         isFocused ? 'w-[30vw] min-w-[400px] max-w-[600px]' : 'w-[25vw] min-w-[320px] max-w-[500px]'
       }`}
     >
@@ -636,13 +699,25 @@ const AIAssistant: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-800">X Pilot</h2>
             </div>
           )}
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-2 rounded-lg transition-colors hover:bg-gray-100"
-            aria-label={isMinimized ? "Expand operation panel" : "Collapse operation panel"}
-          >
-            {isMinimized ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-          </button>
+          <div className="flex items-center space-x-1">
+            {!isMinimized && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+                aria-label={isExpanded ? "收缩面板" : "展开面板"}
+                title={isExpanded ? "收缩面板" : "展开面板"}
+              >
+                {isExpanded ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+              </button>
+            )}
+            <button
+              onClick={() => setIsMinimized(!isMinimized)}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+              aria-label={isMinimized ? "Expand operation panel" : "Collapse operation panel"}
+            >
+              {isMinimized ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+            </button>
+          </div>
         </div>
         
         {!isMinimized && (
@@ -667,11 +742,11 @@ const AIAssistant: React.FC = () => {
                 <div className="w-full max-w-lg">
                   <div className="relative bg-white rounded-xl border border-gray-200 shadow-lg transition-all duration-200 hover:shadow-xl">
                     <div className="p-6">
-                      {/* Error Display */}
-                      {renderError()}
-                      
-                      {/* Selected Capability Display */}
-                      {renderSelectedCapability()}
+                    {/* Error Display */}
+                    {renderError()}
+                    
+                    {/* Selected Capability Display */}
+                    {renderSelectedCapability()}
                       
                       {/* Input Area */}
                       <div className="relative">
@@ -724,8 +799,9 @@ const AIAssistant: React.FC = () => {
                         }`}
                       >
                         {renderMessageContent(message.content, message.role)}
-                        {message.role === 'assistant' && isLoading && index === messages.length - 1 && (
-                          <div className="flex items-center mt-2 space-x-1">
+                        {message.role === 'assistant' && isLoading && index === messages.length - 1 && 
+                         !message.content.includes('网络重试中') && !message.content.includes('网络异常') && (
+                          <div className="flex items-center mt-2 space-x-2">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
@@ -735,23 +811,15 @@ const AIAssistant: React.FC = () => {
                     </div>
                   ))}
                   
-                  {/* Error Display in Chat */}
-                  {error && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[80%] p-3 rounded-lg bg-red-50 border border-red-200">
-                        <div className="flex items-center space-x-2">
-                          <AlertCircle size={16} className="flex-shrink-0 text-red-500" />
-                          <span className="text-sm text-red-700">{error}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* 用于自动滚动的锚点 */}
+                  <div ref={messagesEndRef} />
                 </div>
                 
                 {/* Bottom Input Area */}
                 <div className="flex-shrink-0 p-4">
                   <div className="relative bg-white rounded-xl border border-gray-200 shadow-sm transition-all duration-200 hover:shadow-md">
                     <div className="p-4">
+                      
                       {/* Selected Capability Display */}
                       {renderSelectedCapability()}
                       
