@@ -229,8 +229,8 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
               <p className="text-xs text-gray-500">1 hour ago</p>
             </div>
           </div>
-          <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-purple-600" />
+          <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+          <BarChart3 className="w-5 h-5 text-[#4792E6]" />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Generated weekly analytics report</p>
               <p className="text-xs text-gray-500">3 days ago</p>
@@ -445,10 +445,10 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
   };
 
   return (
-    <div className="flex overflow-hidden relative flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex overflow-hidden relative flex-col h-full bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 rounded-lg border border-gray-200 shadow-sm">
       {/* Animated background elements */}
       <div className="overflow-hidden absolute inset-0 pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br rounded-full blur-3xl animate-pulse from-blue-400/20 to-purple-400/20"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br rounded-full blur-3xl animate-pulse from-blue-400/20 to-blue-400/20"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr rounded-full blur-3xl animate-pulse from-indigo-400/20 to-pink-400/20" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-r rounded-full blur-3xl animate-pulse transform -translate-x-1/2 -translate-y-1/2 from-cyan-400/10 to-blue-400/10" style={{ animationDelay: '2s' }}></div>
       </div>

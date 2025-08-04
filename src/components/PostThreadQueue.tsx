@@ -233,7 +233,7 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
                       {item.status}
                     </span>
                     {item.aiGenerated && (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200 flex items-center">
+                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-[#4792E6] border border-blue-200 flex items-center">
                         <Sparkles size={12} className="mr-1" />
                         AI Generated
                       </span>

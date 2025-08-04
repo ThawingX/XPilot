@@ -12,7 +12,7 @@ export const getCardIcon = (type: CardType) => {
     case 'tweet':
       return <MessageSquare {...iconProps} className="text-sky-600" />;
     case 'strategy':
-      return <TrendingUp {...iconProps} className="text-purple-600" />;
+      return <TrendingUp {...iconProps} className="text-[#4792E6]" />;
     case 'action':
       return <Target {...iconProps} className="text-orange-600" />;
     default:
@@ -28,7 +28,7 @@ export const getCardBorderColor = (type: CardType): string => {
     case 'tweet':
       return 'border-l-sky-500';
     case 'strategy':
-      return 'border-l-purple-500';
+      return 'border-l-[#4792E6]';
     case 'action':
       return 'border-l-orange-500';
     default:
@@ -58,7 +58,7 @@ export const getCardBackgroundColor = (type: CardType): string => {
     case 'tweet':
       return 'bg-sky-50';
     case 'strategy':
-      return 'bg-purple-50';
+      return 'bg-blue-50';
     case 'action':
       return 'bg-orange-50';
     default:
@@ -74,7 +74,7 @@ export const getCardThemeColor = (type: CardType): string => {
     case 'tweet':
       return 'sky';
     case 'strategy':
-      return 'purple';
+      return 'blue';
     case 'action':
       return 'orange';
     default:

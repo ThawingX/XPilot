@@ -107,8 +107,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       content: 'Weekly engagement report generated', 
       time: '1 day ago', 
       icon: BarChart3,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      color: 'text-[#4792E6]',
+        bgColor: 'bg-blue-50',
       section: 'Profile'
     },
     { 
@@ -172,7 +172,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-lg border border-gray-200 shadow-sm relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-r from-cyan-400/5 to-blue-400/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>

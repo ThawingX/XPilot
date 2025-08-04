@@ -73,9 +73,9 @@ const AppContent: React.FC = () => {
   // 显示加载状态
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-50">
         <div className="text-center">
-          <div className="mx-auto mb-4 w-16 h-16 rounded-full border-4 border-purple-200 animate-spin border-t-purple-600"></div>
+          <div className="mx-auto mb-4 w-16 h-16 rounded-full border-4 border-blue-200 animate-spin border-t-[#4792E6]"></div>
           <p className="text-gray-600">正在加载...</p>
         </div>
       </div>

@@ -129,7 +129,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     return (
       <div className="h-full overflow-y-auto">
         {/* Post Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-[#4792E6] p-6 text-white">
           <div className="flex items-start space-x-4">
             <div className="flex justify-center items-center w-16 h-16 bg-white/20 rounded-full">
               <Bot size={24} className="text-white" />
@@ -278,7 +278,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                                 ? 'bg-blue-100 text-blue-700 border border-blue-200' 
                                 : scheduleItem.activity === 'engagement'
                                 ? 'bg-green-100 text-green-700 border border-green-200'
-                                : 'bg-purple-100 text-purple-700 border border-purple-200'
+                                : 'bg-blue-100 text-[#4792E6] border border-blue-200'
                             }`}>
                               <div className="font-medium mb-1">
                                 {scheduleItem.activity === 'post' ? '📝 Post' : 
@@ -310,7 +310,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     return (
       <div className="h-full overflow-y-auto">
         {/* Strategy Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-[#4792E6] p-6 text-white">
           <div className="flex items-start space-x-4">
             <div className="flex justify-center items-center w-16 h-16 bg-white/20 rounded-full text-white">
               {getStrategyIcon(strategy.type)}
@@ -357,8 +357,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                 <div className="text-2xl font-bold text-green-600">{strategy.metrics.engagement}%</div>
                 <div className="text-sm text-gray-600">Engagement Rate</div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">{strategy.metrics.conversion}%</div>
+              <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-[#4792E6]">{strategy.metrics.conversion}%</div>
                 <div className="text-sm text-gray-600">Conversion Rate</div>
               </div>
             </div>
@@ -506,7 +506,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     return (
       <div className="h-full overflow-y-auto">
         {/* Account Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-[#4792E6] p-6 text-white">
           <div className="flex items-start space-x-4">
             <img
               src={account.avatar}
@@ -553,8 +553,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   <div className="text-2xl font-bold text-green-600">{accountAnalytics.engagement}%</div>
                   <div className="text-sm text-gray-600">Engagement Rate</div>
                 </div>
-                <div className="bg-purple-50 p-4 rounded-lg">
-                  <div className="text-2xl font-bold text-purple-600">{formatNumber(accountAnalytics.reach)}</div>
+                <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-[#4792E6]">{formatNumber(accountAnalytics.reach)}</div>
                   <div className="text-sm text-gray-600">Avg Reach</div>
                 </div>
                 <div className="bg-orange-50 p-4 rounded-lg">
@@ -632,7 +632,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
     return (
       <div className="h-full overflow-y-auto">
         {/* Card Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-blue-500 to-[#4792E6] p-6 text-white">
           <div className="flex items-start space-x-4">
             <div className="flex justify-center items-center w-16 h-16 bg-white/20 rounded-full">
               {card.avatar ? (
@@ -744,8 +744,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   </div>
                 )}
                 {(card.stats?.views || card.views) && (
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">
+                  <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-[#4792E6]">
                       {formatNumber(card.stats?.views || card.views || 0)}
                     </div>
                     <div className="text-sm text-gray-600 flex items-center">
@@ -983,8 +983,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                     <div className="text-2xl font-bold text-green-600">89</div>
                     <div className="text-sm text-gray-600">Likes</div>
                   </div>
-                  <div className="bg-purple-50 p-4 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">1.2K</div>
+                  <div className="bg-blue-50 p-4 rounded-lg">
+              <div className="text-2xl font-bold text-[#4792E6]">1.2K</div>
                     <div className="text-sm text-gray-600">Views</div>
                   </div>
                   <div className="bg-orange-50 p-4 rounded-lg">

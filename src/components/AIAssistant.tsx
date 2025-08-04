@@ -547,7 +547,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       <button
         onClick={() => handleSubmit(inputValue)}
         disabled={!inputValue.trim()}
-        className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none"
+        className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-[#4792E6] hover:bg-[#3a7bc8] disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none"
         title="Send"
       >
         <Send size={14} />
@@ -566,14 +566,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     if (!selectedCapability) return null;
 
     return (
-      <div className="flex justify-between items-center px-3 py-2 mb-3 bg-purple-50 rounded-lg border border-purple-200">
+      <div className="flex justify-between items-center px-3 py-2 mb-3 bg-blue-50 rounded-lg border border-blue-200">
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-purple-600">{selectedCapability.label}</span>
-          <span className="text-xs text-purple-500">{selectedCapability.description}</span>
+          <span className="text-sm font-medium text-[#4792E6]">{selectedCapability.label}</span>
+          <span className="text-xs text-[#4792E6]">{selectedCapability.description}</span>
         </div>
         <button
           onClick={() => setSelectedCapability(null)}
-          className="text-purple-400 transition-colors hover:text-purple-600"
+          className="text-[#4792E6] transition-colors hover:text-[#3a7bc8]"
           title="Remove capability"
         >
           ×
@@ -605,13 +605,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
             onClick={() => handleCapabilitySelect(option)}
             className={`flex items-center justify-between px-4 py-3 w-full text-left transition-all duration-150 ${
               index === selectedCapabilityIndex
-                ? 'bg-purple-50 border-l-2 border-purple-500'
+                ? 'bg-blue-50 border-l-2 border-[#4792E6]'
                 : 'hover:bg-gray-50'
             }`}
           >
             <div className="flex items-center space-x-3">
               <span className={`font-medium ${
-                index === selectedCapabilityIndex ? 'text-purple-600' : 'text-purple-500'
+                index === selectedCapabilityIndex ? 'text-[#4792E6]' : 'text-[#4792E6]'
               }`}>
                 {option.label}
               </span>
@@ -644,20 +644,20 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       }
       
       return (
-        <div className="max-w-none text-white prose prose-sm">
+        <div className="max-w-none text-black prose prose-sm">
           <ReactMarkdown
             components={{
             // 自定义代码块样式
             code: ({ node, inline, className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
-                <pre className="overflow-x-auto p-3 bg-purple-800 rounded-md">
-                  <code className={className} {...props}>
+                <pre className="overflow-x-auto p-3 bg-gray-100 rounded-md">
+                  <code className={`${className} text-black`} {...props}>
                     {children}
                   </code>
                 </pre>
               ) : (
-                <code className="bg-purple-800 px-1 py-0.5 rounded text-sm" {...props}>
+                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm text-black" {...props}>
                   {children}
                 </code>
               );
@@ -668,65 +668,65 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-200 underline hover:text-white"
+                className="text-blue-600 underline hover:text-blue-800"
               >
                 {children}
               </a>
             ),
             // 自定义列表样式
             ul: ({ children }) => (
-              <ul className="my-2 space-y-1 list-disc list-inside">
+              <ul className="my-2 space-y-1 list-disc list-inside text-black">
                 {children}
               </ul>
             ),
             ol: ({ children }) => (
-              <ol className="my-2 space-y-1 list-decimal list-inside">
+              <ol className="my-2 space-y-1 list-decimal list-inside text-black">
                 {children}
               </ol>
             ),
             // 自定义标题样式
             h1: ({ children }) => (
-              <h1 className="mt-4 mb-2 text-lg font-bold text-white">
+              <h1 className="mt-4 mb-2 text-lg font-bold text-black">
                 {children}
               </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="mt-3 mb-2 text-base font-semibold text-white">
+              <h2 className="mt-3 mb-2 text-base font-semibold text-black">
                 {children}
               </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="mt-2 mb-1 text-sm font-medium text-white">
+              <h3 className="mt-2 mb-1 text-sm font-medium text-black">
                 {children}
               </h3>
             ),
             // 自定义段落样式
             p: ({ children }) => (
-              <p className="mb-2 leading-relaxed">
+              <p className="mb-2 leading-relaxed text-black">
                 {children}
               </p>
             ),
             // 自定义引用样式
             blockquote: ({ children }) => (
-              <blockquote className="pl-4 my-2 italic text-purple-100 border-l-4 border-purple-300">
+              <blockquote className="pl-4 my-2 italic text-gray-700 border-l-4 border-gray-400">
                 {children}
               </blockquote>
             ),
             // 自定义表格样式
             table: ({ children }) => (
               <div className="overflow-x-auto my-2">
-                <table className="min-w-full rounded-md border border-purple-400">
+                <table className="min-w-full rounded-md border border-gray-300">
                   {children}
                 </table>
               </div>
             ),
             th: ({ children }) => (
-              <th className="px-3 py-2 font-medium text-left bg-purple-800 border border-purple-400">
+              <th className="px-3 py-2 font-medium text-left bg-gray-100 border border-gray-300 text-black">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="px-3 py-2 border border-purple-400">
+              <td className="px-3 py-2 border border-gray-300 text-black">
                 {children}
               </td>
             ),
@@ -814,7 +814,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               {/* 新增聊天按钮 */}
               <button
                 onClick={handleNewChat}
-                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-[#4792E6] hover:bg-[#3a7bc8] text-white transition-all duration-200 shadow-sm hover:shadow-md text-sm"
                 title="New chat"
               >
                 <Plus size={14} />
@@ -851,7 +851,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 {/* Welcome Section */}
                 <div className="mb-8 max-w-md text-center">
                   <div className="mb-4">
-                    <Zap size={48} className="mx-auto mb-4 text-purple-500" />
+                    <Zap size={48} className="mx-auto mb-4 text-[#4792E6]" />
                   </div>
                   <h3 className="mb-3 text-2xl font-bold text-gray-800">
                     Vibe X Operation
@@ -875,7 +875,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       <div className="relative">
                         <textarea
                           ref={textareaRef}
-                          className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white text-sm transition-all duration-200 ${
+                          className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:bg-white text-sm transition-all duration-200 ${
                             isFocused || inputValue.trim() ? 'min-h-[120px] max-h-[320px]' : 'min-h-[80px] max-h-[240px]'
                           }`}
                           placeholder="Enter your operation..."
@@ -893,7 +893,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-100">
                         <button
                           onClick={handleAtButtonClick}
-                          className="p-1.5 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-md transition-colors duration-200"
+                          className="p-1.5 text-gray-500 hover:text-[#4792E6] hover:bg-blue-50 rounded-md transition-colors duration-200"
                           title="Select Capability"
                         >
                           <span className="text-sm font-medium">@</span>
@@ -932,7 +932,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                           className={`max-w-[80%] p-3 rounded-lg ${
                             message.role === 'user'
                               ? 'bg-[#4792E6] text-white'
-                              : 'bg-purple-500 text-white'
+                              : 'bg-white text-black border border-gray-200'
                           }`}
                         >
                           {renderMessageContent(message.content, message.role)}
@@ -944,11 +944,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                   {/* 独立的加载动画气泡 */}
                   {isLoading && (
                     <div className="flex justify-start mb-2">
-                      <div className="max-w-[80%] p-3 rounded-lg bg-purple-500 text-white">
+                      <div className="max-w-[80%] p-3 rounded-lg bg-white text-black border border-gray-200">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                         </div>
                       </div>
                     </div>
@@ -970,7 +970,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       <div className="relative">
                         <textarea
                           ref={textareaRef}
-                          className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white text-sm transition-all duration-200 ${
+                          className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:bg-white text-sm transition-all duration-200 ${
                             isFocused || inputValue.trim() ? 'min-h-[120px] max-h-[320px]' : 'min-h-[80px] max-h-[240px]'
                           }`}
                           placeholder="You chat with X Pilot"
@@ -988,7 +988,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-100">
                         <button
                           onClick={handleAtButtonClick}
-                          className="p-1.5 text-gray-500 hover:text-purple-500 hover:bg-purple-50 rounded-md transition-colors duration-200"
+                          className="p-1.5 text-gray-500 hover:text-[#4792E6] hover:bg-blue-50 rounded-md transition-colors duration-200"
                           title="Select Capability"
                         >
                           <span className="text-sm font-medium">@</span>

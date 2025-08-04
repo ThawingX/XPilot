@@ -36,7 +36,7 @@ const UserProfile: React.FC = () => {
 
       {/* User Avatar */}
       <div className="flex items-center mb-6">
-        <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center">
+        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
           {user.user_metadata?.avatar_url ? (
             <img
               src={user.user_metadata.avatar_url}
@@ -44,7 +44,7 @@ const UserProfile: React.FC = () => {
               className="w-16 h-16 rounded-full object-cover"
             />
           ) : (
-            <User className="w-8 h-8 text-purple-600" />
+            <User className="w-8 h-8 text-[#4792E6]" />
           )}
         </div>
         <div className="ml-4">

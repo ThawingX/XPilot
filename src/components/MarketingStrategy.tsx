@@ -48,7 +48,7 @@ const MarketingStrategy: React.FC<MarketingStrategyProps> = ({
       case 'engagement':
         return 'bg-green-500';
       case 'operation':
-        return 'bg-purple-500';
+        return 'bg-[#4792E6]';
       case 'growth':
         return 'bg-orange-500';
       case 'analytics':
