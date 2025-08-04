@@ -215,8 +215,8 @@ const AIAssistant: React.FC = () => {
     } catch (error: any) {
       console.error('发送消息失败:', error);
       
-      // 检查是否需要重试
-      if (currentRetryCount < 5) {
+      // 检查是否需要重试 - 最多重试4次（总共5次尝试）
+      if (currentRetryCount < 4) {
         console.log(`网络错误，正在重试 (${currentRetryCount + 1}/5)...`);
         
         // 更新重试状态
@@ -238,7 +238,7 @@ const AIAssistant: React.FC = () => {
         return;
       }
       
-      // 5次重试后仍然失败，更新消息内容为网络异常
+      // 达到5次尝试后仍然失败，更新消息内容为网络异常
       if (currentAssistantMessageId) {
         setMessages(prev => prev.map(msg => 
           msg.id === currentAssistantMessageId 
@@ -466,10 +466,11 @@ const AIAssistant: React.FC = () => {
       return (
         <button
           onClick={handleStopResponse}
-          className="p-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-colors duration-200"
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-sm hover:shadow-md"
           title="停止响应"
         >
           <Square size={14} />
+          <span className="text-xs font-medium">停止</span>
         </button>
       );
     }
@@ -478,10 +479,11 @@ const AIAssistant: React.FC = () => {
       <button
         onClick={() => handleSubmit(inputValue)}
         disabled={!inputValue.trim()}
-        className="p-1.5 rounded-md bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-colors duration-200"
+        className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none"
         title="发送消息"
       >
         <Send size={14} />
+        <span className="text-xs font-medium">发送</span>
       </button>
     );
   };
@@ -564,21 +566,30 @@ const AIAssistant: React.FC = () => {
   // 渲染消息内容 - 支持 Markdown
   const renderMessageContent = (content: string, role: 'user' | 'assistant') => {
     if (role === 'assistant') {
+      // 检查是否是网络异常消息或重试消息，这些不在气泡中显示
+      const isNetworkError = content.includes('网络异常');
+      const isRetrying = content.includes('网络重试中');
+      
+      // 如果是状态消息，返回null，这些消息将单独显示
+      if (isNetworkError || isRetrying) {
+        return null;
+      }
+      
       return (
-        <div className="prose prose-sm max-w-none text-gray-800">
+        <div className="prose prose-sm max-w-none text-white">
           <ReactMarkdown
             components={{
             // 自定义代码块样式
             code: ({ node, inline, className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
-                <pre className="bg-gray-100 rounded-md p-3 overflow-x-auto">
+                <pre className="bg-purple-800 rounded-md p-3 overflow-x-auto">
                   <code className={className} {...props}>
                     {children}
                   </code>
                 </pre>
               ) : (
-                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm" {...props}>
+                <code className="bg-purple-800 px-1 py-0.5 rounded text-sm" {...props}>
                   {children}
                 </code>
               );
@@ -589,7 +600,7 @@ const AIAssistant: React.FC = () => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-600 hover:text-purple-800 underline"
+                className="text-purple-200 hover:text-white underline"
               >
                 {children}
               </a>
@@ -607,17 +618,17 @@ const AIAssistant: React.FC = () => {
             ),
             // 自定义标题样式
             h1: ({ children }) => (
-              <h1 className="text-lg font-bold mt-4 mb-2 text-gray-900">
+              <h1 className="text-lg font-bold mt-4 mb-2 text-white">
                 {children}
               </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-base font-semibold mt-3 mb-2 text-gray-900">
+              <h2 className="text-base font-semibold mt-3 mb-2 text-white">
                 {children}
               </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-sm font-medium mt-2 mb-1 text-gray-900">
+              <h3 className="text-sm font-medium mt-2 mb-1 text-white">
                 {children}
               </h3>
             ),
@@ -629,25 +640,25 @@ const AIAssistant: React.FC = () => {
             ),
             // 自定义引用样式
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-purple-300 pl-4 italic my-2 text-gray-700">
+              <blockquote className="border-l-4 border-purple-300 pl-4 italic my-2 text-purple-100">
                 {children}
               </blockquote>
             ),
             // 自定义表格样式
             table: ({ children }) => (
               <div className="overflow-x-auto my-2">
-                <table className="min-w-full border border-gray-200 rounded-md">
+                <table className="min-w-full border border-purple-400 rounded-md">
                   {children}
                 </table>
               </div>
             ),
             th: ({ children }) => (
-              <th className="border border-gray-200 px-3 py-2 bg-gray-50 font-medium text-left">
+              <th className="border border-purple-400 px-3 py-2 bg-purple-800 font-medium text-left">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border border-gray-200 px-3 py-2">
+              <td className="border border-purple-400 px-3 py-2">
                 {children}
               </td>
             ),
@@ -661,6 +672,40 @@ const AIAssistant: React.FC = () => {
       // 用户消息保持原样
       return <div className="text-sm whitespace-pre-wrap">{content}</div>;
     }
+  };
+
+  // 渲染状态消息（网络重试和错误）
+  const renderStatusMessage = (content: string) => {
+    const isNetworkError = content.includes('网络异常');
+    const isRetrying = content.includes('网络重试中');
+    
+    if (isNetworkError) {
+      return (
+        <div className="flex justify-center mb-4">
+          <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg max-w-md">
+            <AlertCircle size={16} className="flex-shrink-0 text-red-500" />
+            <span className="text-sm text-red-700 font-medium">{content}</span>
+          </div>
+        </div>
+      );
+    }
+    
+    if (isRetrying) {
+      return (
+        <div className="flex justify-center mb-4">
+          <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md">
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
+            <span className="text-sm text-blue-700 font-medium">{content}</span>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
   };
 
   // 渲染错误信息
@@ -785,31 +830,51 @@ const AIAssistant: React.FC = () => {
               /* Chat Mode - Messages + Bottom Input */
               <>
                 {/* Messages */}
-                <div className="overflow-y-auto flex-1 p-4 space-y-4 min-h-0">
-                  {messages.map((message, index) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
-                    >
+                <div className="overflow-y-auto flex-1 p-4 space-y-2 min-h-0">
+                  {messages.map((message, index) => {
+                    const isNetworkError = message.content.includes('网络异常');
+                    const isRetrying = message.content.includes('网络重试中');
+                    
+                    // 如果是状态消息，单独显示
+                    if (isNetworkError || isRetrying) {
+                      return (
+                        <div key={message.id}>
+                          {renderStatusMessage(message.content)}
+                        </div>
+                      );
+                    }
+                    
+                    // 正常消息气泡
+                    return (
                       <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
-                          message.role === 'user'
-                            ? 'bg-purple-500 text-white'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
+                        key={message.id}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
                       >
-                        {renderMessageContent(message.content, message.role)}
-                        {message.role === 'assistant' && isLoading && index === messages.length - 1 && 
-                         !message.content.includes('网络重试中') && !message.content.includes('网络异常') && (
-                          <div className="flex items-center mt-2 space-x-2">
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                          </div>
-                        )}
+                        <div
+                          className={`max-w-[80%] p-3 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-[#4792E6] text-white'
+                              : 'bg-purple-500 text-white'
+                          }`}
+                        >
+                          {renderMessageContent(message.content, message.role)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* 独立的加载动画气泡 */}
+                  {isLoading && (
+                    <div className="flex justify-start mb-2">
+                      <div className="max-w-[80%] p-3 rounded-lg bg-purple-500 text-white">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-purple-200 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  )}
                   
                   {/* 用于自动滚动的锚点 */}
                   <div ref={messagesEndRef} />
