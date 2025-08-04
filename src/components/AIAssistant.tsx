@@ -527,10 +527,10 @@ const AIAssistant: React.FC = () => {
         <button
           onClick={handleStopResponse}
           className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-sm hover:shadow-md"
-          title="停止响应"
+          title="Stop"
         >
           <Square size={14} />
-          <span className="text-xs font-medium">停止</span>
+          <span className="text-xs font-medium">Stop</span>
         </button>
       );
     }
@@ -540,10 +540,10 @@ const AIAssistant: React.FC = () => {
         onClick={() => handleSubmit(inputValue)}
         disabled={!inputValue.trim()}
         className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-all duration-200 shadow-sm hover:shadow-md disabled:shadow-none"
-        title="发送消息"
+        title="Send"
       >
         <Send size={14} />
-        <span className="text-xs font-medium">发送</span>
+        <span className="text-xs font-medium">Send</span>
       </button>
     );
   };
@@ -807,10 +807,10 @@ const AIAssistant: React.FC = () => {
               <button
                 onClick={handleNewChat}
                 className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-sm hover:shadow-md text-sm"
-                title="新建聊天"
+                title="New chat"
               >
                 <Plus size={14} />
-                <span className="font-medium">新建对话</span>
+                <span className="font-medium">New chat</span>
               </button>
             </div>
           )}
