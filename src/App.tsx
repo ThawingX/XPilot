@@ -48,9 +48,9 @@ const AppContent: React.FC = () => {
   // 显示加载状态
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 w-16 h-16 rounded-full border-4 border-purple-200 animate-spin border-t-purple-600"></div>
           <p className="text-gray-600">正在加载...</p>
         </div>
       </div>
@@ -163,8 +163,8 @@ const AppContent: React.FC = () => {
   const showProfile = activeMenuItem === 'Profile';
 
   return (
-    <CopilotKit runtimeUrl="https://pilotapi.producthot.top/api/copilotkit">
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <CopilotKit runtimeUrl="https://pilotapi.producthot.top/api/agent">
+      <div className="flex overflow-hidden h-screen bg-gray-50">
         {/* Left Sidebar */}
         <Sidebar 
           onMenuItemClick={handleMenuItemClick} 
@@ -213,7 +213,7 @@ const AppContent: React.FC = () => {
           
           {/* Results Area - only show when not Dashboard and not Profile */}
           {!showDashboard && !showProfile && (
-            <div className="flex-1 min-w-0 overflow-hidden">
+            <div className="overflow-hidden flex-1 min-w-0">
               <ResultsArea 
                 selectedCard={selectedCard} 
                 selectedAccount={selectedAccount} 

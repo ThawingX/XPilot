@@ -52,7 +52,7 @@ import { CopilotTextarea } from '@copilotkit/react-textarea';
 
 ### API 集成
 
-组件连接到 `/api/chat` 接口，支持：
+组件连接到 `/api/agent` 接口，支持：
 - 流式响应 (Server-Sent Events)
 - 对话历史管理
 - 错误处理

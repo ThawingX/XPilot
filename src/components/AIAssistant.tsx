@@ -1,9 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
-import { CopilotKit } from '@copilotkit/react-core';
-import { CopilotTextarea } from '@copilotkit/react-textarea';
-import { useCopilotAction, useCopilotReadable, useCopilotChat } from '@copilotkit/react-core';
-import { TextMessage, MessageRole } from '@copilotkit/runtime-client-gql';
+
+// 定义消息类型
+interface Message {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp?: string;
+}
+
+// 定义后端请求结构
+interface BackendRequest {
+  state: any[];
+  tools: any[];
+  context: any[];
+  forwardedProps: Record<string, any>;
+  messages: Array<{
+    content: string;
+    role: string;
+    id: string;
+  }>;
+  runId: string;
+  threadId: string;
+}
 
 // Capability selector options
 const CAPABILITY_OPTIONS = [
@@ -23,32 +42,162 @@ const AIAssistant: React.FC = () => {
   const [atTriggerPosition, setAtTriggerPosition] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [selectedCapability, setSelectedCapability] = useState<typeof CAPABILITY_OPTIONS[0] | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [threadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // 使用 CopilotKit 的 useCopilotChat hook
-  const { 
-    visibleMessages, 
-    appendMessage, 
-    isLoading,
-    stop 
-  } = useCopilotChat({
-    onError: (error: any) => {
-      console.error('CopilotKit 错误:', error);
-      // 根据错误类型设置相应的错误消息
+  // 生成唯一ID
+  const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  // 发送消息到后端
+  const sendMessageToBackend = async (message: string) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // 构建符合后端要求的请求体
+      const requestBody: BackendRequest = {
+        state: [],
+        tools: [],
+        context: [],
+        forwardedProps: {},
+        messages: [
+          ...messages.map(msg => ({
+            content: msg.content,
+            role: msg.role,
+            id: msg.id
+          })),
+          {
+            content: message,
+            role: 'user',
+            id: generateId()
+          }
+        ],
+        runId: `run-${Date.now()}`,
+        threadId: threadId
+      };
+
+      console.log('发送请求到后端:', requestBody);
+
+      const response = await fetch('https://pilotapi.producthot.top/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // 处理流式响应
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('无法读取响应流');
+      }
+
+      // 添加用户消息到本地状态
+      const userMessage: Message = {
+        id: generateId(),
+        content: message,
+        role: 'user',
+        timestamp: new Date().toISOString()
+      };
+
+      // 创建助手消息
+      const assistantMessage: Message = {
+        id: generateId(),
+        content: '',
+        role: 'assistant',
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, userMessage, assistantMessage]);
+
+      // 读取流式响应
+      const decoder = new TextDecoder();
+      let assistantContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.trim() && line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              console.log('Parsed stream data:', data);
+              
+              // 处理不同类型的数据
+              if (data.type === 'RAW' && data.event) {
+                // 处理 RAW 事件中的流式内容
+                if (data.event.event === 'on_chat_model_stream' && data.event.data?.chunk?.content) {
+                  const content = data.event.data.chunk.content;
+                  console.log('Streaming content:', content);
+                  assistantContent += content;
+                  
+                  // 更新助手消息内容
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === assistantMessage.id 
+                      ? { ...msg, content: assistantContent }
+                      : msg
+                  ));
+                }
+                // 处理其他RAW事件类型（如果需要）
+                else if (data.event.event === 'on_chat_model_end') {
+                  console.log('Chat model stream ended');
+                }
+              } 
+              // 处理其他事件类型
+              else if (data.type === 'STEP_STARTED') {
+                console.log('Step started:', data.stepName);
+              }
+              else if (data.type === 'RUN_STARTED') {
+                console.log('Run started:', data.threadId, data.runId);
+              }
+              // 处理直接的 content 字段（向后兼容）
+              else if (data.content) {
+                assistantContent += data.content;
+                setMessages(prev => prev.map(msg => 
+                  msg.id === assistantMessage.id 
+                    ? { ...msg, content: assistantContent }
+                    : msg
+                ));
+              }
+            } catch (e) {
+              console.warn('解析流数据失败:', e, '原始数据:', line);
+            }
+          }
+        }
+      }
+
+    } catch (error: any) {
+      console.error('发送消息失败:', error);
       if (error.message?.includes('404') || 
           error.message?.includes('network') || 
           error.message?.includes('fetch') ||
-          error.status === 404 ||
-          error.code === 'NETWORK_ERROR') {
+          error.status === 404) {
         setError('网络异常，请重试！');
       } else {
         setError('出问题了，请重试！');
       }
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
+
+  // 停止响应
+  const stopResponse = () => {
+    setIsLoading(false);
+  };
 
   // Handle @ button click
   const handleAtButtonClick = () => {
@@ -159,7 +308,7 @@ const AIAssistant: React.FC = () => {
   }, []);
 
   // 处理消息发送时包含选中的能力
-  const handleCopilotSubmit = async (message: string) => {
+  const handleSubmit = async (message: string) => {
     if (!message.trim() || isLoading) return;
     
     setError(null); // 清除之前的错误
@@ -171,61 +320,27 @@ const AIAssistant: React.FC = () => {
         finalMessage = `${selectedCapability.label} ${message}`;
       }
       
-      // 使用 CopilotKit 的 appendMessage 发送消息
-      appendMessage(
-        new TextMessage({
-          content: finalMessage,
-          role: MessageRole.User,
-        })
-      );
+      // 发送消息到后端
+      await sendMessageToBackend(finalMessage);
       
       setInputValue('');
       // 发送后清除选中的能力
       setSelectedCapability(null);
     } catch (error: any) {
-      // 处理错误
-      if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        setError('网络异常，请重试！');
-      } else {
-        setError('出问题了，请重试！');
-      }
       console.error('发送消息失败:', error);
     }
   };
 
-  // 使用 CopilotKit 的 action 功能
-  useCopilotAction({
-    name: "sendMessage",
-    description: "Send a message to the AI assistant",
-    parameters: [
-      {
-        name: "message",
-        type: "string",
-        description: "The message content to send",
-        required: true,
-      },
-    ],
-    handler: async ({ message }) => {
-      // 使用 CopilotKit 的 appendMessage 发送消息
-      appendMessage(
-        new TextMessage({
-          content: message,
-          role: MessageRole.User,
-        })
-      );
+  // 自定义消息处理功能 - 替代 CopilotKit 的 action 功能
+  const handleMessageAction = async (message: string) => {
+    try {
+      await sendMessageToBackend(message);
       return `Message sent: ${message}`;
-    },
-  });
-
-  // 使用 CopilotKit 的 readable 功能，让 AI 了解当前对话历史
-  useCopilotReadable({
-    description: "Current conversation history",
-    value: visibleMessages.map(msg => ({
-      role: msg.role === MessageRole.User ? 'user' : 'assistant',
-      content: msg.content,
-      timestamp: new Date().toISOString()
-    }))
-  });
+    } catch (error) {
+      console.error('Message action failed:', error);
+      throw error;
+    }
+  };
 
   // 处理容器焦点
   const handleContainerFocus = () => {
@@ -238,10 +353,10 @@ const AIAssistant: React.FC = () => {
     // 只有当焦点真正移到容器外部时才失去焦点
   };
 
-  // 停止响应 - 使用 CopilotKit 驱动
+  // 停止响应 - 使用自定义实现
   const handleStopResponse = () => {
     if (isLoading) {
-      stop();
+      stopResponse();
     }
   };
 
@@ -282,7 +397,7 @@ const AIAssistant: React.FC = () => {
       if (isLoading) {
         handleStopResponse();
       } else {
-        handleCopilotSubmit(inputValue);
+        handleSubmit(inputValue);
       }
     }
   };
@@ -303,7 +418,7 @@ const AIAssistant: React.FC = () => {
 
     return (
       <button
-        onClick={() => handleCopilotSubmit(inputValue)}
+        onClick={() => handleSubmit(inputValue)}
         disabled={!inputValue.trim()}
         className="p-1.5 rounded-md bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-colors duration-200"
         title="发送消息"
@@ -429,7 +544,7 @@ const AIAssistant: React.FC = () => {
         
         {!isMinimized && (
           <>
-            {visibleMessages.length === 0 ? (
+            {messages.length === 0 ? (
               /* Empty State - Centered Input */
               <div className="flex flex-col flex-1 justify-center items-center p-8">
                 {/* Welcome Section */}
@@ -457,30 +572,18 @@ const AIAssistant: React.FC = () => {
                       
                       {/* Input Area */}
                       <div className="relative">
-                        <CopilotTextarea
+                        <textarea
                           ref={textareaRef}
-                          disableBranding={true}
                           className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white text-sm transition-all duration-200 ${
                             isFocused || inputValue.trim() ? 'min-h-[120px] max-h-[320px]' : 'min-h-[80px] max-h-[240px]'
                           }`}
                           placeholder="Enter your operation..."
                           value={inputValue}
-                          onValueChange={handleInputChange}
+                          onChange={(e) => handleInputChange(e.target.value)}
                           onFocus={handleContainerFocus}
                           onBlur={handleInputBlur}
                           onKeyDown={handleKeyDown}
                           rows={isFocused || inputValue.trim() ? 4 : 2}
-                          autosuggestionsConfig={{
-                            textareaPurpose: "AI assistant for Vibe X Operation",
-                            chatApiConfigs: {
-                              suggestionsApiConfig: {
-                                forwardedParams: {
-                                  max_tokens: 20,
-                                  stop: [".", "?", "!"],
-                                },
-                              },
-                            },
-                          }}
                         />
                         {renderCapabilitySelector()}
                       </div>
@@ -505,29 +608,28 @@ const AIAssistant: React.FC = () => {
               <>
                 {/* Messages */}
                 <div className="overflow-y-auto flex-1 p-4 space-y-4 min-h-0">
-                  {visibleMessages.map((message, index) => (
-                    <div 
-                      key={index} 
-                      className={`flex ${message.role === MessageRole.User ? 'justify-end' : 'justify-start'}`}
+                  {messages.map((message, index) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
                     >
-                      <div 
+                      <div
                         className={`max-w-[80%] p-3 rounded-lg ${
-                          message.role === MessageRole.User 
-                            ? 'bg-purple-500 text-white' 
+                          message.role === 'user'
+                            ? 'bg-purple-500 text-white'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        <div className="whitespace-pre-wrap">{message.content}</div>
-                        {message.role === MessageRole.Assistant && isLoading && index === visibleMessages.length - 1 && (
+                        <div className="text-sm whitespace-pre-wrap">
+                          {message.content}
+                        </div>
+                        {message.role === 'assistant' && isLoading && index === messages.length - 1 && (
                           <div className="flex items-center mt-2 space-x-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                           </div>
                         )}
-                        <span className="block mt-1 text-xs opacity-70">
-                          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
                       </div>
                     </div>
                   ))}
@@ -554,30 +656,18 @@ const AIAssistant: React.FC = () => {
                       
                       {/* Input Area */}
                       <div className="relative">
-                        <CopilotTextarea
+                        <textarea
                           ref={textareaRef}
-                          disableBranding={true}
                           className={`w-full resize-none border-0 bg-gray-50 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white text-sm transition-all duration-200 ${
                             isFocused || inputValue.trim() ? 'min-h-[120px] max-h-[320px]' : 'min-h-[80px] max-h-[240px]'
                           }`}
                           placeholder="You chat with X Pilot"
                           value={inputValue}
-                          onValueChange={handleInputChange}
+                          onChange={(e) => handleInputChange(e.target.value)}
                           onFocus={handleContainerFocus}
                           onBlur={handleInputBlur}
                           onKeyDown={handleKeyDown}
                           rows={isFocused || inputValue.trim() ? 4 : 2}
-                          autosuggestionsConfig={{
-                            textareaPurpose: "AI assistant conversation",
-                            chatApiConfigs: {
-                              suggestionsApiConfig: {
-                                forwardedParams: {
-                                  max_tokens: 20,
-                                  stop: [".", "?", "!"],
-                                },
-                              },
-                            },
-                          }}
                         />
                         {renderCapabilitySelector()}
                       </div>
