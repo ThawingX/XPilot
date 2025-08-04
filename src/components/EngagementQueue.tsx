@@ -164,9 +164,9 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
   if (showInspirationAccounts) {
     // Inspiration Accounts display logic
     return (
-      <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm min-w-[320px]">
         {/* Header */}
-        <div className="flex-shrink-0 p-6 border-b border-gray-200">
+        <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-200">
           <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
           
           {/* Tab Navigation */}
@@ -224,7 +224,7 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
         </div>
         
         {/* Content */}
-        <div className="overflow-y-auto flex-1 p-6 space-y-4">
+        <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-4">
           {displayAccounts.length === 0 ? (
             <div className="text-center py-8">
               <Users size={48} className="mx-auto text-gray-400 mb-4" />
@@ -259,9 +259,9 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
 
   // Engagement display logic (formerly Activity Queue)
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm min-w-[400px]">
       {/* Header */}
-      <div className="flex-shrink-0 p-6 border-b border-gray-200">
+      <div className="flex-shrink-0 p-4 sm:p-6 border-b border-gray-200">
         <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
         
         {/* Tab Navigation */}
@@ -303,7 +303,7 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
       </div>
       
       {/* Content */}
-      <div className="overflow-y-auto flex-1 p-6 space-y-4">
+      <div className="overflow-y-auto flex-1 p-4 sm:p-6 space-y-4">
         {activeTab === 'autoReply' ? (
           autoReplyData.length === 0 ? (
             <div className="text-center py-8">

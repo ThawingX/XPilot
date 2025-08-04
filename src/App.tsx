@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { CopilotKit } from '@copilotkit/react-core';
 import Sidebar from './components/Sidebar';
@@ -18,17 +18,42 @@ import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
+// Create layout context for AI chat state
+const LayoutContext = createContext<{
+  isAIChatExpanded: boolean;
+  setIsAIChatExpanded: (expanded: boolean) => void;
+}>({ isAIChatExpanded: false, setIsAIChatExpanded: () => {} });
+
+export const useLayout = () => useContext(LayoutContext);
+
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [activeMenuItem, setActiveMenuItem] = useState<string>('Auto Engagement');
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategyType | null>(null);
-  const [activeMenuItem, setActiveMenuItem] = useState<string>('Dashboard');
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
+  const [isAIChatExpanded, setIsAIChatExpanded] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Calculate available space for intelligent layout
+  const sidebarWidth = 256; // w-64 = 16rem = 256px
+  const aiChatWidth = isAIChatExpanded ? Math.min(Math.max(windowWidth * 0.55, 600), 800) : 320; // Expanded: 55vw (min 600px, max 800px), Normal: 320px
+  const remainingWidth = windowWidth - sidebarWidth - aiChatWidth;
+  const canShowBothPanels = remainingWidth >= 800; // Need at least 800px for both panels
 
   // 处理 URL 参数
   useEffect(() => {
@@ -164,71 +189,73 @@ const AppContent: React.FC = () => {
 
   return (
     <CopilotKit runtimeUrl="https://pilotapi.producthot.top/api/agent">
-      <div className="flex overflow-hidden h-screen bg-gray-50">
-        {/* Left Sidebar */}
-        <Sidebar 
-          onMenuItemClick={handleMenuItemClick} 
-          activeMenuItem={activeMenuItem}
-        />
-        
-        {/* Main Content Area */}
-        <div className="flex overflow-hidden flex-1">
-          {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
-          <div className={`${
-            showDashboard || showProfile ? 'w-full' : 
-            'w-1/2'
-          } min-w-0 overflow-hidden`}>
-            {showDashboard ? (
-              <Dashboard onNavigate={handleDashboardNavigate} />
-            ) : showProfile ? (
-              <Profile 
-                initialSection={profileInitialSection} 
-                onNavigate={handleDashboardNavigate}
-              />
-            ) : showConfig ? (
-              <Config 
-                onItemClick={handleConfigItemClick} 
-                selectedItemId={selectedConfigItem?.id?.toString()}
-              />
-            ) : showMarketingStrategy ? (
-              <MarketingStrategy 
-                onStrategyClick={handleStrategyClick}
-                selectedStrategyId={selectedStrategy?.id}
-              />
-            ) : showPostThreadQueue ? (
-              <PostThreadQueue 
-                onPostClick={handlePostClick}
-                selectedPostId={selectedPostId || undefined}
-              />
-            ) : (
-              <EngagementQueue 
-                showInspirationAccounts={showInspirationAccounts} 
-                onCardClick={handleCardClick}
-                onAccountClick={handleAccountClick}
-                selectedCardId={selectedCard?.id}
-                selectedAccountId={selectedAccount?.id}
-              />
+      <LayoutContext.Provider value={{ isAIChatExpanded, setIsAIChatExpanded }}>
+        <div className="flex overflow-hidden h-screen bg-gray-50">
+          {/* Left Sidebar */}
+          <Sidebar 
+            onMenuItemClick={handleMenuItemClick} 
+            activeMenuItem={activeMenuItem}
+          />
+          
+          {/* Main Content Area */}
+          <div className="flex overflow-hidden flex-1">
+            {/* Activity Queue / Config / Profile / Dashboard / Marketing Strategy */}
+            <div className={`${
+              showDashboard || showProfile ? 'w-full' : 
+              canShowBothPanels ? 'w-1/2' : 'flex-1'
+            } min-w-0 overflow-hidden`}>
+              {showDashboard ? (
+                <Dashboard onNavigate={handleDashboardNavigate} />
+              ) : showProfile ? (
+                <Profile 
+                  initialSection={profileInitialSection} 
+                  onNavigate={handleDashboardNavigate}
+                />
+              ) : showConfig ? (
+                <Config 
+                  onItemClick={handleConfigItemClick} 
+                  selectedItemId={selectedConfigItem?.id?.toString()}
+                />
+              ) : showMarketingStrategy ? (
+                <MarketingStrategy 
+                  onStrategyClick={handleStrategyClick}
+                  selectedStrategyId={selectedStrategy?.id}
+                />
+              ) : showPostThreadQueue ? (
+                <PostThreadQueue 
+                  onPostClick={handlePostClick}
+                  selectedPostId={selectedPostId || undefined}
+                />
+              ) : (
+                <EngagementQueue 
+                  showInspirationAccounts={showInspirationAccounts} 
+                  onCardClick={handleCardClick}
+                  onAccountClick={handleAccountClick}
+                  selectedCardId={selectedCard?.id}
+                  selectedAccountId={selectedAccount?.id}
+                />
+              )}
+            </div>
+            
+            {/* Results Area - only show when not Dashboard and not Profile and when there's enough space */}
+            {!showDashboard && !showProfile && canShowBothPanels && (
+              <div className="overflow-hidden flex-1 min-w-0">
+                <ResultsArea 
+                  selectedCard={selectedCard} 
+                  selectedAccount={selectedAccount} 
+                  selectedConfigItem={selectedConfigItem}
+                  selectedPostId={selectedPostId}
+                  selectedPost={selectedPost}
+                  selectedStrategy={selectedStrategy}
+                />
+              </div>
             )}
           </div>
           
-          {/* Results Area - only show when not Dashboard and not Profile */}
-          {!showDashboard && !showProfile && (
-            <div className="overflow-hidden flex-1 min-w-0">
-              <ResultsArea 
-                selectedCard={selectedCard} 
-                selectedAccount={selectedAccount} 
-                selectedConfigItem={selectedConfigItem}
-                selectedPostId={selectedPostId}
-                selectedPost={selectedPost}
-                selectedStrategy={selectedStrategy}
-              />
-            </div>
-          )}
+          {/* Vibe X Operation - Right Sidebar */}
+          <AIAssistant onExpandedChange={setIsAIChatExpanded} />
         </div>
-        
-        {/* Vibe X Operation - Right Sidebar */}
-        <AIAssistant />
-      </div>
+      </LayoutContext.Provider>
     </CopilotKit>
   );
 };

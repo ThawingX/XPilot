@@ -7,7 +7,10 @@ interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
-  timestamp?: string;
+}
+
+interface AIAssistantProps {
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 // 定义后端请求结构
@@ -33,10 +36,15 @@ const CAPABILITY_OPTIONS = [
   { id: 'strategy', label: '@strategy', description: 'Vibe Operation Strategy' }
 ];
 
-const AIAssistant: React.FC = () => {
+const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [inputValue, setInputValue] = useState('');
   const [isMinimized, setIsMinimized] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Notify parent component when expanded state changes
+  useEffect(() => {
+    onExpandedChange?.(isExpanded);
+  }, [isExpanded, onExpandedChange]);
   const [isFocused, setIsFocused] = useState(false);
   const [showCapabilitySelector, setShowCapabilitySelector] = useState(false);
   const [selectedCapabilityIndex, setSelectedCapabilityIndex] = useState(0);

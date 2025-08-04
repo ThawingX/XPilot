@@ -122,7 +122,7 @@ const AutoReplyCard: React.FC<AutoReplyCardProps> = ({
             </p>
             
             {/* Stats Row */}
-            <div className="flex items-center space-x-6 text-gray-500">
+            <div className="hidden sm:flex items-center space-x-6 text-gray-500">
               <div className="flex items-center space-x-1 transition-colors cursor-pointer hover:text-blue-500">
                 <MessageSquare size={16} />
                 <span className="text-sm">{formatNumber(card.replies)}</span>
@@ -145,11 +145,11 @@ const AutoReplyCard: React.FC<AutoReplyCardProps> = ({
       </div>
 
       {/* Suggested Reply Section */}
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center space-x-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-sm font-medium tracking-wide text-gray-700 uppercase">
+            <span className="text-xs sm:text-sm font-medium tracking-wide text-gray-700 uppercase">
               SUGGESTED REPLY
             </span>
           </div>
@@ -158,7 +158,7 @@ const AutoReplyCard: React.FC<AutoReplyCardProps> = ({
             className="flex items-center px-2 py-1 space-x-1 text-xs text-blue-600 rounded-md transition-colors hover:bg-blue-50"
           >
             {isEditing ? <Check size={14} /> : <Edit3 size={14} />}
-            <span>{isEditing ? 'Save' : 'Edit'}</span>
+            <span className="hidden sm:inline">{isEditing ? 'Save' : 'Edit'}</span>
           </button>
         </div>
         
@@ -185,21 +185,21 @@ const AutoReplyCard: React.FC<AutoReplyCardProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
+        <div className="flex space-x-2 sm:space-x-3">
           <button
             onClick={handleReject}
-            className="flex flex-1 justify-center items-center px-4 py-2 space-x-2 text-red-600 rounded-lg border border-red-200 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            className="flex flex-1 justify-center items-center px-2 sm:px-4 py-2 space-x-1 sm:space-x-2 text-red-600 rounded-lg border border-red-200 transition-colors hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
           >
             <X size={16} />
-            <span className="font-medium">Reject</span>
+            <span className="text-sm font-medium">Reject</span>
           </button>
           <button
             onClick={handlePostReply}
             disabled={!editedReply.trim()}
-            className="flex flex-1 justify-center items-center px-4 py-2 space-x-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex flex-1 justify-center items-center px-2 sm:px-4 py-2 space-x-1 sm:space-x-2 text-white bg-green-500 rounded-lg transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send size={16} />
-            <span className="font-medium">Post reply</span>
+            <span className="text-sm font-medium">Post reply</span>
           </button>
         </div>
       </div>
