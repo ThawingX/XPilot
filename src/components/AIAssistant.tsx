@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 // 定义消息类型
 interface Message {
@@ -498,6 +499,108 @@ const AIAssistant: React.FC = () => {
     );
   };
 
+  // 渲染消息内容 - 支持 Markdown
+  const renderMessageContent = (content: string, role: 'user' | 'assistant') => {
+    if (role === 'assistant') {
+      return (
+        <div className="prose prose-sm max-w-none text-gray-800">
+          <ReactMarkdown
+            components={{
+            // 自定义代码块样式
+            code: ({ node, inline, className, children, ...props }) => {
+              const match = /language-(\w+)/.exec(className || '');
+              return !inline ? (
+                <pre className="bg-gray-100 rounded-md p-3 overflow-x-auto">
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                </pre>
+              ) : (
+                <code className="bg-gray-100 px-1 py-0.5 rounded text-sm" {...props}>
+                  {children}
+                </code>
+              );
+            },
+            // 自定义链接样式
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-purple-600 hover:text-purple-800 underline"
+              >
+                {children}
+              </a>
+            ),
+            // 自定义列表样式
+            ul: ({ children }) => (
+              <ul className="list-disc list-inside space-y-1 my-2">
+                {children}
+              </ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="list-decimal list-inside space-y-1 my-2">
+                {children}
+              </ol>
+            ),
+            // 自定义标题样式
+            h1: ({ children }) => (
+              <h1 className="text-lg font-bold mt-4 mb-2 text-gray-900">
+                {children}
+              </h1>
+            ),
+            h2: ({ children }) => (
+              <h2 className="text-base font-semibold mt-3 mb-2 text-gray-900">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="text-sm font-medium mt-2 mb-1 text-gray-900">
+                {children}
+              </h3>
+            ),
+            // 自定义段落样式
+            p: ({ children }) => (
+              <p className="mb-2 leading-relaxed">
+                {children}
+              </p>
+            ),
+            // 自定义引用样式
+            blockquote: ({ children }) => (
+              <blockquote className="border-l-4 border-purple-300 pl-4 italic my-2 text-gray-700">
+                {children}
+              </blockquote>
+            ),
+            // 自定义表格样式
+            table: ({ children }) => (
+              <div className="overflow-x-auto my-2">
+                <table className="min-w-full border border-gray-200 rounded-md">
+                  {children}
+                </table>
+              </div>
+            ),
+            th: ({ children }) => (
+              <th className="border border-gray-200 px-3 py-2 bg-gray-50 font-medium text-left">
+                {children}
+              </th>
+            ),
+            td: ({ children }) => (
+              <td className="border border-gray-200 px-3 py-2">
+                {children}
+              </td>
+            ),
+          }}
+          >
+            {content}
+          </ReactMarkdown>
+        </div>
+      );
+    } else {
+      // 用户消息保持原样
+      return <div className="text-sm whitespace-pre-wrap">{content}</div>;
+    }
+  };
+
   // 渲染错误信息
   const renderError = () => {
     if (!error) return null;
@@ -620,9 +723,7 @@ const AIAssistant: React.FC = () => {
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
-                        <div className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </div>
+                        {renderMessageContent(message.content, message.role)}
                         {message.role === 'assistant' && isLoading && index === messages.length - 1 && (
                           <div className="flex items-center mt-2 space-x-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
