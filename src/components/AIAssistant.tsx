@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // 定义消息类型
@@ -46,7 +46,7 @@ const AIAssistant: React.FC = () => {
   const [selectedCapability, setSelectedCapability] = useState<typeof CAPABILITY_OPTIONS[0] | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [threadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const [threadId, setThreadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [retryCount, setRetryCount] = useState(0);
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,6 +56,26 @@ const AIAssistant: React.FC = () => {
 
   // 生成唯一ID
   const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+  // 新增聊天窗口功能
+  const handleNewChat = () => {
+    // 清空当前消息
+    setMessages([]);
+    // 重置加载状态
+    setIsLoading(false);
+    // 清除错误信息
+    setError(null);
+    // 重置重试计数
+    setRetryCount(0);
+    // 清空输入框
+    setInputValue('');
+    // 清除选中的能力
+    setSelectedCapability(null);
+    // 重新生成threadId，确保新对话有独立的会话ID
+    setThreadId(`thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+    
+    console.log('新建聊天窗口，生成新的threadId');
+  };
 
   // 自动滚动到底部
   const scrollToBottom = () => {
@@ -71,12 +91,26 @@ const AIAssistant: React.FC = () => {
 
   // 发送消息到后端（带重试机制）
   const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string) => {
-    setIsLoading(true);
     setError(null);
     setRetryCount(currentRetryCount);
 
     // 将 currentAssistantMessageId 移到函数顶部，确保在 catch 块中也能访问
     let currentAssistantMessageId = assistantMessageId;
+
+    // 只在第一次调用时添加用户消息并设置加载状态
+    if (currentRetryCount === 0) {
+      setIsLoading(true);
+      
+      // 添加用户消息到本地状态
+      const userMessage: Message = {
+        id: generateId(),
+        content: message,
+        role: 'user',
+        timestamp: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+    }
 
     try {
       // 构建符合后端要求的请求体
@@ -121,40 +155,19 @@ const AIAssistant: React.FC = () => {
         throw new Error('无法读取响应流');
       }
 
-      // 只在第一次调用时添加用户消息和助手消息
-      if (currentRetryCount === 0) {
-        // 添加用户消息到本地状态
-        const userMessage: Message = {
-          id: generateId(),
-          content: message,
-          role: 'user',
-          timestamp: new Date().toISOString()
-        };
-
-        // 创建助手消息
-        const assistantMessage: Message = {
-          id: generateId(),
-          content: '',
-          role: 'assistant',
-          timestamp: new Date().toISOString()
-        };
-
-        currentAssistantMessageId = assistantMessage.id;
-        setMessages(prev => [...prev, userMessage, assistantMessage]);
-      } else {
-        // 重试时更新助手消息显示重试状态
-        if (currentAssistantMessageId) {
-          setMessages(prev => prev.map(msg => 
-            msg.id === currentAssistantMessageId 
-              ? { ...msg, content: `网络重试中 (${currentRetryCount}/5)...` }
-              : msg
-          ));
-        }
+      // 重试时更新助手消息显示重试状态
+      if (currentRetryCount > 0 && currentAssistantMessageId) {
+        setMessages(prev => prev.map(msg => 
+          msg.id === currentAssistantMessageId 
+            ? { ...msg, content: `网络重试中 (${currentRetryCount}/5)...` }
+            : msg
+        ));
       }
 
       // 读取流式响应
       const decoder = new TextDecoder();
       let assistantContent = '';
+      let assistantMessageCreated = false;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -177,12 +190,25 @@ const AIAssistant: React.FC = () => {
                   console.log('Streaming content:', content);
                   assistantContent += content;
                   
-                  // 更新助手消息内容
-                  setMessages(prev => prev.map(msg => 
-                    msg.id === currentAssistantMessageId 
-                      ? { ...msg, content: assistantContent }
-                      : msg
-                  ));
+                  // 第一次收到内容时创建助手消息
+                  if (!assistantMessageCreated) {
+                    const assistantMessage: Message = {
+                      id: generateId(),
+                      content: assistantContent,
+                      role: 'assistant',
+                      timestamp: new Date().toISOString()
+                    };
+                    currentAssistantMessageId = assistantMessage.id;
+                    setMessages(prev => [...prev, assistantMessage]);
+                    assistantMessageCreated = true;
+                  } else {
+                    // 更新助手消息内容
+                    setMessages(prev => prev.map(msg => 
+                      msg.id === currentAssistantMessageId 
+                        ? { ...msg, content: assistantContent }
+                        : msg
+                    ));
+                  }
                 }
                 // 处理其他RAW事件类型（如果需要）
                 else if (data.event.event === 'on_chat_model_end') {
@@ -199,11 +225,26 @@ const AIAssistant: React.FC = () => {
               // 处理直接的 content 字段（向后兼容）
               else if (data.content) {
                 assistantContent += data.content;
-                setMessages(prev => prev.map(msg => 
-                  msg.id === currentAssistantMessageId 
-                    ? { ...msg, content: assistantContent }
-                    : msg
-                ));
+                
+                // 第一次收到内容时创建助手消息
+                if (!assistantMessageCreated) {
+                  const assistantMessage: Message = {
+                    id: generateId(),
+                    content: assistantContent,
+                    role: 'assistant',
+                    timestamp: new Date().toISOString()
+                  };
+                  currentAssistantMessageId = assistantMessage.id;
+                  setMessages(prev => [...prev, assistantMessage]);
+                  assistantMessageCreated = true;
+                } else {
+                  // 更新助手消息内容
+                  setMessages(prev => prev.map(msg => 
+                    msg.id === currentAssistantMessageId 
+                      ? { ...msg, content: assistantContent }
+                      : msg
+                  ));
+                }
               }
             } catch (e) {
               console.warn('解析流数据失败:', e, '原始数据:', line);
@@ -222,8 +263,18 @@ const AIAssistant: React.FC = () => {
         // 更新重试状态
         setRetryCount(currentRetryCount + 1);
         
-        // 更新助手消息显示重试状态
-        if (currentAssistantMessageId) {
+        // 如果还没有助手消息，创建一个显示重试状态的消息
+        if (!currentAssistantMessageId) {
+          const assistantMessage: Message = {
+            id: generateId(),
+            content: `网络重试中 (${currentRetryCount + 1}/5)...`,
+            role: 'assistant',
+            timestamp: new Date().toISOString()
+          };
+          currentAssistantMessageId = assistantMessage.id;
+          setMessages(prev => [...prev, assistantMessage]);
+        } else {
+          // 更新助手消息显示重试状态
           setMessages(prev => prev.map(msg => 
             msg.id === currentAssistantMessageId 
               ? { ...msg, content: `网络重试中 (${currentRetryCount + 1}/5)...` }
@@ -239,7 +290,16 @@ const AIAssistant: React.FC = () => {
       }
       
       // 达到5次尝试后仍然失败，更新消息内容为网络异常
-      if (currentAssistantMessageId) {
+      if (!currentAssistantMessageId) {
+        // 如果还没有助手消息，创建一个显示网络异常的消息
+        const assistantMessage: Message = {
+          id: generateId(),
+          content: '网络异常，请重试！',
+          role: 'assistant',
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
         setMessages(prev => prev.map(msg => 
           msg.id === currentAssistantMessageId 
             ? { ...msg, content: '网络异常，请重试！' }
@@ -498,14 +558,14 @@ const AIAssistant: React.FC = () => {
     if (!selectedCapability) return null;
 
     return (
-      <div className="mb-3 flex items-center justify-between bg-purple-50 border border-purple-200 rounded-lg px-3 py-2">
+      <div className="flex justify-between items-center px-3 py-2 mb-3 bg-purple-50 rounded-lg border border-purple-200">
         <div className="flex items-center space-x-2">
           <span className="text-sm font-medium text-purple-600">{selectedCapability.label}</span>
           <span className="text-xs text-purple-500">{selectedCapability.description}</span>
         </div>
         <button
           onClick={() => setSelectedCapability(null)}
-          className="text-purple-400 hover:text-purple-600 transition-colors"
+          className="text-purple-400 transition-colors hover:text-purple-600"
           title="Remove capability"
         >
           ×
@@ -576,14 +636,14 @@ const AIAssistant: React.FC = () => {
       }
       
       return (
-        <div className="prose prose-sm max-w-none text-white">
+        <div className="max-w-none text-white prose prose-sm">
           <ReactMarkdown
             components={{
             // 自定义代码块样式
             code: ({ node, inline, className, children, ...props }) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
-                <pre className="bg-purple-800 rounded-md p-3 overflow-x-auto">
+                <pre className="overflow-x-auto p-3 bg-purple-800 rounded-md">
                   <code className={className} {...props}>
                     {children}
                   </code>
@@ -600,35 +660,35 @@ const AIAssistant: React.FC = () => {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-purple-200 hover:text-white underline"
+                className="text-purple-200 underline hover:text-white"
               >
                 {children}
               </a>
             ),
             // 自定义列表样式
             ul: ({ children }) => (
-              <ul className="list-disc list-inside space-y-1 my-2">
+              <ul className="my-2 space-y-1 list-disc list-inside">
                 {children}
               </ul>
             ),
             ol: ({ children }) => (
-              <ol className="list-decimal list-inside space-y-1 my-2">
+              <ol className="my-2 space-y-1 list-decimal list-inside">
                 {children}
               </ol>
             ),
             // 自定义标题样式
             h1: ({ children }) => (
-              <h1 className="text-lg font-bold mt-4 mb-2 text-white">
+              <h1 className="mt-4 mb-2 text-lg font-bold text-white">
                 {children}
               </h1>
             ),
             h2: ({ children }) => (
-              <h2 className="text-base font-semibold mt-3 mb-2 text-white">
+              <h2 className="mt-3 mb-2 text-base font-semibold text-white">
                 {children}
               </h2>
             ),
             h3: ({ children }) => (
-              <h3 className="text-sm font-medium mt-2 mb-1 text-white">
+              <h3 className="mt-2 mb-1 text-sm font-medium text-white">
                 {children}
               </h3>
             ),
@@ -640,25 +700,25 @@ const AIAssistant: React.FC = () => {
             ),
             // 自定义引用样式
             blockquote: ({ children }) => (
-              <blockquote className="border-l-4 border-purple-300 pl-4 italic my-2 text-purple-100">
+              <blockquote className="pl-4 my-2 italic text-purple-100 border-l-4 border-purple-300">
                 {children}
               </blockquote>
             ),
             // 自定义表格样式
             table: ({ children }) => (
               <div className="overflow-x-auto my-2">
-                <table className="min-w-full border border-purple-400 rounded-md">
+                <table className="min-w-full rounded-md border border-purple-400">
                   {children}
                 </table>
               </div>
             ),
             th: ({ children }) => (
-              <th className="border border-purple-400 px-3 py-2 bg-purple-800 font-medium text-left">
+              <th className="px-3 py-2 font-medium text-left bg-purple-800 border border-purple-400">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border border-purple-400 px-3 py-2">
+              <td className="px-3 py-2 border border-purple-400">
                 {children}
               </td>
             ),
@@ -682,9 +742,9 @@ const AIAssistant: React.FC = () => {
     if (isNetworkError) {
       return (
         <div className="flex justify-center mb-4">
-          <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg max-w-md">
+          <div className="flex items-center p-3 space-x-2 max-w-md bg-red-50 rounded-lg border border-red-200">
             <AlertCircle size={16} className="flex-shrink-0 text-red-500" />
-            <span className="text-sm text-red-700 font-medium">{content}</span>
+            <span className="text-sm font-medium text-red-700">{content}</span>
           </div>
         </div>
       );
@@ -693,13 +753,13 @@ const AIAssistant: React.FC = () => {
     if (isRetrying) {
       return (
         <div className="flex justify-center mb-4">
-          <div className="flex items-center space-x-2 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md">
+          <div className="flex items-center p-3 space-x-2 max-w-md bg-blue-50 rounded-lg border border-blue-200">
             <div className="flex items-center space-x-1">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
-            <span className="text-sm text-blue-700 font-medium">{content}</span>
+            <span className="text-sm font-medium text-blue-700">{content}</span>
           </div>
         </div>
       );
@@ -739,9 +799,19 @@ const AIAssistant: React.FC = () => {
         {/* Header */}
         <div className="flex flex-shrink-0 justify-between items-center p-4 border-b border-gray-200">
           {!isMinimized && (
-            <div className="flex items-center space-x-2">
-              {/* <Zap size={20} className="text-purple-500" /> */}
-              <h2 className="text-lg font-semibold text-gray-800">X Pilot</h2>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-semibold text-gray-800">X Pilot</h2>
+              </div>
+              {/* 新增聊天按钮 */}
+              <button
+                onClick={handleNewChat}
+                className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-all duration-200 shadow-sm hover:shadow-md text-sm"
+                title="新建聊天"
+              >
+                <Plus size={14} />
+                <span className="font-medium">新建对话</span>
+              </button>
             </div>
           )}
           <div className="flex items-center space-x-1">
