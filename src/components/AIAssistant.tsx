@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus } from 'lucide-react';
+import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // 定义消息类型
@@ -454,6 +454,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       setSelectedCapability(null);
     } catch (error: any) {
       console.error('发送消息失败:', error);
+    }
+  };
+
+  // 复制消息内容到聊天窗口
+  const handleCopyToChat = (content: string) => {
+    setInputValue(content);
+    // 聚焦到输入框
+    if (textareaRef.current) {
+      textareaRef.current.focus();
     }
   };
 
@@ -926,7 +935,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                     return (
                       <div
                         key={message.id}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-2`}
+                        className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} mb-2 group`}
                       >
                         <div
                           className={`max-w-[80%] p-3 rounded-lg ${
@@ -937,6 +946,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                         >
                           {renderMessageContent(message.content, message.role)}
                         </div>
+                        {/* 用户消息的复制按钮 - 放在消息气泡下方 */}
+                        {message.role === 'user' && (
+                          <button
+                            onClick={() => handleCopyToChat(message.content)}
+                            className="mt-1 p-1.5 rounded-md bg-gray-100 text-gray-700 border border-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900"
+                            title="复制到聊天窗口"
+                          >
+                            <Copy size={14} />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
