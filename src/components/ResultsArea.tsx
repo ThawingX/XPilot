@@ -898,8 +898,10 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                     </span>
                   </div>
                   <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>Target Account: {selectedConfigItem.targetAccount}</span>
-                    <span>Created: {selectedConfigItem.time}</span>
+                    <span className="flex items-center space-x-1">
+                      <Clock size={14} />
+                      <span>Last Updated: {selectedConfigItem.time}</span>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -970,8 +972,8 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
 
 
 
-            {/* Statistics (if completed) */}
-            {selectedConfigItem.status === 'completed' && (
+            {/* Statistics (if completed) - 暂时隐藏，因为API中没有status字段 */}
+            {/* {selectedConfigItem.status === 'completed' && (
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">Execution Results</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -993,7 +995,7 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>

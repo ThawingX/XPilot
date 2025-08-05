@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, MessageSquare, Repeat2, Clock } from 'lucide-react';
+import { Settings, MessageSquare, Repeat2, Clock, ToggleLeft, ToggleRight } from 'lucide-react';
+import { configService, ConfigItem as ApiConfigItem } from '../lib/configService';
 
 interface ConfigProps {
   onItemClick?: (item: ConfigItem) => void;
@@ -8,128 +9,68 @@ interface ConfigProps {
 
 type TabType = 'reply' | 'repost';
 
+// 适配前端使用的配置项接口
 export interface ConfigItem {
-  id: number;
+  id: string;
   type: 'reply' | 'repost';
   title: string;
   content: string;
   time: string;
-  status: 'pending' | 'completed' | 'draft';
-  priority: 'high' | 'medium' | 'low';
-  targetAccount?: string;
-  // New fields
-  prompt?: string; // Prompt for generating replies
-  style?: 'funny' | 'professional' | 'casual' | 'formal' | 'friendly' | 'encouraging' | 'energetic' | 'analytical'; // Reply style
-  enabled?: boolean; // Whether this reply card capability is enabled
+  prompt: string;
+  style: string;
+  enabled: boolean;
 }
-const mockConfigItems: ConfigItem[] = [
-  {
-    id: 1,
-    type: 'reply',
-    title: 'Tech Product Review Replies',
-    content: 'Generate professional and insightful replies to tech product content',
-    time: '2024-01-15 14:30',
-    prompt: 'As a tech enthusiast, generate professional and insightful replies to tech product content. Include technical analysis, user experience sharing, or product comparisons. Maintain an objective and neutral tone while providing valuable information.',
-    style: 'professional',
-    enabled: true
-  },
-  {
-    id: 2,
-    type: 'repost',
-    title: 'Lifestyle Content Sharing',
-    content: 'Automatically repost trending tech topics',
-    time: '2024-01-15 10:15',
-    prompt: 'Identify and repost high-quality lifestyle content including health, food, travel, and fashion topics. Add personal insights or related experience sharing to make content more personalized.',
-    style: 'casual',
-    enabled: false
-  },
-  {
-    id: 3,
-    type: 'reply',
-    title: 'Business Insight Responses',
-    content: 'Reply to lifestyle, health, and food content',
-    time: '2024-01-14 16:45',
-    prompt: 'Provide deep business insights and analysis for business, entrepreneurship, and investment content. Replies should demonstrate business thinking including market analysis, business model discussions, and industry trend predictions.',
-    style: 'friendly',
-    enabled: true
-  },
-  {
-    id: 4,
-    type: 'reply',
-    title: 'Educational Content Engagement',
-    content: 'Participate in business, investment, and entrepreneurship discussions',
-    time: '2024-01-14 09:20',
-    prompt: 'Reply to educational, learning, and knowledge-sharing content. Responses should be inspiring, supplementing knowledge points, sharing learning methods, or raising thought-provoking questions.',
-    style: 'professional',
-    enabled: true
-  },
-  {
-    id: 5,
-    type: 'reply',
-    title: 'Entertainment Content Replies',
-    content: 'Reply to education, learning methods, and skill improvement content',
-    time: '2024-01-13 20:10',
-    prompt: 'Reply to entertainment, film, music, and gaming content. Maintain a light and cheerful tone, share personal preferences, recommend related content, or initiate interesting discussions.',
-    style: 'encouraging',
-    enabled: false
-  },
-  {
-    id: 6,
-    type: 'reply',
-    title: 'Sports Event Sharing',
-    content: 'Reply to movies, music, games, literature and other entertainment content',
-    time: '2024-01-13 15:30',
-    prompt: 'Repost exciting sports-related content including game highlights, athlete performances, and sports news. Add personal opinions and emotional expressions to enhance content appeal.',
-    style: 'casual',
-    enabled: true
-  },
-  {
-    id: 7,
-    type: 'reply',
-    title: 'News Commentary',
-    content: 'Reply to sports events, fitness, and sports-related content',
-    time: '2024-01-12 18:45',
-    prompt: 'Provide rational and objective commentary on news and current events. Analyze event background, impact, and significance, offer multi-perspective thinking, avoid extreme views, and promote rational discussion.',
-    style: 'energetic',
-    enabled: true
-  },
-  {
-    id: 8,
-    type: 'reply',
-    title: 'Arts & Culture Exchange',
-    content: 'Rational discussion of current news and social topics',
-    time: '2024-01-12 11:20',
-    prompt: 'Participate in discussions about art, culture, and literature. Replies should demonstrate cultural literacy, quote relevant works, share artistic insights, or recommend quality cultural content.',
-    style: 'analytical',
-    enabled: false
-  }
-];
 
 const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
   const [activeTab, setActiveTab] = useState<'reply' | 'repost'>('reply');
   const [configItems, setConfigItems] = useState<ConfigItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock API request to fetch config items
+  // 将API配置项转换为前端使用的格式
+  const transformApiConfigItem = (apiItem: ApiConfigItem): ConfigItem => {
+    return {
+      id: apiItem.id,
+      type: apiItem.type,
+      title: apiItem.name,
+      content: apiItem.description,
+      time: new Date(apiItem.updated_at).toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      prompt: apiItem.prompt_content,
+      style: apiItem.reply_style,
+      enabled: apiItem.is_enabled
+    };
+  };
+
+  // 获取配置列表
   const fetchConfigItems = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Simulate API request delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const response = await configService.getConfigs({
+        type: activeTab,
+        page_size: 100 // 获取所有配置项
+      });
       
-      // Simulate fetching configuration data from server
-      setConfigItems(mockConfigItems);
+      const transformedItems = response.data.map(transformApiConfigItem);
+      setConfigItems(transformedItems);
     } catch (error) {
       console.error('Failed to fetch config items:', error);
+      setError(error instanceof Error ? error.message : '获取配置列表失败');
     } finally {
       setLoading(false);
     }
   };
 
-  // Load mock request when component mounts
+  // 当组件挂载或activeTab改变时获取数据
   useEffect(() => {
     fetchConfigItems();
-  }, []);
+  }, [activeTab]);
 
   // Filter items based on active tab
   const filteredItems = configItems.filter(item => {
@@ -137,19 +78,48 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
   });
 
   // Toggle enabled status
-  const handleToggleEnabled = (id: number, enabled: boolean, e: React.MouseEvent | React.ChangeEvent) => {
+  const handleToggleEnabled = async (id: string, enabled: boolean, e: React.MouseEvent | React.ChangeEvent) => {
     e.stopPropagation();
+    
+    // 乐观更新UI
     setConfigItems(prev => 
       prev.map(item => 
         item.id === id ? { ...item, enabled } : item
       )
     );
+
+    // TODO: 这里可以添加API调用来更新服务器端的状态
+    // try {
+    //   await configService.updateConfig(id, { is_enabled: enabled });
+    // } catch (error) {
+    //   // 如果更新失败，回滚UI状态
+    //   setConfigItems(prev => 
+    //     prev.map(item => 
+    //       item.id === id ? { ...item, enabled: !enabled } : item
+    //     )
+    //   );
+    //   console.error('更新配置状态失败:', error);
+    // }
   };
 
-  // Format reply style for display
-  const formatReplyStyle = (style?: string) => {
-    if (!style) return 'Default';
-    return style.charAt(0).toUpperCase() + style.slice(1);
+  // 格式化回复风格显示
+  const formatReplyStyle = (style: string): string => {
+    const styleMap: { [key: string]: string } = {
+      'casual': 'Casual',
+      'professional': 'Professional',
+      'friendly': 'Friendly',
+      'formal': 'Formal',
+      'humorous': 'Humorous'
+    };
+    return styleMap[style] || style;
+  };
+
+  // 处理配置项点击事件
+  const handleItemClick = (item: ConfigItem) => {
+    // 直接使用列表中的数据，提高响应速度
+    if (onItemClick) {
+      onItemClick(item);
+    }
   };
 
   return (
@@ -200,6 +170,20 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-gray-500">Loading configuration data...</p>
           </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <div className="text-red-500 mb-4">
+              <Settings size={48} className="mx-auto mb-2" />
+              <p className="text-lg font-medium">加载失败</p>
+            </div>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <button
+              onClick={fetchConfigItems}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              重试
+            </button>
+          </div>
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-8">
             <Settings size={48} className="mx-auto text-gray-400 mb-4" />
@@ -209,7 +193,7 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
           filteredItems.map((item) => (
               <div
                 key={item.id}
-                onClick={() => onItemClick?.(item)}
+                onClick={() => handleItemClick(item)}
                 className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
                   selectedItemId === item.id
                     ? 'border-blue-500 bg-blue-50 shadow-lg ring-2 ring-blue-200 border-l-4 border-l-blue-500'
@@ -224,15 +208,22 @@ const Config: React.FC<ConfigProps> = ({ onItemClick, selectedItemId }) => {
                       {formatReplyStyle(item.style)}
                     </span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={item.enabled}
-                      onChange={(e) => handleToggleEnabled(item.id, e.target.checked, e)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500" style={{"--tw-ring-color": "rgba(71, 146, 230, 0.3)"} as React.CSSProperties}></div>
-                  </label>
+                  <div className="relative group">
+                    <label className="relative inline-flex items-center cursor-not-allowed opacity-50" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={item.enabled}
+                        disabled={true}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gray-400"></div>
+                    </label>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10">
+                      Coming soon!
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-800"></div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Title - New line */}
