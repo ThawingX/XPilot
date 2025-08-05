@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy } from 'lucide-react';
+import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 // 定义消息类型
@@ -935,39 +935,82 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                     return (
                       <div
                         key={message.id}
-                        className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'} mb-2 group`}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} mb-4 group`}
                       >
-                        <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
-                            message.role === 'user'
-                              ? 'bg-[#4792E6] text-white'
-                              : 'bg-white text-black border border-gray-200'
-                          }`}
-                        >
-                          {renderMessageContent(message.content, message.role)}
+                        <div className={`flex ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : 'flex-row'} items-start space-x-3 max-w-[80%]`}>
+                          {/* 头像 */}
+                          <div className="flex-shrink-0">
+                            {message.role === 'user' ? (
+                              <div className="w-8 h-8 rounded-full bg-[#4792E6] flex items-center justify-center">
+                                <User size={16} className="text-white" />
+                              </div>
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">XP</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* 消息内容区域 */}
+                          <div className={`flex flex-col ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                            {/* 昵称 */}
+                            <div className="mb-1 text-xs text-gray-500">
+                              {message.role === 'user' ? 'You' : 'X Pilot'}
+                            </div>
+                            
+                            {/* 消息气泡 */}
+                            <div
+                              className={`p-3 rounded-lg ${
+                                message.role === 'user'
+                                  ? 'bg-[#4792E6] text-white rounded-tr-sm'
+                                  : 'bg-white text-black border border-gray-200 rounded-tl-sm'
+                              }`}
+                            >
+                              {renderMessageContent(message.content, message.role)}
+                            </div>
+                            
+                            {/* 用户消息的复制按钮 - 放在消息气泡下方 */}
+                            {message.role === 'user' && (
+                              <button
+                                onClick={() => handleCopyToChat(message.content)}
+                                className="mt-1 p-1.5 rounded-md bg-gray-100 text-gray-700 border border-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900"
+                                title="复制到聊天窗口"
+                              >
+                                <Copy size={14} />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        {/* 用户消息的复制按钮 - 放在消息气泡下方 */}
-                        {message.role === 'user' && (
-                          <button
-                            onClick={() => handleCopyToChat(message.content)}
-                            className="mt-1 p-1.5 rounded-md bg-gray-100 text-gray-700 border border-gray-300 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-gray-200 hover:text-gray-900"
-                            title="复制到聊天窗口"
-                          >
-                            <Copy size={14} />
-                          </button>
-                        )}
                       </div>
                     );
                   })}
                   
                   {/* 独立的加载动画气泡 */}
                   {isLoading && (
-                    <div className="flex justify-start mb-2">
-                      <div className="max-w-[80%] p-3 rounded-lg bg-white text-black border border-gray-200">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="flex justify-start mb-4">
+                      <div className="flex items-start space-x-3 max-w-[80%]">
+                        {/* AI头像 */}
+                        <div className="flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">XP</span>
+                          </div>
+                        </div>
+                        
+                        {/* 加载内容区域 */}
+                        <div className="flex flex-col items-start">
+                          {/* 昵称 */}
+                          <div className="mb-1 text-xs text-gray-500">
+                            X Pilot
+                          </div>
+                          
+                          {/* 加载气泡 */}
+                          <div className="p-3 rounded-lg bg-white text-black border border-gray-200 rounded-tl-sm">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
