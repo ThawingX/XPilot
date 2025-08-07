@@ -1,5 +1,5 @@
 import { Card, InspirationAccount } from '../types';
-import { Crosshair, PenTool, Users, Calendar, User, Settings, LayoutDashboard, Send } from 'lucide-react';
+import { Crosshair, PenTool, Users, Calendar, User, Settings, LayoutDashboard, Send, Brain } from 'lucide-react';
 
 // Mock posts for account profiles
 export const mockAccountPosts = {
@@ -649,6 +649,7 @@ export const mockMenuItems = [
   { name: 'Inspiration Accounts', icon: Crosshair },
   { name: 'Auto Engagement', icon: Users },
   { name: 'Get Post/Thread', icon: PenTool },
+  { name: 'Plan Manager', icon: Brain },
   { name: 'Marketing Strategy', icon: Calendar },
   { name: 'Config', icon: Settings },
   { name: 'Profile', icon: User },

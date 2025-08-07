@@ -1,0 +1,97 @@
+{
+  "description": "当检测到@reply工具选择时，后端应该返回的响应格式示例",
+  "normal_chat_response": {
+    "type": "RAW",
+    "event": {
+      "event": "on_chat_model_stream",
+      "data": {
+        "chunk": {
+          "content": "我将为您制定一个自动回复计划，请稍等...",
+          "additional_kwargs": {},
+          "response_metadata": {"safety_ratings": []},
+          "type": "AIMessageChunk",
+          "id": "run--xxx",
+          "example": false,
+          "tool_calls": [],
+          "invalid_tool_calls": [],
+          "usage_metadata": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "input_token_details": {"cache_read": 0}
+          },
+          "tool_call_chunks": []
+        }
+      },
+      "run_id": "xxx",
+      "name": "ChatGoogleGenerativeAI",
+      "tags": ["seq:step:2"],
+      "metadata": {
+        "thread_id": "thread-xxx",
+        "langgraph_step": 1,
+        "langgraph_node": "agent"
+      }
+    }
+  },
+  "execution_plan_response": {
+    "type": "execution_plan",
+    "plan": {
+      "id": "reply-plan-" + "timestamp",
+      "title": "自动回复执行计划",
+      "description": "基于您的需求制定的智能回复策略",
+      "steps": [
+        {
+          "id": "step-1",
+          "title": "内容分析",
+          "description": "分析目标社交媒体内容的语调、主题和情感",
+          "type": "analysis",
+          "parameters": {
+            "target_content": "用户指定的内容",
+            "analysis_depth": "deep"
+          },
+          "status": "pending",
+          "estimatedDuration": "30秒"
+        },
+        {
+          "id": "step-2",
+          "title": "回复策略制定",
+          "description": "根据分析结果制定合适的回复策略",
+          "type": "strategy",
+          "parameters": {
+            "tone": "professional",
+            "engagement_level": "high"
+          },
+          "status": "pending",
+          "estimatedDuration": "45秒"
+        },
+        {
+          "id": "step-3",
+          "title": "生成回复内容",
+          "description": "基于策略生成具体的回复文本",
+          "type": "reply",
+          "parameters": {
+            "max_length": 280,
+            "include_hashtags": true
+          },
+          "status": "pending",
+          "estimatedDuration": "60秒"
+        },
+        {
+          "id": "step-4",
+          "title": "发布回复",
+          "description": "将生成的回复发布到指定的社交媒体平台",
+          "type": "engagement",
+          "parameters": {
+            "platform": "twitter",
+            "auto_publish": false
+          },
+          "status": "pending",
+          "estimatedDuration": "15秒"
+        }
+      ],
+      "status": "pending",
+      "createdAt": "2024-01-20T10:30:00Z",
+      "estimatedTotalDuration": "2分30秒"
+    }
+  }
+}
