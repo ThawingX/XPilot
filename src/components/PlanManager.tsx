@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PlanCreator from './PlanCreator';
 import ExecutionPlanCard from './ExecutionPlanCard';
 import { ExecutionPlan, ExecutionStep } from '../types/ExecutionPlan';
+import { ExecutionPlanStateProvider } from '../contexts/ExecutionPlanStateContext';
 
 interface PlanManagerProps {
   onCreatePlan?: (type: string, query: string) => Promise<void>;
@@ -284,112 +285,107 @@ export const PlanManager: React.FC<PlanManagerProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      {/* 模式切换 */}
-      <div className="mb-6">
-        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg w-fit">
-          <button
-            onClick={() => setCurrentMode('create')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              currentMode === 'create'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            制定计划
-          </button>
-          <button
-            onClick={() => setCurrentMode('execute')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              currentMode === 'execute'
-                ? 'bg-white text-green-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            执行计划
-          </button>
-        </div>
-      </div>
-
-      {/* 内容区域 */}
-      {currentMode === 'create' ? (
-        <div className="space-y-6">
-          <PlanCreator
-            onCreatePlan={handleCreatePlan}
-            isCreating={isCreating}
-          />
-          
-          {/* 显示正在制定的计划 */}
-          {createdPlan && createdPlan.status === 'executing' && (
-            <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">正在制定计划</h3>
-              <ExecutionPlanCard
-                plan={createdPlan}
-                mode="create"
-                onExecute={handleExecutePlan}
-                onEdit={handleEditPlan}
-                onPause={onPausePlan}
-                onResume={onResumePlan}
-                onDelete={onDeletePlan}
-              />
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900">执行计划</h2>
-          
-          {/* 显示已制定完成的计划 */}
-          {createdPlan && createdPlan.status === 'completed' && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">最新制定的计划</h3>
-              <ExecutionPlanCard
-                plan={createdPlan}
-                mode="execute"
-                onExecute={handleExecutePlan}
-                onEdit={handleEditPlan}
-                onPause={onPausePlan}
-                onResume={onResumePlan}
-                onDelete={onDeletePlan}
-              />
-            </div>
-          )}
-          
-          {/* 显示所有执行计划 */}
-          {executionPlans.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">历史计划</h3>
-              <div className="space-y-4">
-                {executionPlans.map((plan) => (
-                  <ExecutionPlanCard
-                    key={plan.id}
-                    plan={plan}
-                    mode="execute"
-                    onExecute={handleExecutePlan}
-                    onEdit={handleEditPlan}
-                    onPause={onPausePlan}
-                    onResume={onResumePlan}
-                    onDelete={onDeletePlan}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {executionPlans.length === 0 && !createdPlan && (
-            <div className="text-center py-12">
-              <div className="text-gray-500 mb-2">暂无执行计划</div>
+    <ExecutionPlanStateProvider>
+      <div className="flex flex-col h-full bg-gray-50">
+        {/* Header */}
+        <div className="flex-shrink-0 bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-gray-900">计划管理</h1>
+            <div className="flex space-x-2">
               <button
                 onClick={() => setCurrentMode('create')}
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentMode === 'create'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                去制定一个计划
+                制定计划
               </button>
+              <button
+                onClick={() => setCurrentMode('execute')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  currentMode === 'execute'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                执行计划
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto p-6">
+          {currentMode === 'create' ? (
+            <div className="space-y-6">
+              {/* Plan Creator */}
+              <PlanCreator 
+                onCreatePlan={handleCreatePlan}
+                isCreating={isCreating}
+              />
+              
+              {/* Currently Being Created Plan */}
+              {createdPlan && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">正在制定的计划</h2>
+                  <ExecutionPlanCard
+                    plan={createdPlan}
+                    mode="creating"
+                    onEdit={handleEditPlan}
+                    onExecute={handleExecutePlan}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Latest Created Plan */}
+              {createdPlan && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">最新制定的计划</h2>
+                  <ExecutionPlanCard
+                    plan={createdPlan}
+                    mode="execution"
+                    onEdit={handleEditPlan}
+                    onExecute={handleExecutePlan}
+                  />
+                </div>
+              )}
+              
+              {/* Historical Plans */}
+              {executionPlans.length > 0 && (
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">历史计划</h2>
+                  <div className="space-y-4">
+                    {executionPlans.map((plan) => (
+                      <ExecutionPlanCard
+                        key={plan.id}
+                        plan={plan}
+                        mode="execution"
+                        onEdit={handleEditPlan}
+                        onExecute={handleExecutePlan}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Empty State */}
+              {!createdPlan && executionPlans.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-lg mb-2">暂无执行计划</div>
+                  <div className="text-gray-500 text-sm">
+                    请先在"制定计划"模式下创建一个计划
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </ExecutionPlanStateProvider>
   );
 };
 

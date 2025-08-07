@@ -13,9 +13,12 @@ import {
   X,
   AlertCircle,
   Brain,
-  Zap
+  Zap,
+  Activity
 } from 'lucide-react';
 import { ExecutionPlan, PlanStep } from '../types/executionPlan';
+import { useExecutionPlanState } from '../contexts/ExecutionPlanStateContext';
+import ExecutionPlanStateRenderer from './ExecutionPlanStateRenderer';
 
 interface ExecutionPlanCardProps {
   plan: ExecutionPlan;
@@ -39,6 +42,28 @@ const ExecutionPlanCard: React.FC<ExecutionPlanCardProps> = ({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedPlan, setEditedPlan] = useState<ExecutionPlan>(plan);
+  const [showRealTimeState, setShowRealTimeState] = useState(false);
+  
+  // 使用执行计划状态管理
+  const { state: executionState, startExecution, pauseExecution, resumeExecution, resetExecution } = useExecutionPlanState();
+
+  // 处理执行开始
+  const handleStartExecution = async () => {
+    const stepNames = plan.steps.map(step => step.title);
+    await startExecution(plan.id, stepNames);
+    setShowRealTimeState(true);
+    onExecute(plan.id);
+  };
+
+  // 处理暂停/恢复
+  const handlePauseResume = () => {
+    if (executionState?.status === 'executing') {
+      pauseExecution();
+      onPause?.(plan.id);
+    } else if (executionState?.status === 'paused') {
+      resumeExecution();
+    }
+  };
 
   // 获取状态图标
   const getStatusIcon = (status: PlanStep['status']) => {
@@ -215,6 +240,21 @@ const ExecutionPlanCard: React.FC<ExecutionPlanCardProps> = ({
               </>
             ) : (
               <>
+                {/* 实时状态显示切换按钮 */}
+                {executionState && (
+                  <button
+                    onClick={() => setShowRealTimeState(!showRealTimeState)}
+                    className={`p-2 rounded-md transition-colors ${
+                      showRealTimeState 
+                        ? 'text-blue-600 bg-blue-50' 
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                    title={showRealTimeState ? "隐藏实时状态" : "显示实时状态"}
+                  >
+                    <Activity className="w-4 h-4" />
+                  </button>
+                )}
+                
                 {/* 执行模式下的按钮 */}
                 {mode === 'execute' && plan.status === 'pending' && (
                   <>
@@ -226,7 +266,7 @@ const ExecutionPlanCard: React.FC<ExecutionPlanCardProps> = ({
                       <Edit3 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => onExecute(plan.id)}
+                      onClick={handleStartExecution}
                       disabled={isExecuting}
                       className="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
                       title="开始执行"
@@ -241,14 +281,22 @@ const ExecutionPlanCard: React.FC<ExecutionPlanCardProps> = ({
                   </>
                 )}
                 
-                {plan.status === 'executing' && onPause && (
+                {(plan.status === 'executing' || executionState?.status === 'executing' || executionState?.status === 'paused') && (
                   <button
-                    onClick={() => onPause(plan.id)}
-                    className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors flex items-center space-x-1"
-                    title="暂停执行"
+                    onClick={handlePauseResume}
+                    className={`px-3 py-1.5 text-white rounded-md text-sm font-medium transition-colors flex items-center space-x-1 ${
+                      executionState?.status === 'paused' 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : 'bg-orange-500 hover:bg-orange-600'
+                    }`}
+                    title={executionState?.status === 'paused' ? "继续执行" : "暂停执行"}
                   >
-                    <Pause className="w-4 h-4" />
-                    <span>暂停</span>
+                    {executionState?.status === 'paused' ? (
+                      <Play className="w-4 h-4" />
+                    ) : (
+                      <Pause className="w-4 h-4" />
+                    )}
+                    <span>{executionState?.status === 'paused' ? '继续' : '暂停'}</span>
                   </button>
                 )}
               </>
@@ -271,6 +319,14 @@ const ExecutionPlanCard: React.FC<ExecutionPlanCardProps> = ({
           <h4 className="text-sm font-medium text-gray-700 mb-3">
             {mode === 'create' ? '制定步骤' : '执行步骤'}
           </h4>
+          
+          {/* 实时状态显示 */}
+          {showRealTimeState && executionState && (
+            <div className="mb-4">
+              <ExecutionPlanStateRenderer mode="standalone" />
+            </div>
+          )}
+          
           <div className="space-y-3">
             {(isEditing ? editedPlan.steps : plan.steps).map((step, index) => (
               <div key={step.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">

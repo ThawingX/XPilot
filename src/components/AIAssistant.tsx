@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import ExecutionPlanCard from './ExecutionPlanCard';
+import { ExecutionPlanStateProvider } from '../contexts/ExecutionPlanStateContext';
 import { ExecutionPlan, ExecutionPlanResponse } from '../types/executionPlan';
 import { handleDebugPlanCommand, handleDebugPlanExecCommand } from '../data/mockPlanData';
 
@@ -1148,48 +1149,50 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                             {/* 执行计划卡片 */}
                             {message.executionPlan && (
                               <div className="mt-3 w-full">
-                                <ExecutionPlanCard
-                                  plan={message.executionPlan}
-                                  mode={message.planMode || 'execute'} // 使用消息中的planMode，默认为execute
-                                  isExecuting={executingPlans.has(message.executionPlan.id)}
-                                  onEdit={async (updatedPlan) => {
-                                    try {
-                                      // 调用后端API更新计划
-                                      await updatePlan(updatedPlan.id, updatedPlan);
+                                <ExecutionPlanStateProvider>
+                                  <ExecutionPlanCard
+                                    plan={message.executionPlan}
+                                    mode={message.planMode || 'execute'} // 使用消息中的planMode，默认为execute
+                                    isExecuting={executingPlans.has(message.executionPlan.id)}
+                                    onEdit={async (updatedPlan) => {
+                                      try {
+                                        // 调用后端API更新计划
+                                        await updatePlan(updatedPlan.id, updatedPlan);
+                                        
+                                        // 更新消息中的执行计划
+                                        setMessages(prev => prev.map(msg => 
+                                          msg.id === message.id 
+                                            ? { ...msg, executionPlan: updatedPlan }
+                                            : msg
+                                        ));
+                                      } catch (error) {
+                                        console.error('更新计划失败:', error);
+                                        setError('更新计划失败，请重试');
+                                      }
+                                    }}
+                                    onExecute={async (planId) => {
+                                      // 开始执行计划
+                                      setExecutingPlans(prev => new Set(prev).add(planId));
                                       
-                                      // 更新消息中的执行计划
-                                      setMessages(prev => prev.map(msg => 
-                                        msg.id === message.id 
-                                          ? { ...msg, executionPlan: updatedPlan }
-                                          : msg
-                                      ));
-                                    } catch (error) {
-                                      console.error('更新计划失败:', error);
-                                      setError('更新计划失败，请重试');
-                                    }
-                                  }}
-                                  onExecute={async (planId) => {
-                                    // 开始执行计划
-                                    setExecutingPlans(prev => new Set(prev).add(planId));
-                                    
-                                    try {
-                                      // 调用后端API执行计划
-                                      await executePlan(planId);
-                                      
-                                      console.log('计划执行完成:', planId);
-                                    } catch (error) {
-                                      console.error('计划执行失败:', error);
-                                      setError('计划执行失败，请重试');
-                                    } finally {
-                                      // 无论成功还是失败，都要移除执行状态
-                                      setExecutingPlans(prev => {
-                                        const newSet = new Set(prev);
-                                        newSet.delete(planId);
-                                        return newSet;
-                                      });
-                                    }
-                                  }}
-                                />
+                                      try {
+                                        // 调用后端API执行计划
+                                        await executePlan(planId);
+                                        
+                                        console.log('计划执行完成:', planId);
+                                      } catch (error) {
+                                        console.error('计划执行失败:', error);
+                                        setError('计划执行失败，请重试');
+                                      } finally {
+                                        // 无论成功还是失败，都要移除执行状态
+                                        setExecutingPlans(prev => {
+                                          const newSet = new Set(prev);
+                                          newSet.delete(planId);
+                                          return newSet;
+                                        });
+                                      }
+                                    }}
+                                  />
+                                </ExecutionPlanStateProvider>
                               </div>
                             )}
                             

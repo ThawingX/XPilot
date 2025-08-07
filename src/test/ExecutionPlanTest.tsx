@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import ExecutionPlanCard from '../components/ExecutionPlanCard';
 import { ExecutionPlan } from '../types/executionPlan';
+import { ExecutionPlanStateProvider } from '../contexts/ExecutionPlanStateContext';
 
 // 测试数据
 const mockExecutionPlan: ExecutionPlan = {
@@ -92,29 +93,31 @@ export const ExecutionPlanTest: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">执行计划测试页面</h1>
-        
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">执行计划卡片预览</h2>
+    <ExecutionPlanStateProvider>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">执行计划测试页面</h1>
           
-          <ExecutionPlanCard
-            plan={plan}
-            isExecuting={isExecuting}
-            onEdit={handleEdit}
-            onExecute={handleExecute}
-          />
-        </div>
-        
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">当前计划数据</h2>
-          <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-sm">
-            {JSON.stringify(plan, null, 2)}
-          </pre>
+          <div className="bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">执行计划卡片预览</h2>
+            
+            <ExecutionPlanCard
+              plan={plan}
+              isExecuting={isExecuting}
+              onEdit={handleEdit}
+              onExecute={handleExecute}
+            />
+          </div>
+          
+          <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">当前计划数据</h2>
+            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto text-sm">
+              {JSON.stringify(plan, null, 2)}
+            </pre>
+          </div>
         </div>
       </div>
-    </div>
+    </ExecutionPlanStateProvider>
   );
 };
 
