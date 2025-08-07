@@ -22,6 +22,101 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables and configuration files
 .env
+.env.local
+.env.development
+.env.test
 .env.production
-.env.example
+.env.staging
+.env.*.local
+*.env
+!.env.example
+config.local.*
+config.production.*
+
+# API Keys and Secrets
+**/secrets/
+**/keys/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+*.jks
+*.keystore
+
+# Database and Supabase
+supabase/.temp/
+supabase/config.toml
+supabase/.branches/
+supabase/.temp
+**/database.sqlite*
+**/db.sqlite*
+
+# Deployment and CI/CD
+DEPLOYMENT.md
+deployment-config.*
+.vercel
+.netlify
+.firebase
+
+# Backup and temporary files
+*.backup
+*.bak
+*.tmp
+*.temp
+*.cache
+*~
+.#*
+#*#
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE and editor files
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Runtime and process files
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage and test reports
+coverage/
+*.lcov
+.nyc_output
+.coverage
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
