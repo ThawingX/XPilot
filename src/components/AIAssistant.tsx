@@ -1,18 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import ExecutionPlanCard from './ExecutionPlanCard';
-import { ExecutionPlanStateProvider } from '../contexts/ExecutionPlanStateContext';
-import { ExecutionPlan, ExecutionPlanResponse } from '../types/executionPlan';
-import { handleDebugPlanCommand, handleDebugPlanExecCommand } from '../data/mockPlanData';
+import PlanningCard from './PlanningCard';
+import ExecutionStatusCard from './ExecutionStatusCard';
 
 // 定义消息类型
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
-  executionPlan?: ExecutionPlan; // 添加执行计划字段
-  planMode?: 'create' | 'execute'; // 添加计划模式字段
+  timestamp?: string;
 }
 
 interface AIAssistantProps {
@@ -62,7 +59,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [retryCount, setRetryCount] = useState(0);
-  const [executingPlans, setExecutingPlans] = useState<Set<string>>(new Set()); // 跟踪正在执行的计划
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -71,115 +67,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // 生成唯一ID
   const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-  // 执行计划的API调用
-  const executePlan = async (planId: string): Promise<void> => {
-    try {
-      const response = await fetch('https://pilotapi.producthot.top/api/execute-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planId,
-          timestamp: new Date().toISOString()
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // 处理流式响应
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('无法读取响应流');
-      }
-
-      const decoder = new TextDecoder();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.trim() && line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              
-              // 处理步骤执行更新
-              if (data.type === 'step_update' && data.planId === planId) {
-                // 更新对应消息中的执行计划步骤状态
-                setMessages(prev => prev.map(msg => {
-                  if (msg.executionPlan?.id === planId) {
-                    const updatedPlan = {
-                      ...msg.executionPlan,
-                      steps: msg.executionPlan.steps.map(step => 
-                        step.id === data.stepId 
-                          ? { ...step, status: data.status, result: data.result }
-                          : step
-                      )
-                    };
-                    return { ...msg, executionPlan: updatedPlan };
-                  }
-                  return msg;
-                }));
-              }
-              
-              // 处理计划完成
-              if (data.type === 'plan_completed' && data.planId === planId) {
-                setMessages(prev => prev.map(msg => {
-                  if (msg.executionPlan?.id === planId) {
-                    const updatedPlan = {
-                      ...msg.executionPlan,
-                      status: 'completed' as const
-                    };
-                    return { ...msg, executionPlan: updatedPlan };
-                  }
-                  return msg;
-                }));
-              }
-              
-            } catch (e) {
-              console.warn('解析执行响应失败:', e, '原始数据:', line);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('执行计划失败:', error);
-      throw error;
-    }
-  };
-
-  // 更新计划的API调用
-  const updatePlan = async (planId: string, updatedPlan: ExecutionPlan): Promise<void> => {
-    try {
-      const response = await fetch(`https://pilotapi.producthot.top/api/plan/${planId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          plan: updatedPlan,
-          timestamp: new Date().toISOString()
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('计划更新成功:', result);
-    } catch (error) {
-      console.error('更新计划失败:', error);
-      throw error;
-    }
-  };
 
   // 新增聊天窗口功能
   const handleNewChat = () => {
@@ -289,10 +176,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       }
 
       // 读取流式响应
+      // 读取流式响应
       const decoder = new TextDecoder();
       let assistantContent = '';
       let assistantMessageCreated = false;
-      let executionPlan: ExecutionPlan | undefined;
 
       while (true) {
         const { done, value } = await reader.read();
@@ -306,12 +193,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
             try {
               const data = JSON.parse(line.slice(6));
               console.log('Parsed stream data:', data);
-              
-              // 检查是否是执行计划响应
-              if (data.type === 'execution_plan' && data.plan) {
-                executionPlan = data.plan;
-                console.log('Received execution plan:', executionPlan);
-              }
               
               // 处理不同类型的数据
               if (data.type === 'RAW' && data.event) {
@@ -327,8 +208,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       id: generateId(),
                       content: assistantContent,
                       role: 'assistant',
-                      timestamp: new Date().toISOString(),
-                      executionPlan
+                      timestamp: new Date().toISOString()
                     };
                     currentAssistantMessageId = assistantMessage.id;
                     setMessages(prev => [...prev, assistantMessage]);
@@ -337,7 +217,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                     // 更新助手消息内容
                     setMessages(prev => prev.map(msg => 
                       msg.id === currentAssistantMessageId 
-                        ? { ...msg, content: assistantContent, executionPlan }
+                        ? { ...msg, content: assistantContent }
                         : msg
                     ));
                   }
@@ -364,8 +244,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                     id: generateId(),
                     content: assistantContent,
                     role: 'assistant',
-                    timestamp: new Date().toISOString(),
-                    executionPlan
+                    timestamp: new Date().toISOString()
                   };
                   currentAssistantMessageId = assistantMessage.id;
                   setMessages(prev => [...prev, assistantMessage]);
@@ -374,7 +253,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                   // 更新助手消息内容
                   setMessages(prev => prev.map(msg => 
                     msg.id === currentAssistantMessageId 
-                      ? { ...msg, content: assistantContent, executionPlan }
+                      ? { ...msg, content: assistantContent }
                       : msg
                   ));
                 }
@@ -565,24 +444,43 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     setError(null); // 清除之前的错误
     
     try {
-      // 检查是否为debug命令
-      if (message.trim() === '/debug-plan') {
+      // 检查是否是debug命令
+      if (message.trim() === '/debug-plan-make') {
         // 添加用户消息
         const userMessage: Message = {
           id: generateId(),
           content: message,
-          role: 'user'
+          role: 'user',
+          timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, userMessage]);
         
-        // 获取mock数据并添加助手消息
-        const mockResponse = handleDebugPlanCommand();
+        // 添加模拟的计划制定响应
+        const mockPlanResponse = `# 营销计划制定
+
+## 计划概述
+为提升品牌知名度和用户参与度，制定以下营销策略计划。
+
+## 执行步骤
+1. 市场调研与分析
+2. 目标用户画像定义
+3. 内容策略制定
+4. 社交媒体推广
+5. KOL合作洽谈
+6. 广告投放优化
+7. 数据监控与分析
+8. 效果评估与调整
+
+## 预期目标
+- 提升品牌曝光度30%
+- 增加用户参与度25%
+- 转化率提升15%`;
+
         const assistantMessage: Message = {
           id: generateId(),
-          content: mockResponse.content,
+          content: mockPlanResponse,
           role: 'assistant',
-          executionPlan: mockResponse.executionPlan,
-          planMode: 'create' // 设置为制定模式
+          timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, assistantMessage]);
         
@@ -591,24 +489,45 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         return;
       }
       
-      // 检查是否为debug执行计划命令
       if (message.trim() === '/debug-plan-exec') {
         // 添加用户消息
         const userMessage: Message = {
           id: generateId(),
           content: message,
-          role: 'user'
+          role: 'user',
+          timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, userMessage]);
         
-        // 获取mock执行计划数据并添加助手消息
-        const mockResponse = handleDebugPlanExecCommand();
+        // 添加模拟的计划执行响应
+        const mockExecResponse = `# 营销计划执行进度
+
+## 当前状态
+计划执行中，已完成60%的任务。
+
+## 任务进度
+1. ✓ 市场调研与分析 - 已完成
+2. ✓ 目标用户画像定义 - 已完成
+3. ✓ 内容策略制定 - 已完成
+4. 🔄 社交媒体推广 - 进行中
+5. 🔄 KOL合作洽谈 - 进行中
+6. KOL合作洽谈 - 待开始
+7. 广告投放优化 - 待开始
+8. 数据监控与分析 - 待开始
+9. 效果评估与调整 - 待开始
+
+## 执行指标
+- 总任务数: 9
+- 已完成: 3
+- 进行中: 2
+- 阻塞任务: 0
+- 完成率: 60%`;
+
         const assistantMessage: Message = {
           id: generateId(),
-          content: mockResponse.content,
+          content: mockExecResponse,
           role: 'assistant',
-          executionPlan: mockResponse.executionPlan,
-          planMode: 'execute' // 设置为执行模式
+          timestamp: new Date().toISOString()
         };
         setMessages(prev => [...prev, assistantMessage]);
         
@@ -817,6 +736,129 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     );
   };
 
+  // 检测计划内容的函数
+  const detectPlanContent = (content: string) => {
+    // 检测计划关键词和结构
+    const planKeywords = [
+      '计划', '规划', '方案', '策略', 'plan', 'strategy', 'roadmap',
+      '步骤', 'steps', '阶段', 'phase', '任务', 'task', 'todo',
+      '目标', 'goal', 'objective', '时间表', 'timeline', 'schedule'
+    ];
+    
+    const executionKeywords = [
+      '执行', '实施', '落地', 'execution', 'implementation', 'deploy',
+      '进度', 'progress', '状态', 'status', '完成', 'complete',
+      '开始', 'start', '结束', 'end', '截止', 'deadline'
+    ];
+    
+    const hasListStructure = /^\s*[-*+]\s+.+$/m.test(content) || /^\s*\d+\.\s+.+$/m.test(content);
+    const hasTableStructure = /\|.*\|/.test(content);
+    const hasPlanKeywords = planKeywords.some(keyword => 
+      content.toLowerCase().includes(keyword.toLowerCase())
+    );
+    const hasExecutionKeywords = executionKeywords.some(keyword => 
+      content.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    // 判断是否为计划内容
+    if ((hasPlanKeywords || hasExecutionKeywords) && (hasListStructure || hasTableStructure)) {
+      return {
+        isPlan: true,
+        isExecution: hasExecutionKeywords && (content.includes('进度') || content.includes('状态') || content.includes('完成')),
+        content
+      };
+    }
+    
+    return { isPlan: false, isExecution: false, content };
+  };
+
+  // 解析计划内容为结构化数据
+  const parsePlanContent = (content: string, isExecution: boolean = false) => {
+    const lines = content.split('\n').filter(line => line.trim());
+    const title = lines.find(line => line.startsWith('#'))?.replace(/^#+\s*/, '') || '计划';
+    
+    // 提取描述（第一个非标题段落）
+    const descriptionLine = lines.find(line => 
+      !line.startsWith('#') && 
+      !line.startsWith('-') && 
+      !line.startsWith('*') && 
+      !line.startsWith('+') && 
+      !/^\d+\./.test(line) &&
+      !line.includes('|') &&
+      line.trim().length > 10
+    );
+    
+    // 提取步骤/任务
+    const steps = [];
+    let stepId = 1;
+    
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // 匹配列表项
+      const listMatch = trimmedLine.match(/^[-*+]\s+(.+)$/);
+      const numberedMatch = trimmedLine.match(/^\d+\.\s+(.+)$/);
+      
+      if (listMatch || numberedMatch) {
+        const stepText = (listMatch || numberedMatch)[1];
+        
+        // 检测状态（用于执行计划）
+        let status = 'pending';
+        if (isExecution) {
+          if (stepText.includes('✓') || stepText.includes('完成') || stepText.includes('已完成')) {
+            status = 'completed';
+          } else if (stepText.includes('进行中') || stepText.includes('正在') || stepText.includes('🔄')) {
+            status = 'in-progress';
+          } else if (stepText.includes('阻塞') || stepText.includes('暂停') || stepText.includes('❌')) {
+            status = 'blocked';
+          }
+        }
+        
+        // 提取时间信息
+        const dateMatch = stepText.match(/(\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}|\d{1,2}月\d{1,2}日)/);
+        const timeInfo = dateMatch ? dateMatch[0] : undefined;
+        
+        steps.push({
+          id: `step-${stepId++}`,
+          title: stepText.replace(/[✓🔄❌]/g, '').trim(),
+          status: status,
+          startDate: timeInfo,
+          description: stepText.length > 50 ? stepText.substring(0, 50) + '...' : undefined
+        });
+      }
+    }
+    
+    // 如果没有找到步骤，尝试从表格中提取
+    if (steps.length === 0 && content.includes('|')) {
+      const tableRows = lines.filter(line => line.includes('|') && !line.includes('---'));
+      for (let i = 1; i < tableRows.length; i++) { // 跳过表头
+        const cells = tableRows[i].split('|').map(cell => cell.trim()).filter(cell => cell);
+        if (cells.length >= 2) {
+          steps.push({
+            id: `step-${stepId++}`,
+            title: cells[0] || `任务 ${stepId - 1}`,
+            description: cells[1],
+            status: isExecution ? (cells[2]?.includes('完成') ? 'completed' : 'pending') : 'pending'
+          });
+        }
+      }
+    }
+    
+    return {
+      title,
+      description: descriptionLine,
+      steps,
+      status: isExecution ? 'active' : 'draft',
+      progress: isExecution ? Math.round((steps.filter(s => s.status === 'completed').length / Math.max(steps.length, 1)) * 100) : 0,
+      metrics: isExecution ? {
+        totalTasks: steps.length,
+        completedTasks: steps.filter(s => s.status === 'completed').length,
+        inProgressTasks: steps.filter(s => s.status === 'in-progress').length,
+        blockedTasks: steps.filter(s => s.status === 'blocked').length
+      } : undefined
+    };
+  };
+
   // 渲染消息内容 - 支持 Markdown
   const renderMessageContent = (content: string, role: 'user' | 'assistant') => {
     if (role === 'assistant') {
@@ -827,6 +869,41 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       // 如果是状态消息，返回null，这些消息将单独显示
       if (isNetworkError || isRetrying) {
         return null;
+      }
+      
+      // 检测是否为计划内容
+      const planDetection = detectPlanContent(content);
+      
+      if (planDetection.isPlan) {
+        const planData = parsePlanContent(content, planDetection.isExecution);
+        
+        if (planDetection.isExecution) {
+          return (
+            <ExecutionStatusCard
+              title={planData.title}
+              description={planData.description}
+              steps={planData.steps}
+              status={planData.status}
+              progress={planData.progress}
+              startTime={new Date().toISOString()}
+              endTime={planData.status === 'completed' ? new Date().toISOString() : undefined}
+            />
+          );
+        } else {
+          return (
+            <PlanningCard
+              title={planData.title}
+              description={planData.description}
+              steps={planData.steps}
+              createdAt={new Date().toISOString()}
+              estimatedDuration="预计完成时间"
+              onExecutePlan={() => {
+                console.log('Execute plan:', planData.title);
+                // 这里可以添加执行计划的逻辑
+              }}
+            />
+          );
+        }
       }
       
       return (
@@ -1145,56 +1222,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                             >
                               {renderMessageContent(message.content, message.role)}
                             </div>
-                            
-                            {/* 执行计划卡片 */}
-                            {message.executionPlan && (
-                              <div className="mt-3 w-full">
-                                <ExecutionPlanStateProvider>
-                                  <ExecutionPlanCard
-                                    plan={message.executionPlan}
-                                    mode={message.planMode || 'execute'} // 使用消息中的planMode，默认为execute
-                                    isExecuting={executingPlans.has(message.executionPlan.id)}
-                                    onEdit={async (updatedPlan) => {
-                                      try {
-                                        // 调用后端API更新计划
-                                        await updatePlan(updatedPlan.id, updatedPlan);
-                                        
-                                        // 更新消息中的执行计划
-                                        setMessages(prev => prev.map(msg => 
-                                          msg.id === message.id 
-                                            ? { ...msg, executionPlan: updatedPlan }
-                                            : msg
-                                        ));
-                                      } catch (error) {
-                                        console.error('更新计划失败:', error);
-                                        setError('更新计划失败，请重试');
-                                      }
-                                    }}
-                                    onExecute={async (planId) => {
-                                      // 开始执行计划
-                                      setExecutingPlans(prev => new Set(prev).add(planId));
-                                      
-                                      try {
-                                        // 调用后端API执行计划
-                                        await executePlan(planId);
-                                        
-                                        console.log('计划执行完成:', planId);
-                                      } catch (error) {
-                                        console.error('计划执行失败:', error);
-                                        setError('计划执行失败，请重试');
-                                      } finally {
-                                        // 无论成功还是失败，都要移除执行状态
-                                        setExecutingPlans(prev => {
-                                          const newSet = new Set(prev);
-                                          newSet.delete(planId);
-                                          return newSet;
-                                        });
-                                      }
-                                    }}
-                                  />
-                                </ExecutionPlanStateProvider>
-                              </div>
-                            )}
                             
                             {/* 用户消息的复制按钮 - 放在消息气泡下方 */}
                             {message.role === 'user' && (

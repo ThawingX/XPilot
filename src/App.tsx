@@ -9,11 +9,10 @@ import Config, { ConfigItem } from './components/Config';
 import Profile from './components/Profile';
 import Dashboard from './components/Dashboard';
 import MarketingStrategy from './components/MarketingStrategy';
-import PlanManager from './components/PlanManager';
 import Login from './components/Login';
 import TwitterAuthCallback from './pages/TwitterAuthCallback';
 import TwitterDirectCallback from './components/TwitterDirectCallback';
-import ExecutionPlanTest from './test/ExecutionPlanTest';
+import PlanDemo from './pages/PlanDemo';
 
 import { Card, InspirationAccount, Post } from './types/index';
 import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
@@ -88,153 +87,6 @@ const AppContent: React.FC = () => {
   if (!user) {
     return <Login />;
   }
-
-  // 计划管理相关处理函数
-  const handleCreatePlan = async (type: string, query: string) => {
-    console.log('创建计划:', { type, query });
-    
-    // 发送到后端的字段结构
-    const createPlanData = {
-      planType: type,        // 计划类型：research_website, analyze_results, generate_report 等
-      query: query,          // 用户输入的查询内容
-      userId: user?.id,      // 用户ID（如果有用户系统）
-      timestamp: new Date().toISOString()  // 创建时间戳
-    };
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch('/api/plans', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${userToken}`
-      //   },
-      //   body: JSON.stringify(createPlanData)
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('创建计划失败');
-      // }
-      // 
-      // const result = await response.json();
-      // console.log('计划创建成功:', result);
-      
-      console.log('将发送到后端的数据:', createPlanData);
-      
-    } catch (error) {
-      console.error('创建计划失败:', error);
-      throw error;
-    }
-  };
-
-  const handleExecutePlan = async (planId: string) => {
-    console.log('执行计划:', planId);
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch(`/api/plans/${planId}/execute`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${userToken}`
-      //   }
-      // });
-      // 
-      // if (!response.ok) {
-      //   throw new Error('执行计划失败');
-      // }
-      // 
-      // const result = await response.json();
-      // console.log('计划执行开始:', result);
-      
-      console.log('执行计划请求:', { planId, timestamp: new Date().toISOString() });
-      
-    } catch (error) {
-      console.error('执行计划失败:', error);
-      throw error;
-    }
-  };
-
-  const handleEditPlan = async (planId: string, updates: any) => {
-    console.log('编辑计划:', { planId, updates });
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch(`/api/plans/${planId}`, {
-      //   method: 'PATCH',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${userToken}`
-      //   },
-      //   body: JSON.stringify(updates)
-      // });
-      
-      console.log('编辑计划请求:', { planId, updates, timestamp: new Date().toISOString() });
-      
-    } catch (error) {
-      console.error('编辑计划失败:', error);
-      throw error;
-    }
-  };
-
-  const handlePausePlan = async (planId: string) => {
-    console.log('暂停计划:', planId);
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch(`/api/plans/${planId}/pause`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${userToken}`
-      //   }
-      // });
-      
-      console.log('暂停计划请求:', { planId, timestamp: new Date().toISOString() });
-      
-    } catch (error) {
-      console.error('暂停计划失败:', error);
-      throw error;
-    }
-  };
-
-  const handleResumePlan = async (planId: string) => {
-    console.log('恢复计划:', planId);
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch(`/api/plans/${planId}/resume`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${userToken}`
-      //   }
-      // });
-      
-      console.log('恢复计划请求:', { planId, timestamp: new Date().toISOString() });
-      
-    } catch (error) {
-      console.error('恢复计划失败:', error);
-      throw error;
-    }
-  };
-
-  const handleDeletePlan = async (planId: string) => {
-    console.log('删除计划:', planId);
-    
-    try {
-      // 实际的API调用示例：
-      // const response = await fetch(`/api/plans/${planId}`, {
-      //   method: 'DELETE',
-      //   headers: {
-      //     'Authorization': `Bearer ${userToken}`
-      //   }
-      // });
-      
-      console.log('删除计划请求:', { planId, timestamp: new Date().toISOString() });
-      
-    } catch (error) {
-      console.error('删除计划失败:', error);
-      throw error;
-    }
-  };
 
   const handleMenuItemClick = (itemName: string) => {
     setActiveMenuItem(itemName);
@@ -332,7 +184,6 @@ const AppContent: React.FC = () => {
   const showInspirationAccounts = activeMenuItem === 'Inspiration Accounts';
   const showAutoEngagement = activeMenuItem === 'Auto Engagement';
   const showPostThreadQueue = activeMenuItem === 'Get Post/Thread';
-  const showPlanManager = activeMenuItem === 'Plan Manager';
   const showMarketingStrategy = activeMenuItem === 'Marketing Strategy';
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
@@ -365,15 +216,6 @@ const AppContent: React.FC = () => {
                 <Config 
                   onItemClick={handleConfigItemClick} 
                   selectedItemId={selectedConfigItem?.id?.toString()}
-                />
-              ) : showPlanManager ? (
-                <PlanManager
-                  onCreatePlan={handleCreatePlan}
-                  onExecutePlan={handleExecutePlan}
-                  onEditPlan={handleEditPlan}
-                  onPausePlan={handlePausePlan}
-                  onResumePlan={handleResumePlan}
-                  onDeletePlan={handleDeletePlan}
                 />
               ) : showMarketingStrategy ? (
                 <MarketingStrategy 
@@ -426,7 +268,7 @@ function App() {
         <Routes>
           <Route path="/auth/supabase/twitter/callback" element={<TwitterAuthCallback />} />
           <Route path="/auth/twitter/direct/callback" element={<TwitterDirectCallback />} />
-          <Route path="/test/execution-plan" element={<ExecutionPlanTest />} />
+          <Route path="/plan-demo" element={<PlanDemo />} />
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </Router>
