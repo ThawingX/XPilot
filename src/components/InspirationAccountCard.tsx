@@ -4,8 +4,8 @@ import { CheckCircle, Users, Heart, Star } from 'lucide-react';
 
 interface InspirationAccountCardProps {
   account: InspirationAccount;
-  onToggleTarget: (id: number, isTargeted: boolean) => void;
-  onToggleStar: (id: number, starred: boolean) => void;
+  onToggleTarget: (id: number, isTargeted: boolean) => Promise<boolean>;
+  onToggleStar: (id: number, starred: boolean) => Promise<boolean>;
   onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
   onClick?: (account: InspirationAccount) => void;
   isSelected?: boolean;
@@ -44,29 +44,50 @@ const InspirationAccountCard: React.FC<InspirationAccountCardProps> = ({
   // Truncate description text to avoid being too long
   const truncatedBio = account.bio.length > 80 ? account.bio.substring(0, 80) + '...' : account.bio;
 
-  const handleStarClick = (e: React.MouseEvent) => {
+  const handleStarClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (account.starred) {
       // Unstarring requires confirmation
       if (window.confirm('Are you sure you want to unstar this account?')) {
-        onToggleStar(account.id, false);
-        if (onShowToast) {
+        // 等待操作完成后再显示提示
+        const success = await onToggleStar(account.id, false);
+        if (success && onShowToast) {
           onShowToast('Account unstarred', 'info');
+        } else if (!success && onShowToast) {
+          onShowToast('Failed to unstar account', 'error');
         }
       }
     } else {
       // Adding star is executed directly
-      onToggleStar(account.id, true);
-      if (onShowToast) {
+      // 等待操作完成后再显示提示
+      const success = await onToggleStar(account.id, true);
+      if (success && onShowToast) {
         onShowToast('Account starred', 'success');
+      } else if (!success && onShowToast) {
+        onShowToast('Failed to star account', 'error');
       }
     }
   };
 
-  const handleTargetClick = (e: React.MouseEvent) => {
+  const handleTargetClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleTarget(account.id, !account.isTargeted);
+    const success = await onToggleTarget(account.id, !account.isTargeted);
+    
+    // 如果有onShowToast函数，根据操作结果显示提示
+    if (onShowToast) {
+      if (success) {
+        onShowToast(
+          account.isTargeted ? 'Account removed from targets' : 'Account added to targets', 
+          account.isTargeted ? 'info' : 'success'
+        );
+      } else {
+        onShowToast(
+          'Failed to update target status', 
+          'error'
+        );
+      }
+    }
   };
 
   const handleCardClick = () => {

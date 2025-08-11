@@ -30,7 +30,12 @@ export const useLayout = () => useContext(LayoutContext);
 const AppContent: React.FC = () => {
   const { user, loading } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeMenuItem, setActiveMenuItem] = useState<string>('Auto Engagement');
+  // 初始化时从localStorage读取，避免useEffect执行两次
+  const [activeMenuItem, setActiveMenuItem] = useState<string>(() => {
+    const savedMenuItem = localStorage.getItem('activeMenuItem');
+    const isFirstVisit = localStorage.getItem('hasVisited') !== 'true';
+    return savedMenuItem && !isFirstVisit ? savedMenuItem : 'Dashboard';
+  });
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [selectedAccount, setSelectedAccount] = useState<InspirationAccount | null>(null);
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
@@ -56,12 +61,14 @@ const AppContent: React.FC = () => {
   const remainingWidth = windowWidth - sidebarWidth - aiChatWidth;
   const canShowBothPanels = remainingWidth >= 800; // Need at least 800px for both panels
 
-  // 处理 URL 参数
+  // 处理 URL 参数和路由持久化
   useEffect(() => {
+    // 处理URL参数
     const section = searchParams.get('section');
     const tab = searchParams.get('tab');
     
     if (section === 'profile') {
+      console.log('设置为Profile页面');
       setActiveMenuItem('Profile');
       if (tab) {
         setProfileInitialSection(tab);
@@ -69,7 +76,20 @@ const AppContent: React.FC = () => {
       // 清除 URL 参数，避免刷新时重复处理
       setSearchParams({});
     }
+    // 如果是首次访问网站，设置hasVisited标记
+    else if (localStorage.getItem('hasVisited') !== 'true') {
+      console.log('首次访问，设置hasVisited标记');
+      localStorage.setItem('hasVisited', 'true');
+    }
   }, [searchParams, setSearchParams]);
+  
+  // 保存当前路由到localStorage，用于页面刷新后恢复
+  useEffect(() => {
+    localStorage.setItem('activeMenuItem', activeMenuItem);
+    if (activeMenuItem === 'Profile') {
+      localStorage.setItem('profileSection', profileInitialSection);
+    }
+  }, [activeMenuItem, profileInitialSection]);
 
   // 显示加载状态
   if (loading) {
