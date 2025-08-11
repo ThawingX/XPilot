@@ -485,26 +485,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         setMessages(prev => [...prev, userMessage]);
         
         // 添加模拟的计划制定响应
-        const mockPlanResponse = `# 营销计划制定
-
-## 计划概述
-为提升品牌知名度和用户参与度，制定以下营销策略计划。
-
-## 执行步骤
-1. 市场调研与分析
-2. 目标用户画像定义
-3. 内容策略制定
-4. 社交媒体推广
-5. KOL合作洽谈
-6. 广告投放优化
-7. 数据监控与分析
-8. 效果评估与调整
-
-## 预期目标
-- 提升品牌曝光度30%
-- 增加用户参与度25%
-- 转化率提升15%`;
-
+        const mockPlanResponse = ``;
+        
         const assistantMessage: Message = {
           id: generateId(),
           content: mockPlanResponse,
@@ -529,28 +511,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         setMessages(prev => [...prev, userMessage]);
         
         // 添加模拟的计划执行响应
-        const mockExecResponse = `# 营销计划执行进度
-
-## 当前状态
-计划执行中，已完成60%的任务。
-
-## 任务进度
-1. ✓ 市场调研与分析 - 已完成
-2. ✓ 目标用户画像定义 - 已完成
-3. ✓ 内容策略制定 - 已完成
-4. 🔄 社交媒体推广 - 进行中
-5. 🔄 KOL合作洽谈 - 进行中
-6. KOL合作洽谈 - 待开始
-7. 广告投放优化 - 待开始
-8. 数据监控与分析 - 待开始
-9. 效果评估与调整 - 待开始
-
-## 执行指标
-- 总任务数: 9
-- 已完成: 3
-- 进行中: 2
-- 阻塞任务: 0
-- 完成率: 60%`;
+        const mockExecResponse = ``;
 
         const assistantMessage: Message = {
           id: generateId(),

@@ -42,46 +42,10 @@ const PostThreadQueue: React.FC<PostThreadQueueProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'posts' | 'threads'>('posts');
 
-  // Mock data for posts and threads
-  const mockPosts: QueueItem[] = [
-    {
-      id: '1',
-      type: 'post',
-      content: 'Just launched our new AI-powered content generation feature! 🚀 This has been months in the making and we\'re excited to see how it helps creators streamline their workflow. #AI #ContentCreation #ProductLaunch',
-      createdTime: '2024-01-15 10:30',
-      scheduledTime: '2024-01-15 14:30',
-      status: 'scheduled',
-      platform: 'twitter',
-      aiGenerated: true,
-      tags: ['AI', 'ProductLaunch', 'ContentCreation']
-    }
-  ];
+  // 本地数据定义（已清空mock数据）
+  const mockPosts: QueueItem[] = [];
 
-  const mockThreads: QueueItem[] = [
-    {
-      id: '8',
-      type: 'thread',
-      content: '1/ How to build a successful SaaS product in 2024: A comprehensive guide 🧵\n\nAfter building multiple products and learning from countless mistakes, here are the key insights that actually matter...',
-      createdTime: '2024-01-14 14:20',
-      scheduledTime: '2024-01-15 16:00',
-      status: 'scheduled',
-      platform: 'twitter',
-      threadCount: 12,
-      aiGenerated: true,
-      tags: ['SaaS', 'ProductDevelopment', 'Guide']
-    },
-    {
-      id: '9',
-      type: 'thread',
-      content: '1/ The psychology behind viral content: What makes people share? 🧠\n\nAfter analyzing thousands of viral posts, we\'ve identified the key psychological triggers that drive engagement...',
-      createdTime: '2024-01-13 11:30',
-      status: 'draft',
-      platform: 'twitter',
-      threadCount: 8,
-      aiGenerated: true,
-      tags: ['Psychology', 'ViralContent', 'Engagement']
-    }
-  ];
+  const mockThreads: QueueItem[] = [];
 
   const getDisplayItems = () => {
     return activeTab === 'posts' ? mockPosts : mockThreads;

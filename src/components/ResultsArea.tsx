@@ -3,7 +3,38 @@ import { MessageSquare, Heart, Repeat2, Bookmark, ExternalLink, Clock, User, Bot
 import { Card, InspirationAccount, Post } from '../types';
 import { ConfigItem } from './Config';
 import { VerifiedBadge, formatNumber } from '../utils/cardUtils';
-import { mockAccountPosts, mockAccountAnalytics, MarketingStrategyType, mockContentSchedule } from '../data/mockData';
+import { MarketingStrategy as MarketingStrategyType } from '../App';
+
+// 定义本地数据类型
+interface QueueItem {
+  id: string;
+  type: 'post' | 'thread';
+  content: string;
+  createdTime: string;
+  scheduledTime?: string;
+  status: 'draft' | 'scheduled' | 'published';
+  platform: string;
+  threadCount?: number;
+  aiGenerated?: boolean;
+  tags?: string[];
+}
+
+interface ContentScheduleItem {
+  id: string;
+  day: string;
+  timeSlot: string;
+  activity: 'post' | 'engagement' | 'analysis' | 'planning';
+  content: string;
+  platform: string[];
+  status: 'scheduled' | 'completed' | 'pending';
+}
+
+// 本地数据定义（已清空mock数据）
+const mockAccountPosts = {};
+
+const mockAccountAnalytics = {};
+
+const mockContentSchedule: ContentScheduleItem[] = [];
 
 // Post/Thread types
 interface QueueItem {
@@ -318,10 +349,10 @@ const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <h1 className="text-2xl font-bold">{strategy.title}</h1>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(strategy.status)} bg-white/90`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(strategy.status)} bg-white/90`}>
                   {strategy.status}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(strategy.priority)} bg-white/90`}>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getPriorityColor(strategy.priority)} bg-white/90`}>
                   {strategy.priority} priority
                 </span>
               </div>

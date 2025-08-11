@@ -7,13 +7,17 @@ import {
   BarChart3, 
   Clock, 
   CheckCircle, 
-  AlertCircle,
-  Search
+  AlertCircle, 
+  ChevronRight, 
+  FileText, 
+  Lightbulb, 
+  MessageCircle,
+  Search 
 } from 'lucide-react';
-import { mockMarketingStrategies, MarketingStrategy as MarketingStrategyType } from '../data/mockData';
+import { MarketingStrategy as MarketingStrategyType } from '../App';
 
 interface MarketingStrategyProps {
-  onStrategyClick?: (strategy: MarketingStrategyType) => void;
+  onStrategyClick: (strategy: MarketingStrategyType) => void;
   selectedStrategyId?: string;
 }
 
@@ -21,6 +25,9 @@ const MarketingStrategy: React.FC<MarketingStrategyProps> = ({
   onStrategyClick,
   selectedStrategyId
 }) => {
+  // 本地数据定义（已清空mock数据）
+  const mockMarketingStrategies: MarketingStrategyType[] = [];
+
   const [strategies] = useState<MarketingStrategyType[]>(mockMarketingStrategies);
   const [searchQuery, setSearchQuery] = useState('');
 

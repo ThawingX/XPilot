@@ -15,8 +15,25 @@ import TwitterDirectCallback from './components/TwitterDirectCallback';
 import PlanDemo from './pages/PlanDemo';
 
 import { Card, InspirationAccount, Post } from './types/index';
-import { MarketingStrategy as MarketingStrategyType } from './data/mockData';
 import AIAssistant from './components/AIAssistant';
+
+// 定义MarketingStrategy类型
+export interface MarketingStrategy {
+  id: string;
+  type: 'content' | 'operation' | 'engagement' | 'growth' | 'analytics';
+  title: string;
+  description: string;
+  status: 'active' | 'draft' | 'completed';
+  priority: 'high' | 'medium' | 'low';
+  createdDate: string;
+  lastUpdated: string;
+  metrics?: {
+    reach?: number;
+    engagement?: number;
+    conversion?: number;
+  };
+}
+
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 // Create layout context for AI chat state
@@ -41,7 +58,7 @@ const AppContent: React.FC = () => {
   const [selectedConfigItem, setSelectedConfigItem] = useState<ConfigItem | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategyType | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<MarketingStrategy | null>(null);
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
   const [isAIChatExpanded, setIsAIChatExpanded] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -164,7 +181,7 @@ const AppContent: React.FC = () => {
     setSelectedStrategy(null);
   };
 
-  const handleStrategyClick = (strategy: MarketingStrategyType) => {
+  const handleStrategyClick = (strategy: MarketingStrategy) => {
     setSelectedStrategy(strategy);
     setSelectedCard(null);
     setSelectedAccount(null);

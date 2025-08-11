@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { mockMenuItems } from '../data/mockData';
+import { BarChart3, Users, Heart, MessageSquare, Target, Settings, User } from 'lucide-react';
 
 interface SidebarProps {
   onMenuItemClick?: (itemName: string) => void;
@@ -17,18 +17,29 @@ const Sidebar: React.FC<SidebarProps> = ({
     onMenuItemClick?.(itemName);
   };
 
+  // 定义菜单项
+  const menuItems = [
+    { name: 'Dashboard', icon: BarChart3 },
+    { name: 'Inspiration Accounts', icon: Users },
+    { name: 'Auto Engagement', icon: Heart },
+    { name: 'Get Post/Thread', icon: MessageSquare },
+    { name: 'Marketing Strategy', icon: Target },
+    { name: 'Config', icon: Settings },
+    { name: 'Profile', icon: User },
+  ];
+
   return (
     <div className={`bg-white border-r border-gray-200 h-full transition-all duration-300 ${
       isExpanded ? 'w-64' : 'w-16'
     }`}>
       <div className={`p-4 ${isExpanded ? 'px-6' : 'px-4'}`}>
-        <div className="flex items-center justify-between">
+        <div className="flex justify-between items-center">
           {isExpanded && (
             <h1 className="text-2xl font-bold text-blue-600">XPilot</h1>
           )}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-lg transition-colors hover:bg-gray-100"
             aria-label={isExpanded ? "Collapse menu" : "Expand menu"}
           >
             {isExpanded ? <X size={20} /> : <Menu size={20} />}
@@ -37,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <nav className="px-2">
-        {mockMenuItems.map((item) => (
+        {menuItems.map((item) => (
           <button
             key={item.name}
             onClick={() => handleItemClick(item.name)}
