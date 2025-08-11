@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Activity, MessageSquare, Repeat2, Search, Users, Star, Target } from 'lucide-react';
-import { mockCards, mockAutoReplyData } from '../data/mockData';
 import { InspirationAccount, Card } from '../types';
 import CardItem from './CardItem';
 import AutoReplyCard from './AutoReplyCard';
 import InspirationAccountCard from './InspirationAccountCard';
 import Toast from './Toast';
 import { inspirationAccountService } from '../lib/inspirationAccountService';
+import { engagementService } from '../lib/engagementService';
 
 interface EngagementQueueProps {
   showInspirationAccounts?: boolean;
@@ -301,25 +301,36 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
     }
   }, [showInspirationAccounts, activeTab]);
 
-  // Fetch autoReply data
-  const fetchAutoReplyData = async () => {
+  // Fetch engagement queue data from API
+  const fetchEngagementData = async () => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setAutoReplyData(mockAutoReplyData);
+      const response = await engagementService.getEngagements({
+        type: 'reply', // 只获取回复类型的互动
+        page_size: 50
+      });
+      
+      // 转换API响应为Card格式
+      const transformedCards = response.data.map(item => 
+        engagementService.transformToCard(item)
+      );
+      
+      setAutoReplyData(transformedCards);
     } catch (error) {
-      console.error('Failed to fetch autoReply data:', error);
+      console.error('Failed to fetch engagement data:', error);
+      showToast('Failed to load engagement queue', 'error');
+      // 如果API调用失败，设置为空数组而不是使用mock数据
+      setAutoReplyData([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Set up polling for autoReply data every 3 seconds
+  // Set up polling for engagement data every 30 seconds
   useEffect(() => {
     if (activeTab === 'autoReply') {
-      fetchAutoReplyData();
-      const interval = setInterval(fetchAutoReplyData, 3000);
+      fetchEngagementData();
+      const interval = setInterval(fetchEngagementData, 30000); // 30秒轮询一次
       return () => clearInterval(interval);
     }
   }, [activeTab]);
@@ -336,16 +347,35 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
     setToast(prev => ({ ...prev, isVisible: false }));
   };
 
-  const handleRejectReply = (cardId: string) => {
-    // Remove the card from autoReplyData
-    setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
-    showToast('Reply rejected successfully', 'info');
+  const handleRejectReply = async (cardId: string) => {
+    try {
+      // 调用API拒绝回复
+      await engagementService.rejectReply({ reply_id: cardId });
+      
+      // 从列表中移除该项
+      setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
+      showToast('Reply rejected successfully', 'info');
+    } catch (error) {
+      console.error('Failed to reject reply:', error);
+      showToast('Failed to reject reply', 'error');
+    }
   };
 
-  const handlePostReply = (cardId: string, reply: string) => {
-    // Remove the card from autoReplyData after posting
-    setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
-    showToast('Reply posted successfully', 'success');
+  const handlePostReply = async (cardId: string, reply: string) => {
+    try {
+      // 调用API发布回复
+      await engagementService.postReply({ 
+        reply_id: cardId, 
+        content: reply 
+      });
+      
+      // 从列表中移除该项
+      setAutoReplyData(prev => prev.filter(card => card.id !== cardId));
+      showToast('Reply posted successfully', 'success');
+    } catch (error) {
+      console.error('Failed to post reply:', error);
+      showToast('Failed to post reply', 'error');
+    }
   };
 
   const handleToggleTarget = async (id: number, isTargeted: boolean) => {

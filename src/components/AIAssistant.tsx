@@ -3,6 +3,7 @@ import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wif
 import ReactMarkdown from 'react-markdown';
 import PlanningCard from './PlanningCard';
 import ExecutionStatusCard from './ExecutionStatusCard';
+import { supabase } from '../lib/supabase';
 
 // 定义消息类型
 interface Message {
@@ -68,6 +69,18 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   // 生成唯一ID
   const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+  // 获取认证头
+  const getAuthHeaders = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) {
+      throw new Error('用户未登录');
+    }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`
+    };
+  };
+
   // 新增聊天窗口功能
   const handleNewChat = () => {
     // 清空当前消息
@@ -124,6 +137,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     }
 
     try {
+      // 获取认证头
+      const headers = await getAuthHeaders();
+
       // 构建符合后端要求的请求体
       const requestBody: BackendRequest = {
         state: [],
@@ -148,11 +164,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
       console.log('发送请求到后端:', requestBody);
 
-      const response = await fetch('https://pilotapi.producthot.top/api/agent', {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiBaseUrl}/api/agent`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify(requestBody)
       });
 
@@ -267,6 +282,20 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
     } catch (error: any) {
       console.error('发送消息失败:', error);
+      
+      // 检查是否是认证错误
+      if (error.message === '用户未登录') {
+        const errorMessage: Message = {
+          id: generateId(),
+          content: '用户未登录，请先登录后再使用AI助手功能',
+          role: 'assistant',
+          timestamp: new Date().toISOString()
+        };
+        setMessages(prev => [...prev, errorMessage]);
+        setIsLoading(false);
+        setRetryCount(0);
+        return;
+      }
       
       // 检查是否需要重试 - 最多重试4次（总共5次尝试）
       if (currentRetryCount < 4) {

@@ -208,8 +208,10 @@ const AppContent: React.FC = () => {
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
 
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
   return (
-    <CopilotKit runtimeUrl="https://pilotapi.producthot.top/api/agent">
+    <CopilotKit runtimeUrl={`${apiBaseUrl}/api/agent`}>
       <LayoutContext.Provider value={{ isAIChatExpanded, setIsAIChatExpanded }}>
         <div className="flex overflow-hidden h-screen bg-gray-50">
           {/* Left Sidebar */}
