@@ -14,9 +14,39 @@ import {
   ChevronRight,
   Rocket,
   Crosshair,
-  PenTool
+  PenTool,
+  Star,
+  CheckCircle,
+  AlertCircle,
+  Loader
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { dashboardService, DashboardData } from '../lib/dashboardService';
+
+// Loading Card Component
+const LoadingCard: React.FC = () => (
+  <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50">
+    <div className="flex items-center justify-center h-20">
+      <Loader className="w-6 h-6 animate-spin text-blue-500" />
+    </div>
+  </div>
+);
+
+// Error Card Component
+const ErrorCard: React.FC<{ message: string; onRetry: () => void }> = ({ message, onRetry }) => (
+  <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50">
+    <div className="flex flex-col items-center justify-center h-20 text-center">
+      <AlertCircle className="w-6 h-6 text-red-500 mb-2" />
+      <p className="text-red-600 text-sm mb-2">{message}</p>
+      <button 
+        onClick={onRetry}
+        className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+);
 
 interface DashboardProps {
   onNavigate?: (section: string, profileSection?: string) => void;
@@ -24,20 +54,28 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const { user } = useAuth();
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [animatedStats, setAnimatedStats] = useState({
     totalReplies: 0,
-    engagementTotal: 0,
-    accountsManaged: 0,
-    monthlyGrowth: 0,
-    avgResponseTime: 0
+    engagementRate: 0
   });
-
-  const stats = {
-    totalReplies: 1247,
-    engagementTotal: 8.5,
-    accountsManaged: 3,
-    monthlyGrowth: 12.3,
-    avgResponseTime: 2.4
+  
+  // 获取Dashboard数据
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const data = await dashboardService.getDashboardData();
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Get user display name
@@ -51,8 +89,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     return 'User';
   };
 
+  // 组件加载时获取Dashboard数据
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   // Number animation effect
   useEffect(() => {
+    if (!dashboardData) return;
+    
     const duration = 2000;
     const steps = 60;
     const stepDuration = duration / steps;
@@ -64,109 +109,99 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       
       setAnimatedStats({
-        totalReplies: Math.floor(stats.totalReplies * easeOutQuart),
-        engagementTotal: Number((stats.engagementTotal * easeOutQuart).toFixed(1)),
-        accountsManaged: Math.floor(stats.accountsManaged * easeOutQuart),
-        monthlyGrowth: Number((stats.monthlyGrowth * easeOutQuart).toFixed(1)),
-        avgResponseTime: Number((stats.avgResponseTime * easeOutQuart).toFixed(1))
+        totalReplies: Math.floor((dashboardData?.stats?.total_replies || 0) * easeOutQuart),
+      engagementRate: Number(((dashboardData?.stats?.engagement_rate || 0) * easeOutQuart).toFixed(1))
       });
       
       if (currentStep >= steps) {
         clearInterval(timer);
-        setAnimatedStats(stats);
+        setAnimatedStats({
+          totalReplies: dashboardData?.stats?.total_replies || 0,
+      engagementRate: dashboardData?.stats?.engagement_rate || 0
+        });
       }
     }, stepDuration);
     
     return () => clearInterval(timer);
-  }, []);
+  }, [dashboardData]);
 
-  const recentActivity = [
-    { 
-      id: 1, 
-      type: 'reply', 
-      content: 'Auto-replied to @techcrunch about AI trends', 
-      time: '2 minutes ago', 
-      icon: MessageSquare,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      section: 'Get Post/Thread'
-    },
-    { 
-      id: 2, 
-      type: 'follow', 
-      content: 'Added @elonmusk to inspiration accounts', 
-      time: '1 hour ago', 
-      icon: Users,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      section: 'Inspiration Accounts'
-    },
-    { 
-      id: 3, 
-      type: 'analytics', 
-      content: 'Weekly engagement report generated', 
-      time: '1 day ago', 
-      icon: BarChart3,
-      color: 'text-[#4792E6]',
-        bgColor: 'bg-blue-50',
-      section: 'Profile'
-    },
-    { 
-      id: 4, 
-      type: 'strategy', 
-      content: 'New content strategy template created', 
-      time: '2 days ago', 
-      icon: Target,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-50',
-      section: 'Content Strategy'
-    },
-    { 
-      id: 5, 
-      type: 'engagement', 
-      content: 'Auto-engagement queue processed 50 interactions', 
-      time: '3 days ago', 
-      icon: Heart,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-50',
-      section: 'Auto Engagement'
-    }
-  ];
 
+
+  // 前端配置的快捷操作
   const quickActions = [
-    { 
-      title: 'Inspiration Accounts', 
-      description: 'Manage target accounts for inspiration', 
-      icon: Crosshair, 
-      color: 'bg-gradient-to-br from-[#4792E6] to-[#3b82f6]',
-      section: 'Inspiration Accounts'
+    {
+      id: 1,
+      title: "Inspiration Accounts",
+      description: "Manage and discover new accounts",
+      icon: "users",
+      color: "blue",
+      url: "/inspiration-accounts"
     },
-    { 
-      title: 'Auto Engagement', 
-      description: 'Configure automated interactions', 
-      icon: Users, 
-      color: 'bg-gradient-to-br from-[#4792E6]/80 to-[#6366f1]',
-      section: 'Auto Engagement'
+    {
+      id: 2,
+      title: "Auto Engagement",
+      description: "Configure automated interactions",
+      icon: "heart",
+      color: "green",
+      url: "/auto-engagement"
     },
-    { 
-      title: 'Get Post/Thread', 
-      description: 'Manage and review post queue', 
-      icon: PenTool, 
-      color: 'bg-gradient-to-br from-[#4792E6]/70 to-[#8b5cf6]',
-      section: 'Get Post/Thread'
+    {
+      id: 3,
+      title: "Get Post/Thread",
+      description: "Create and schedule content",
+      icon: "message-square",
+      color: "purple",
+      url: "/posts-topics"
     },
-    { 
-      title: 'Content Strategy', 
-      description: 'Plan your content calendar', 
-      icon: Calendar, 
-      color: 'bg-gradient-to-br from-[#4792E6]/60 to-[#06b6d4]',
-      section: 'Content Strategy'
+    {
+      id: 4,
+      title: "Marketing Strategy",
+      description: "Plan your content calendar",
+      icon: "target",
+      color: "orange",
+      url: "/content-strategy"
     }
   ];
+
+  // 根据URL映射到section
+  const getNavigationSection = (url: string) => {
+    const urlMap: { [key: string]: string } = {
+      '/inspiration-accounts': 'Inspiration Accounts',
+      '/auto-engagement': 'Auto Engagement',
+      '/posts-topics': 'Posts & Topics',
+      '/content-strategy': 'Content Strategy'
+    };
+    return urlMap[url] || 'Dashboard';
+  };
 
   const handleQuickActionClick = (section: string) => {
     onNavigate?.(section);
   };
+
+  // Loading component for individual sections
+  const LoadingCard = ({ className = "" }: { className?: string }) => (
+    <div className={`bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6 ${className}`}>
+      <div className="flex items-center justify-center h-20">
+        <Loader className="w-6 h-6 animate-spin text-blue-500" />
+      </div>
+    </div>
+  );
+
+  // Error component for individual sections
+  const ErrorCard = ({ message, onRetry, className = "" }: { message: string; onRetry: () => void; className?: string }) => (
+    <div className={`bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6 ${className}`}>
+      <div className="flex flex-col items-center justify-center h-20 text-center">
+        <AlertCircle className="w-6 h-6 text-red-500 mb-2" />
+        <p className="text-red-600 text-sm mb-2">{message}</p>
+        <button 
+          onClick={onRetry}
+          className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 rounded-lg border border-gray-200 shadow-sm relative overflow-hidden">
@@ -188,9 +223,15 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             <p className="text-gray-600 mt-1">Welcome back, {getUserDisplayName()}! Click the Quick Actions below to quickly use features.</p>
           </div>
           <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>All Systems Active</span>
+            <div className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium ${
+              dashboardData?.all_systems_active 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              <div className={`w-2 h-2 rounded-full animate-pulse ${
+                dashboardData?.all_systems_active ? 'bg-green-500' : 'bg-red-500'
+              }`}></div>
+              <span>{dashboardData?.all_systems_active ? 'All Systems Active' : 'System Issues'}</span>
             </div>
           </div>
         </div>
@@ -200,60 +241,119 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="overflow-y-auto flex-1 p-6 relative z-10 space-y-6">
         {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform duration-300">
-                  {animatedStats.totalReplies.toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-600">Total Replies</div>
-                <div className="flex items-center mt-2 text-xs text-green-600">
-                  <ArrowUpRight className="w-3 h-3 mr-1" />
-                  +12% this week
+          {loading || error ? (
+            <>
+              {error ? (
+                <ErrorCard message="Failed to load metrics" onRetry={fetchDashboardData} />
+              ) : (
+                <LoadingCard />
+              )}
+              {error ? (
+                <ErrorCard message="Failed to load metrics" onRetry={fetchDashboardData} />
+              ) : (
+                <LoadingCard />
+              )}
+            </>
+          ) : dashboardData ? (
+            <>
+              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform duration-300">
+                      {animatedStats.totalReplies.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600">Total Replies</div>
+                    <div className="flex items-center mt-2 text-xs text-green-600">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      {dashboardData?.stats?.total_replies_change || 0}
+                    </div>
+                  </div>
+                  <MessageSquare className="w-8 h-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
                 </div>
               </div>
-              <MessageSquare className="w-8 h-8 text-blue-600 group-hover:rotate-12 transition-transform duration-300" />
-            </div>
-          </div>
 
-          <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-2xl font-bold text-green-600 group-hover:scale-110 transition-transform duration-300">
-                  {animatedStats.engagementTotal}%
-                </div>
-                <div className="text-sm text-gray-600">Engagement Total</div>
-                <div className="flex items-center mt-2 text-xs text-green-600">
-                  <ArrowUpRight className="w-3 h-3 mr-1" />
-                  +2.3% this month
+              <div className="bg-white/60 backdrop-blur-sm p-6 rounded-xl border border-white/50 hover:shadow-lg transition-all duration-300 group">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-green-600 group-hover:scale-110 transition-transform duration-300">
+                      {animatedStats.engagementRate}%
+                    </div>
+                    <div className="text-sm text-gray-600">Engagement Rate</div>
+                    <div className="flex items-center mt-2 text-xs text-green-600">
+                      <ArrowUpRight className="w-3 h-3 mr-1" />
+                      {dashboardData?.stats?.engagement_rate_change || 0}
+                    </div>
+                  </div>
+                  <Heart className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </div>
-              <Heart className="w-8 h-8 text-green-600 group-hover:scale-110 transition-transform duration-300" />
-            </div>
+            </>
+          ) : null}
+        </div>
+
+        {/* Inspiration Accounts Overview */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Crosshair className="w-5 h-5 mr-2 text-blue-500" />
+              Inspiration Accounts Overview
+            </h3>
+            <button 
+              onClick={() => onNavigate?.('Inspiration Accounts')}
+              className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors"
+            >
+              View All
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
+          </div>
+          
+          <div className="text-center py-8">
+            <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-500 mb-4">Quick access to manage inspiration accounts</p>
+            <button 
+              onClick={() => onNavigate?.('Inspiration Accounts')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            >
+              Manage Accounts
+            </button>
           </div>
         </div>
 
         {/* Quick Actions */}
         <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <Zap className="w-5 h-5 mr-2 text-yellow-500" />
-            Quick Actions
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+              <Rocket className="w-5 h-5 mr-2 text-blue-500" />
+              Quick Actions
+            </h3>
+          </div>
           <div className="grid grid-cols-2 gap-4">
-            {quickActions.map((action, index) => (
-              <button
-                key={index}
-                onClick={() => handleQuickActionClick(action.section)}
-                className={`group p-5 rounded-xl ${action.color} hover:shadow-lg transition-all duration-300 transform hover:scale-105 text-white relative overflow-hidden`}
-              >
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative z-10 text-left">
-                  <action.icon className="w-7 h-7 mb-3" />
-                  <h4 className="font-semibold text-base mb-1">{action.title}</h4>
-                  <p className="text-sm opacity-90 leading-relaxed">{action.description}</p>
-                </div>
-              </button>
-            ))}
+            {quickActions.map((action) => {
+              const IconComponent = dashboardService.getIconComponent(action.icon);
+              const colorClasses = dashboardService.getColorClasses(action.color);
+              
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => onNavigate?.(getNavigationSection(action.url))}
+                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left group bg-white/50 hover:bg-white/80"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-lg group-hover:scale-110 transition-transform duration-200 ${colorClasses.bg}`}>
+                      <IconComponent className={`w-5 h-5 ${colorClasses.icon}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-600 transition-colors">
+                        {action.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 line-clamp-2">
+                        {action.description}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -264,69 +364,116 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               <Activity className="w-5 h-5 mr-2 text-blue-500" />
               Recent Activity
             </h3>
-            <button 
-              onClick={() => onNavigate?.('Profile', 'activity')}
-              className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors"
-            >
-              View All
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
-          </div>
-          <div className="space-y-3">
-            {recentActivity.map((activity) => (
-              <div
-                key={activity.id}
-                onClick={() => onNavigate?.(activity.section)}
-                className="flex items-center space-x-4 p-3 rounded-lg hover:bg-white/50 transition-colors cursor-pointer group"
+            {!loading && !error && (
+              <button 
+                onClick={() => onNavigate?.('Profile', 'activity')}
+                className="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors"
               >
-                <div className={`p-2 ${activity.bgColor} rounded-full group-hover:scale-110 transition-transform duration-200`}>
-                  <activity.icon className={`w-4 h-4 ${activity.color}`} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-gray-900 text-sm font-medium">{activity.content}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              </div>
-            ))}
+                View All
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </button>
+            )}
           </div>
+          {loading ? (
+            <div className="flex items-center justify-center h-32">
+              <Loader className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center h-32 text-center">
+              <AlertCircle className="w-6 h-6 text-red-500 mb-2" />
+              <p className="text-red-600 text-sm mb-2">Failed to load recent activity</p>
+              <button 
+                onClick={fetchDashboardData}
+                className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          ) : dashboardData ? (
+            <div className="space-y-3">
+               {dashboardData?.recent_activities?.map((activity) => {
+                 const activityStyle = dashboardService.getActivityStyle(activity.type);
+                 const IconComponent = activityStyle.icon;
+                 const colorClasses = dashboardService.getColorClasses(activityStyle.color);
+                 
+                 return (
+                   <div
+                     key={activity.id}
+                     className="flex items-center space-x-4 p-3 rounded-lg hover:bg-white/50 transition-colors cursor-pointer group"
+                   >
+                     <div className={`p-2 rounded-full group-hover:scale-110 transition-transform duration-200 ${colorClasses.bg}`}>
+                       <IconComponent className={`w-4 h-4 ${colorClasses.text}`} />
+                     </div>
+                     <div className="flex-1">
+                       <p className="text-gray-900 text-sm font-medium">{activity.title}</p>
+                       <p className="text-xs text-gray-500">{activity.time_ago}</p>
+                     </div>
+                     <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                   </div>
+                 );
+                })}
+             </div>
+          ) : null}
         </div>
 
         {/* Performance Overview */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
-            <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
-              Growth Metrics
-            </h4>
-            <div className="flex items-center justify-center h-20">
-              <div className="text-center">
-                <div className="text-xl font-bold text-gray-600 mb-1">Coming Soon!</div>
-                <div className="text-sm text-gray-500">Feature in development</div>
+          {loading || error ? (
+            <>
+              {error ? (
+                <ErrorCard message="Failed to load growth metrics" onRetry={fetchDashboardData} />
+              ) : (
+                <LoadingCard />
+              )}
+              {error ? (
+                <ErrorCard message="Failed to load system status" onRetry={fetchDashboardData} />
+              ) : (
+                <LoadingCard />
+              )}
+            </>
+          ) : dashboardData ? (
+            <>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-green-500" />
+                  Growth Metrics
+                </h4>
+                <div className="flex items-center justify-center h-20">
+                   <div className="text-center">
+                     <div className="text-xl font-bold text-gray-600 mb-1">{dashboardData?.growth_metrics?.status || 'N/A'}</div>
+                <div className="text-sm text-gray-500">{dashboardData?.growth_metrics?.description || 'No data available'}</div>
+                   </div>
+                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
-            <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-              <Activity className="w-5 h-5 mr-2 text-blue-500" />
-              System Status
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">Auto Engagement Active</span>
+              <div className="bg-white/60 backdrop-blur-sm rounded-xl border border-white/50 p-6">
+                <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-blue-500" />
+                  System Status
+                </h4>
+                <div className="space-y-3">
+                   <div className="flex items-center space-x-2">
+                     <div className={`w-2 h-2 rounded-full ${
+                       dashboardData?.system_status?.auto_engagement_active ? 'bg-green-500' : 'bg-red-500'
+                     }`}></div>
+                     <span className="text-sm text-gray-700">Auto Engagement {dashboardData?.system_status?.auto_engagement_active ? 'Active' : 'Inactive'}</span>
+                   </div>
+                   <div className="flex items-center space-x-2">
+                     <div className={`w-2 h-2 rounded-full ${
+                       dashboardData?.system_status?.reply_queue_processing ? 'bg-green-500' : 'bg-red-500'
+                     }`}></div>
+                     <span className="text-sm text-gray-700">Reply Queue {dashboardData?.system_status?.reply_queue_processing ? 'Processing' : 'Stopped'}</span>
+                   </div>
+                   <div className="flex items-center space-x-2">
+                     <div className={`w-2 h-2 rounded-full ${
+                       dashboardData?.system_status?.all_accounts_connected ? 'bg-green-500' : 'bg-red-500'
+                     }`}></div>
+                     <span className="text-sm text-gray-700">All Accounts {dashboardData?.system_status?.all_accounts_connected ? 'Connected' : 'Disconnected'}</span>
+                   </div>
+                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">Reply Queue Processing</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">All Accounts Connected</span>
-              </div>
-            </div>
-          </div>
+            </>
+          ) : null}
         </div>
       </div>
     </div>

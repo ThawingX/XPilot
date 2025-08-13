@@ -33,18 +33,40 @@ const Sidebar: React.FC<SidebarProps> = ({
       isExpanded ? 'w-64' : 'w-16'
     }`}>
       <div className={`p-4 ${isExpanded ? 'px-6' : 'px-4'}`}>
-        <div className="flex justify-between items-center">
-          {isExpanded && (
-            <h1 className="text-2xl font-bold text-blue-600">XPilot</h1>
-          )}
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 rounded-lg transition-colors hover:bg-gray-100"
-            aria-label={isExpanded ? "Collapse menu" : "Expand menu"}
-          >
-            {isExpanded ? <X size={20} /> : <Menu size={20} />}
-          </button>
-        </div>
+        {isExpanded ? (
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-3">
+              <img 
+                src="/logo.png" 
+                alt="X Pilot Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <h1 className="text-2xl font-bold text-blue-600">X Pilot</h1>
+            </div>
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+              aria-label="Collapse menu"
+            >
+              <X size={20} />
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center space-y-3">
+            <img 
+              src="/logo.png" 
+              alt="X Pilot Logo" 
+              className="w-8 h-8 object-contain"
+            />
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+              aria-label="Expand menu"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+        )}
       </div>
       
       <nav className="px-2">
