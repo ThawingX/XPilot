@@ -12,7 +12,7 @@ import MarketingStrategy from './components/MarketingStrategy';
 import Login from './components/Login';
 import TwitterAuthCallback from './pages/TwitterAuthCallback';
 import TwitterDirectCallback from './components/TwitterDirectCallback';
-import PlanDemo from './pages/PlanDemo';
+// Removed PlanDemo import - demo page deleted
 
 import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
@@ -307,7 +307,7 @@ function App() {
         <Routes>
           <Route path="/auth/supabase/twitter/callback" element={<TwitterAuthCallback />} />
           <Route path="/auth/twitter/direct/callback" element={<TwitterDirectCallback />} />
-          <Route path="/plan-demo" element={<PlanDemo />} />
+          {/* Removed PlanDemo route - demo page deleted */}
           <Route path="/*" element={<AppContent />} />
         </Routes>
       </Router>

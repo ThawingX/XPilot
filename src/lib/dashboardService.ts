@@ -1,4 +1,4 @@
-import { getDashboardData as getMockDashboardData } from '../api/dashboard';
+// Removed mock dashboard data import
 import { Users, Zap, PenTool, Calendar, MessageSquare, Star, BarChart3, Activity, Heart, Target } from 'lucide-react';
 import { supabase } from './supabase';
 
@@ -81,29 +81,9 @@ class DashboardService {
       }
       return await response.json();
       
-      // Fallback to mock data if API fails (for development)
-      // const data = await getMockDashboardData();
-      // if (includeRecentActivities && data.recent_activities) {
-      //   data.recent_activities = data.recent_activities.slice(0, activityLimit);
-      // } else if (!includeRecentActivities) {
-      //   data.recent_activities = [];
-      // }
-      // return data;
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
-      // Fallback to mock data if API call fails
-      try {
-        const data = await getMockDashboardData();
-        if (includeRecentActivities && data.recent_activities) {
-          data.recent_activities = data.recent_activities.slice(0, activityLimit);
-        } else if (!includeRecentActivities) {
-          data.recent_activities = [];
-        }
-        return data;
-      } catch (mockError) {
-        console.error('Failed to fetch mock data:', mockError);
-        throw error;
-      }
+      throw error;
     }
   }
 

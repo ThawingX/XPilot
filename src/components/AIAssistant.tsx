@@ -484,16 +484,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         };
         setMessages(prev => [...prev, userMessage]);
         
-        // 添加模拟的计划制定响应
-        const mockPlanResponse = ``;
-        
-        const assistantMessage: Message = {
-          id: generateId(),
-          content: mockPlanResponse,
-          role: 'assistant',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
+        // Debug command - no response needed
         
         setInputValue('');
         setSelectedCapability(null);
@@ -510,16 +501,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         };
         setMessages(prev => [...prev, userMessage]);
         
-        // 添加模拟的计划执行响应
-        const mockExecResponse = ``;
-
-        const assistantMessage: Message = {
-          id: generateId(),
-          content: mockExecResponse,
-          role: 'assistant',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, assistantMessage]);
+        // Debug command - no response needed
         
         setInputValue('');
         setSelectedCapability(null);
@@ -905,7 +887,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               const match = /language-(\w+)/.exec(className || '');
               return !inline ? (
                 <pre className="overflow-x-auto p-3 bg-gray-100 rounded-md">
-                  <code className={`${className} text-black`} {...props}>
+                  <code className={`text-black ${className}`} {...props}>
                     {children}
                   </code>
                 </pre>
@@ -974,12 +956,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               </div>
             ),
             th: ({ children }) => (
-              <th className="px-3 py-2 font-medium text-left bg-gray-100 border border-gray-300 text-black">
+              <th className="px-3 py-2 font-medium text-left text-black bg-gray-100 border border-gray-300">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="px-3 py-2 border border-gray-300 text-black">
+              <td className="px-3 py-2 text-black border border-gray-300">
                 {children}
               </td>
             ),
@@ -1062,7 +1044,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
           {!isMinimized && (
             <div className="flex items-center space-x-3">
               <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold text-gray-800">X Pilot</h2>
+                <h2 className="text-lg font-semibold text-gray-800">X-Pilot</h2>
               </div>
               {/* 新增聊天按钮 */}
               <button
@@ -1189,8 +1171,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                                 <User size={16} className="text-white" />
                               </div>
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">XP</span>
+                              <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full">
+                                <span className="text-xs font-bold text-white">XP</span>
                               </div>
                             )}
                           </div>
@@ -1235,8 +1217,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       <div className="flex items-start space-x-3 max-w-[80%]">
                         {/* AI头像 */}
                         <div className="flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">XP</span>
+                          <div className="flex justify-center items-center w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full">
+                            <span className="text-xs font-bold text-white">XP</span>
                           </div>
                         </div>
                         
@@ -1244,11 +1226,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                         <div className="flex flex-col items-start">
                           {/* 昵称 */}
                           <div className="mb-1 text-xs text-gray-500">
-                            X Pilot
+                            X-Pilot
                           </div>
                           
                           {/* 加载气泡 */}
-                          <div className="p-3 rounded-lg bg-white text-black border border-gray-200 rounded-tl-sm">
+                          <div className="p-3 text-black bg-white rounded-lg rounded-tl-sm border border-gray-200">
                             <div className="flex items-center space-x-2">
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>

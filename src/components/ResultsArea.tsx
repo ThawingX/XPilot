@@ -60,67 +60,9 @@ interface ResultsAreaProps {
 }
 
 const ResultsArea: React.FC<ResultsAreaProps> = ({ selectedCard, selectedAccount, selectedConfigItem, selectedPostId, selectedPost, selectedStrategy }) => {
-  // Mock data for posts and threads
-  const mockPosts: QueueItem[] = [
-    {
-      id: '1',
-      type: 'post',
-      content: 'Just launched our new AI-powered content generation feature! 🚀 This has been months in the making and we\'re excited to see how it helps creators streamline their workflow. #AI #ContentCreation #ProductLaunch',
-      createdTime: '2024-01-15 10:30',
-      scheduledTime: '2024-01-15 14:30',
-      status: 'scheduled',
-      platform: 'twitter',
-      aiGenerated: true,
-      tags: ['AI', 'ProductLaunch', 'ContentCreation']
-    },
-    {
-      id: '2',
-      type: 'post',
-      content: 'Building in public: Here\'s what we learned from our first 1000 users... The feedback has been incredible and we\'ve made significant improvements based on your suggestions. Thank you for being part of this journey! 🙏',
-      createdTime: '2024-01-14 16:45',
-      status: 'draft',
-      platform: 'linkedin',
-      aiGenerated: true,
-      tags: ['BuildingInPublic', 'UserFeedback', 'Growth']
-    },
-    {
-      id: '3',
-      type: 'post',
-      content: 'The future of social media automation is here. What do you think? 🤔 We believe that AI should enhance human creativity, not replace it. Our tools are designed to help you express your ideas more effectively.',
-      createdTime: '2024-01-14 09:15',
-      scheduledTime: '2024-01-16 09:00',
-      status: 'scheduled',
-      platform: 'twitter',
-      aiGenerated: true,
-      tags: ['AI', 'Automation', 'Creativity']
-    }
-  ];
-
-  const mockThreads: QueueItem[] = [
-    {
-      id: '4',
-      type: 'thread',
-      content: '1/ How to build a successful SaaS product in 2024: A comprehensive guide 🧵\n\nAfter building multiple products and learning from countless mistakes, here are the key insights that actually matter...',
-      createdTime: '2024-01-14 14:20',
-      scheduledTime: '2024-01-15 16:00',
-      status: 'scheduled',
-      platform: 'twitter',
-      threadCount: 12,
-      aiGenerated: true,
-      tags: ['SaaS', 'ProductDevelopment', 'Guide']
-    },
-    {
-      id: '5',
-      type: 'thread',
-      content: '1/ The psychology behind viral content: What makes people share? 🧠\n\nAfter analyzing thousands of viral posts, we\'ve identified the key psychological triggers that drive engagement...',
-      createdTime: '2024-01-13 11:30',
-      status: 'draft',
-      platform: 'twitter',
-      threadCount: 8,
-      aiGenerated: true,
-      tags: ['Psychology', 'ViralContent', 'Engagement']
-    }
-  ];
+  // 本地数据定义（已清空mock数据）
+  const mockPosts: QueueItem[] = [];
+  const mockThreads: QueueItem[] = [];
 
   // Helper functions for post display
   const getStatusColor = (status: string) => {

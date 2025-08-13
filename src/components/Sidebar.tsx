@@ -37,11 +37,11 @@ const Sidebar: React.FC<SidebarProps> = ({
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
               <img 
-                src="/logo.png" 
+                src="/xpilot-logo-fill-white.jpg" 
                 alt="X Pilot Logo" 
-                className="w-8 h-8 object-contain"
+                className="object-contain w-8 h-8"
               />
-              <h1 className="text-2xl font-bold text-blue-600">X Pilot</h1>
+              {/* <h1 className="text-xl font-bold text-[#4792E6] opacity-90">X-Pilot</h1> */}
             </div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
@@ -54,9 +54,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className="flex flex-col items-center space-y-3">
             <img 
-              src="/logo.png" 
+              src="/xpilot-logo-fill-white.jpg" 
               alt="X Pilot Logo" 
-              className="w-8 h-8 object-contain"
+              className="object-contain w-8 h-8"
             />
             <button
               onClick={() => setIsExpanded(!isExpanded)}
