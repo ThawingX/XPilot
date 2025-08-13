@@ -32,42 +32,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 处理OAuth回调
-    const handleOAuthCallback = async () => {
-      const hash = window.location.hash
-      const urlParams = new URLSearchParams(window.location.search)
-      
-      // 检查是否有OAuth回调参数
-      if (hash.includes('access_token') || hash.includes('error') || urlParams.has('code')) {
-        try {
-          // 让Supabase处理OAuth回调
-          const { data, error } = await supabase.auth.getSession()
-          
-          if (error) {
-            console.error('AuthContext: OAuth回调处理错误:', error)
-          } else if (data.session) {
-            setSession(data.session)
-            setUser(data.session.user)
-          }
-        } catch (err) {
-          console.error('AuthContext: OAuth回调异常:', err)
+    // 初始化认证状态
+    const initAuth = async () => {
+      try {
+        // 获取当前会话（这会自动处理OAuth回调）
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('AuthContext: 获取会话错误:', error)
         }
         
-        // 清理URL
-        window.history.replaceState({}, document.title, window.location.pathname)
+        setSession(session)
+        setUser(session?.user ?? null)
+        
+        // 如果有会话且URL包含OAuth参数，清理URL
+        if (session && (window.location.hash.includes('access_token') || window.location.search.includes('code'))) {
+          window.history.replaceState({}, document.title, window.location.pathname)
+        }
+      } catch (err) {
+        console.error('AuthContext: 初始化认证异常:', err)
+      } finally {
+        setLoading(false)
       }
-    }
-    
-    // 先处理OAuth回调，然后获取会话
-    const initAuth = async () => {
-      await handleOAuthCallback()
-      
-      // 获取当前会话
-      const { data: { session }, error } = await supabase.auth.getSession()
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
     }
     
     initAuth()
