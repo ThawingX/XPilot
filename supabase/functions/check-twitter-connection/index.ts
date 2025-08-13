@@ -60,11 +60,9 @@ Deno.serve(async (req) => {
       });
     }
     // 查询 user_social_connections 表
-    console.log('Querying user_social_connections for user:', user.id);
     const { data, error } = await supabase.from('user_social_connections').select('*').eq('user_id', user.id).eq('platform', 'twitter').eq('is_active', true);
     
     if (error) {
-      console.error('Database query error:', error);
       // 如果是 PGRST116 错误（表不存在），返回未连接状态而不是错误
       if (error.code === 'PGRST116') {
         return new Response(JSON.stringify({
@@ -106,7 +104,6 @@ Deno.serve(async (req) => {
       }
     });
   } catch (catchError) {
-    console.error('Unexpected error in check-twitter-connection:', catchError);
     return new Response(JSON.stringify({
       error: catchError instanceof Error ? catchError.message : 'Unknown error occurred',
       error_type: 'unexpected_error',

@@ -266,42 +266,24 @@ class TwitterService {
   // 获取用户的Twitter连接
   async getUserConnection(): Promise<TwitterConnection | null> {
     try {
-      console.log('开始获取Twitter连接状态...');
-      
       // 先尝试获取当前session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
       
-      console.log('当前会话状态:', { 
-        hasSession: !!currentSession, 
-        sessionError: sessionError?.message || null,
-        sessionToken: currentSession?.access_token ? 'exists' : 'missing'
-      });
-      
       if (sessionError) {
-        console.log('获取会话错误:', sessionError);
         return null;
       }
       
       if (!currentSession) {
-        console.log('当前会话不存在，返回null');
         return null;
       }
       
       // 获取用户信息
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
-      console.log('用户认证结果:', { 
-        hasUser: !!user, 
-        userError: userError?.message || null,
-        userId: user?.id || null
-      });
-      
       if (userError || !user) {
-        console.log('用户认证失败:', userError);
         return null;
       }
 
-      console.log('开始调用edge function: check-twitter-connection');
       // 调用edge function检查Twitter连接
       const { data, error } = await supabase.functions.invoke('check-twitter-connection', {
         headers: {
@@ -309,10 +291,7 @@ class TwitterService {
         },
       });
 
-      console.log('Edge function调用结果:', { data, error });
-
       if (error) {
-        console.error('获取Twitter连接失败:', error);
         return null;
       }
 
@@ -323,7 +302,6 @@ class TwitterService {
 
       return null;
     } catch (error) {
-      console.error('获取Twitter连接失败:', error);
       return null;
     }
   }
