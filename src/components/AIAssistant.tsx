@@ -114,7 +114,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   }, [messages]);
 
   // 发送消息到后端（带重试机制）
-  const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string) => {
+  const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string, capability?: typeof CAPABILITY_OPTIONS[0] | null) => {
     setError(null);
     setRetryCount(currentRetryCount);
 
@@ -141,9 +141,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       const headers = await getAuthHeaders();
 
       // 构建符合后端要求的请求体
+      // 根据选中的能力构建tools数组
+      const currentCapability = capability || selectedCapability;
+      const tools = currentCapability ? [currentCapability.id] : [];
+      
+
+      
       const requestBody: BackendRequest = {
         state: [],
-        tools: [],
+        tools: tools,
         context: [],
         forwardedProps: {},
         messages: [
@@ -325,7 +331,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         
         // 延迟重试，避免频繁请求
         setTimeout(() => {
-          sendMessageToBackend(message, currentRetryCount + 1, currentAssistantMessageId);
+          sendMessageToBackend(message, currentRetryCount + 1, currentAssistantMessageId, capability);
         }, 1000 * (currentRetryCount + 1)); // 递增延迟
         return;
       }
@@ -378,7 +384,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     setInputValue(value);
     
     // Debug: Check the input value
-    console.log('Input change - value:', JSON.stringify(value));
+
     
     const lastAtIndex = value.lastIndexOf('@');
     
@@ -387,9 +393,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       const textAfterAt = value.substring(lastAtIndex + 1);
       
       // Debug: Check what's after @
-      console.log('Text after @:', JSON.stringify(textAfterAt));
-      console.log('Has space:', textAfterAt.includes(' '));
-      console.log('Has newline:', textAfterAt.includes('\n'));
+      
       
       // Check if there's a space or newline after @, which should close the selector
       if (textAfterAt.includes(' ') || textAfterAt.includes('\n')) {
@@ -397,7 +401,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         setShowCapabilitySelector(false);
       } else {
         // Show selector when @ is present and no space/newline after it
-        console.log('Showing selector');
+        
         setShowCapabilitySelector(true);
         setSelectedCapabilityIndex(0);
         setAtTriggerPosition(lastAtIndex);
@@ -508,14 +512,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         return;
       }
       
-      // 如果有选中的能力，将其添加到消息前面
-      let finalMessage = message;
-      if (selectedCapability) {
-        finalMessage = `${selectedCapability.label} ${message}`;
-      }
-      
-      // 发送消息到后端
-      await sendMessageToBackend(finalMessage);
+      // 发送消息到后端（工具信息通过tools数组传递，不需要添加到消息内容中）
+      await sendMessageToBackend(message, 0, undefined, selectedCapability);
       
       setInputValue('');
       // 发送后清除选中的能力
