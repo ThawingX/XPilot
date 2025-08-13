@@ -186,10 +186,8 @@ class TwitterService {
       const { data, error } = await supabase.functions.invoke('twitter-token-exchange', {
         body: {
           code,
-          codeVerifier,
-          redirectUri: this.redirectUri,
-          clientId: this.clientId,
-          clientSecret: this.clientSecret
+          code_verifier: codeVerifier,
+          redirect_uri: this.redirectUri
         }
       });
 

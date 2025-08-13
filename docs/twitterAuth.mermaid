@@ -1,0 +1,100 @@
+sequenceDiagram
+    actor User as 用户
+    participant App as 前端应用
+    participant LS as LocalStorage
+    participant Twitter as Twitter OAuth
+    participant EdgeFunc as Supabase Edge Functions
+    participant DB as Supabase Database
+    participant TwitterAPI as Twitter API
+
+    Note over User, TwitterAPI: 1. 启动授权流程
+    User ->> App: 点击连接Twitter
+    App ->> App: 检查Twitter API配置
+    Note over App: 验证clientId和clientSecret
+    
+    App ->> App: 生成OAuth参数
+    Note over App: - 生成随机state(32位)<br/>- 生成code_verifier(128位)<br/>- 生成code_challenge(SHA256)
+    
+    App ->> LS: 存储OAuth状态
+    Note over LS: 保存state和code_verifier
+    
+    App ->> Twitter: 重定向到授权页面
+    Note over Twitter: 包含response_type, client_id,<br/>redirect_uri, scope, state,<br/>code_challenge等参数
+    
+    Note over User, TwitterAPI: 2. 用户授权
+    User ->> Twitter: 用户登录并授权
+    Twitter ->> App: 回调返回code和state
+    
+    Note over User, TwitterAPI: 3. 处理授权回调
+    App ->> LS: 验证state参数
+    Note over App: 检查localStorage中的state<br/>与回调参数是否匹配
+    
+    App ->> LS: 获取code_verifier
+    App ->> LS: 清理OAuth状态数据
+    
+    Note over User, TwitterAPI: 4. 交换访问令牌
+    App ->> EdgeFunc: 调用twitter-token-exchange
+    Note over EdgeFunc: 传递code, codeVerifier,<br/>redirectUri, clientId, clientSecret
+    
+    EdgeFunc ->> TwitterAPI: POST /oauth2/token
+    Note over TwitterAPI: 使用授权码交换访问令牌
+    
+    TwitterAPI ->> EdgeFunc: 返回token信息
+    Note over EdgeFunc: access_token, refresh_token,<br/>token_type, expires_in, scope
+    
+    EdgeFunc ->> App: 返回token数据
+    
+    Note over User, TwitterAPI: 5. 获取用户信息
+    App ->> EdgeFunc: 调用twitter-api-proxy
+    Note over EdgeFunc: 使用access_token获取用户信息
+    
+    EdgeFunc ->> TwitterAPI: GET /users/me
+    Note over TwitterAPI: 获取用户基本信息和统计数据
+    
+    TwitterAPI ->> EdgeFunc: 返回用户信息
+    Note over EdgeFunc: id, username, name,<br/>profile_image_url, verified,<br/>public_metrics等
+    
+    EdgeFunc ->> App: 返回用户数据
+    
+    Note over User, TwitterAPI: 6. 保存连接信息
+    App ->> DB: 获取当前应用用户
+    Note over DB: 通过supabase.auth.getUser()
+    
+    App ->> DB: 停用现有Twitter连接
+    Note over DB: 更新is_active=false
+    
+    App ->> DB: 插入新的连接记录
+    Note over DB: 保存到user_social_connections表<br/>包含access_token, refresh_token等
+    
+    DB ->> App: 返回连接信息
+    App ->> User: 显示连接成功
+    
+    Note over User, TwitterAPI: 7. 后续API调用流程
+    User ->> App: 发起Twitter API请求
+    App ->> DB: 获取用户连接信息
+    
+    alt Token有效
+        App ->> EdgeFunc: 调用twitter-api-proxy
+        EdgeFunc ->> TwitterAPI: 使用access_token调用API
+        TwitterAPI ->> EdgeFunc: 返回API响应
+        EdgeFunc ->> App: 返回数据
+        App ->> User: 显示结果
+    else Token过期
+        App ->> EdgeFunc: 调用twitter-refresh-token
+        EdgeFunc ->> TwitterAPI: 使用refresh_token刷新
+        TwitterAPI ->> EdgeFunc: 返回新的access_token
+        EdgeFunc ->> App: 返回新token
+        App ->> DB: 更新数据库中的token
+        App ->> EdgeFunc: 重新调用API
+        EdgeFunc ->> TwitterAPI: 使用新token调用API
+        TwitterAPI ->> EdgeFunc: 返回API响应
+        EdgeFunc ->> App: 返回数据
+        App ->> User: 显示结果
+    end
+    
+    Note over User, TwitterAPI: 8. 断开连接流程
+    User ->> App: 点击断开Twitter连接
+    App ->> DB: 获取当前应用用户
+    App ->> DB: 更新连接状态
+    Note over DB: 设置is_active=false
+    App ->> User: 显示断开成功
