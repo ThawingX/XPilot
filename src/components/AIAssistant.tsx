@@ -842,40 +842,40 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         return null;
       }
       
-      // 检测是否为计划内容
-      const planDetection = detectPlanContent(content);
-      
-      if (planDetection.isPlan) {
-        const planData = parsePlanContent(content, planDetection.isExecution);
-        
-        if (planDetection.isExecution) {
-          return (
-            <ExecutionStatusCard
-              title={planData.title}
-              description={planData.description}
-              steps={planData.steps}
-              status={planData.status}
-              progress={planData.progress}
-              startTime={new Date().toISOString()}
-              endTime={planData.status === 'completed' ? new Date().toISOString() : undefined}
-            />
-          );
-        } else {
-          return (
-            <PlanningCard
-              title={planData.title}
-              description={planData.description}
-              steps={planData.steps}
-              createdAt={new Date().toISOString()}
-              estimatedDuration="预计完成时间"
-              onExecutePlan={() => {
-            
-                // 这里可以添加执行计划的逻辑
-              }}
-            />
-          );
-        }
-      }
+      // 注释掉计划内容检测逻辑，不再自动显示计划卡片
+      // const planDetection = detectPlanContent(content);
+      // 
+      // if (planDetection.isPlan) {
+      //   const planData = parsePlanContent(content, planDetection.isExecution);
+      //   
+      //   if (planDetection.isExecution) {
+      //     return (
+      //       <ExecutionStatusCard
+      //         title={planData.title}
+      //         description={planData.description}
+      //         steps={planData.steps}
+      //         status={planData.status}
+      //         progress={planData.progress}
+      //         startTime={new Date().toISOString()}
+      //         endTime={planData.status === 'completed' ? new Date().toISOString() : undefined}
+      //       />
+      //     );
+      //   } else {
+      //     return (
+      //       <PlanningCard
+      //         title={planData.title}
+      //         description={planData.description}
+      //         steps={planData.steps}
+      //         createdAt={new Date().toISOString()}
+      //         estimatedDuration="预计完成时间"
+      //         onExecutePlan={() => {
+      //       
+      //           // 这里可以添加执行计划的逻辑
+      //         }}
+      //       />
+      //     );
+      //   }
+      // }
       
       return (
         <div className="max-w-none text-black prose prose-sm">
