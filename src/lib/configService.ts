@@ -99,7 +99,7 @@ class ConfigService {
 
       return await response.json();
     } catch (error) {
-      console.error('获取配置列表失败:', error);
+
       throw error;
     }
   }

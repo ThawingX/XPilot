@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('AuthContext: 获取会话错误:', error)
+  
         }
         
         setSession(session)
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           window.history.replaceState({}, document.title, window.location.pathname)
         }
       } catch (err) {
-        console.error('AuthContext: 初始化认证异常:', err)
+  
       } finally {
         setLoading(false)
       }
@@ -117,7 +117,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
       return { error }
     } catch (err) {
-      console.error('Google登录错误:', err)
+
       return { error: err as AuthError }
     }
   }

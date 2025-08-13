@@ -84,7 +84,7 @@ class DashboardService {
       return await response.json();
       
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+
       throw error;
     }
   }

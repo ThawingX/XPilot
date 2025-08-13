@@ -89,7 +89,7 @@ class InspirationAccountService {
 
       return await response.json();
     } catch (error) {
-      console.error('获取对标账号列表失败:', error);
+
       throw error;
     }
   }
@@ -113,7 +113,7 @@ class InspirationAccountService {
         throw new Error(errorData.detail || `设置对标账号失败: ${response.status}`);
       }
     } catch (error) {
-      console.error('设置对标账号失败:', error);
+
       throw error;
     }
   }
@@ -137,7 +137,7 @@ class InspirationAccountService {
         throw new Error(errorData.detail || `收藏账号失败: ${response.status}`);
       }
     } catch (error) {
-      console.error('收藏账号失败:', error);
+
       throw error;
     }
   }
@@ -161,7 +161,7 @@ class InspirationAccountService {
         throw new Error(errorData.detail || `批量设置对标账号失败: ${response.status}`);
       }
     } catch (error) {
-      console.error('批量设置对标账号失败:', error);
+
       throw error;
     }
   }
@@ -185,7 +185,7 @@ class InspirationAccountService {
         throw new Error(errorData.detail || `批量收藏账号失败: ${response.status}`);
       }
     } catch (error) {
-      console.error('批量收藏账号失败:', error);
+
       throw error;
     }
   }

@@ -117,7 +117,7 @@ class EngagementService {
 
       return response.json();
     } catch (error) {
-      console.error('获取互动队列失败:', error);
+
       throw error;
     }
   }
@@ -139,7 +139,7 @@ class EngagementService {
 
       return response.json();
     } catch (error) {
-      console.error('发布回复失败:', error);
+
       throw error;
     }
   }
@@ -161,7 +161,7 @@ class EngagementService {
 
       return response.json();
     } catch (error) {
-      console.error('拒绝回复失败:', error);
+
       throw error;
     }
   }

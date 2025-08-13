@@ -74,7 +74,7 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
   // 切换API地址
   const toggleAPIUrl = () => {
     const newUseLocal = apiConfigService.toggleApiEnvironment();
-    console.log(`API URL switched to: ${apiConfigService.getApiBaseUrl()}`);
+
     
     // 显示切换成功提示
     const message = newUseLocal ? '已切换到本地开发环境' : '已切换到生产环境';

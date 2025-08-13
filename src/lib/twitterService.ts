@@ -45,7 +45,7 @@ class TwitterService {
     this.redirectUri = `${this.appUrl}/auth/twitter/direct/callback`;
 
     if (!this.clientId || !this.clientSecret) {
-      console.warn('Twitter API credentials not configured');
+
     }
   }
 
@@ -126,7 +126,7 @@ class TwitterService {
 
       return `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
     } catch (error) {
-      console.error('生成Twitter授权URL失败:', error);
+
       throw error;
     }
   }
@@ -138,15 +138,12 @@ class TwitterService {
       const storedState = localStorage.getItem('twitter_oauth_state');
 
       if (!storedState) {
-        console.error('localStorage中未找到存储的state参数');
+
         throw new Error('OAuth state not found. Please restart the authorization process.');
       }
 
       if (storedState !== state) {
-        console.error('State参数不匹配:', {
-          expected: storedState,
-          received: state
-        });
+
         throw new Error('Invalid state parameter. Please restart the authorization process.');
       }
 
@@ -154,7 +151,7 @@ class TwitterService {
       const codeVerifier = localStorage.getItem('twitter_code_verifier');
 
       if (!codeVerifier) {
-        console.error('localStorage中未找到code_verifier');
+
         throw new Error('Code verifier not found. Please restart the authorization process.');
       }
 
@@ -173,7 +170,7 @@ class TwitterService {
 
       return { success: true, data: connection };
     } catch (error) {
-      console.error('处理Twitter回调失败:', error);
+
       const errorMessage = error instanceof Error ? error.message : '未知错误';
       return { success: false, error: errorMessage };
     }
@@ -192,13 +189,13 @@ class TwitterService {
       });
 
       if (error) {
-        console.error('Token exchange failed:', error);
+
         throw new Error(`Token exchange failed: ${error.message}`);
       }
       
       return data;
     } catch (error) {
-      console.error('Error exchanging code for tokens:', error);
+
       throw error;
     }
   }
@@ -215,7 +212,7 @@ class TwitterService {
     });
 
     if (error) {
-      console.error('获取用户信息失败:', error);
+
       throw new Error(`Failed to fetch user info: ${error.message}`);
     }
 
@@ -324,13 +321,13 @@ class TwitterService {
       });
 
       if (error) {
-        console.error('断开Twitter连接失败:', error);
+  
         return { success: false, error: error.message };
       }
 
       return { success: true };
     } catch (error) {
-      console.error('断开Twitter连接失败:', error);
+
       return { success: false, error: error instanceof Error ? error.message : '未知错误' };
     }
   }
@@ -354,7 +351,7 @@ class TwitterService {
     });
 
     if (error) {
-      console.error('Twitter API 代理调用失败:', error);
+
       throw new Error(`Twitter API call failed: ${error.message}`);
     }
 
@@ -367,7 +364,7 @@ class TwitterService {
       const data = await this.makeTwitterApiCall('users/me?user.fields=id,username,name,profile_image_url,verified,public_metrics');
       return data.data;
     } catch (error) {
-      console.error('获取Twitter用户信息失败:', error);
+
       return null;
     }
   }
@@ -390,7 +387,7 @@ class TwitterService {
       const authUrl = await this.getAuthUrl();
       window.location.href = authUrl;
     } catch (error) {
-      console.error('启动Twitter认证失败:', error);
+
       throw error;
     }
   }
@@ -404,7 +401,7 @@ class TwitterService {
       });
       return result;
     } catch (error) {
-      console.error('发送推文失败:', error);
+
       throw error;
     }
   }
@@ -427,7 +424,7 @@ class TwitterService {
       });
 
       if (error) {
-        console.error('刷新Twitter token失败:', error);
+  
         throw new Error(`Failed to refresh token: ${error.message}`);
       }
 
@@ -454,7 +451,7 @@ class TwitterService {
 
       return tokenData.access_token;
     } catch (error) {
-      console.error('刷新Twitter token失败:', error);
+
       throw error;
     }
   }

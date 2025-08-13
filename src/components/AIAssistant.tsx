@@ -99,7 +99,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     // 重新生成threadId，确保新对话有独立的会话ID
     setThreadId(`thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     
-    console.log('新建聊天窗口，生成新的threadId');
+    
   };
 
   // 自动滚动到底部
@@ -169,7 +169,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         threadId: threadId
       };
 
-      console.log('发送请求到后端:', requestBody);
+
 
       const apiBaseUrl = apiConfigService.getApiBaseUrl();
       const response = await fetch(`${apiBaseUrl}/api/agent`, {
@@ -214,14 +214,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
           if (line.trim() && line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.slice(6));
-              console.log('Parsed stream data:', data);
+
               
               // 处理不同类型的数据
               if (data.type === 'RAW' && data.event) {
                 // 处理 RAW 事件中的流式内容
                 if (data.event.event === 'on_chat_model_stream' && data.event.data?.chunk?.content) {
                   const content = data.event.data.chunk.content;
-                  console.log('Streaming content:', content);
+  
                   assistantContent += content;
                   
                   // 第一次收到内容时创建助手消息
@@ -246,15 +246,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 }
                 // 处理其他RAW事件类型（如果需要）
                 else if (data.event.event === 'on_chat_model_end') {
-                  console.log('Chat model stream ended');
+    
                 }
               } 
               // 处理其他事件类型
               else if (data.type === 'STEP_STARTED') {
-                console.log('Step started:', data.stepName);
+  
               }
               else if (data.type === 'RUN_STARTED') {
-                console.log('Run started:', data.threadId, data.runId);
+  
               }
               // 处理直接的 content 字段（向后兼容）
               else if (data.content) {
@@ -281,14 +281,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 }
               }
             } catch (e) {
-              console.warn('解析流数据失败:', e, '原始数据:', line);
+
             }
           }
         }
       }
 
     } catch (error: any) {
-      console.error('发送消息失败:', error);
+
       
       // 检查是否是认证错误
       if (error.message === '用户未登录') {
@@ -306,7 +306,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       
       // 检查是否需要重试 - 最多重试4次（总共5次尝试）
       if (currentRetryCount < 4) {
-        console.log(`网络错误，正在重试 (${currentRetryCount + 1}/5)...`);
+
         
         // 更新重试状态
         setRetryCount(currentRetryCount + 1);
@@ -398,7 +398,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       
       // Check if there's a space or newline after @, which should close the selector
       if (textAfterAt.includes(' ') || textAfterAt.includes('\n')) {
-        console.log('Closing selector due to space/newline');
+
         setShowCapabilitySelector(false);
       } else {
         // Show selector when @ is present and no space/newline after it
@@ -520,7 +520,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       // 发送后清除选中的能力
       setSelectedCapability(null);
     } catch (error: any) {
-      console.error('发送消息失败:', error);
+
     }
   };
 
@@ -539,7 +539,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       await sendMessageToBackend(message);
       return `Message sent: ${message}`;
     } catch (error) {
-      console.error('Message action failed:', error);
+
       throw error;
     }
   };
@@ -869,7 +869,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               createdAt={new Date().toISOString()}
               estimatedDuration="预计完成时间"
               onExecutePlan={() => {
-                console.log('Execute plan:', planData.title);
+            
                 // 这里可以添加执行计划的逻辑
               }}
             />

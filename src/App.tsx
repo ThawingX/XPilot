@@ -86,7 +86,7 @@ const AppContent: React.FC = () => {
     const tab = searchParams.get('tab');
     
     if (section === 'profile') {
-      console.log('设置为Profile页面');
+      
       setActiveMenuItem('Profile');
       if (tab) {
         setProfileInitialSection(tab);
@@ -96,7 +96,7 @@ const AppContent: React.FC = () => {
     }
     // 如果是首次访问网站，设置hasVisited标记
     else if (localStorage.getItem('hasVisited') !== 'true') {
-      console.log('首次访问，设置hasVisited标记');
+
       localStorage.setItem('hasVisited', 'true');
     }
   }, [searchParams, setSearchParams]);

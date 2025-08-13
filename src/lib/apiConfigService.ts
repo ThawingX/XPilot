@@ -43,7 +43,7 @@ class ApiConfigService {
    */
   public setApiBaseUrl(url: string): void {
     if (import.meta.env.PROD) {
-      console.warn('Cannot change API URL in production environment');
+
       return;
     }
 
@@ -62,7 +62,7 @@ class ApiConfigService {
    */
   public toggleApiEnvironment(): boolean {
     if (import.meta.env.PROD) {
-      console.warn('Cannot toggle API environment in production');
+
       return false;
     }
 
@@ -124,7 +124,7 @@ class ApiConfigService {
    */
   public resetToDefault(): void {
     if (import.meta.env.PROD) {
-      console.warn('Cannot reset API configuration in production');
+
       return;
     }
 
