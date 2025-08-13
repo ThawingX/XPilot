@@ -266,27 +266,62 @@ class TwitterService {
   // 获取用户的Twitter连接
   async getUserConnection(): Promise<TwitterConnection | null> {
     try {
-      // 获取当前认证用户
+      console.log('开始获取Twitter连接状态...');
+      
+      // 先尝试获取当前session
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+      
+      console.log('当前会话状态:', { 
+        hasSession: !!currentSession, 
+        sessionError: sessionError?.message || null,
+        sessionToken: currentSession?.access_token ? 'exists' : 'missing'
+      });
+      
+      if (sessionError) {
+        console.log('获取会话错误:', sessionError);
+        return null;
+      }
+      
+      if (!currentSession) {
+        console.log('当前会话不存在，返回null');
+        return null;
+      }
+      
+      // 获取用户信息
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
+      console.log('用户认证结果:', { 
+        hasUser: !!user, 
+        userError: userError?.message || null,
+        userId: user?.id || null
+      });
+      
       if (userError || !user) {
+        console.log('用户认证失败:', userError);
         return null;
       }
 
-      const { data, error } = await supabase
-        .from('user_social_connections')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('platform', 'twitter')
-        .eq('is_active', true)
-        .single();
+      console.log('开始调用edge function: check-twitter-connection');
+      // 调用edge function检查Twitter连接
+      const { data, error } = await supabase.functions.invoke('check-twitter-connection', {
+        headers: {
+          Authorization: `Bearer ${currentSession.access_token}`,
+        },
+      });
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.log('Edge function调用结果:', { data, error });
+
+      if (error) {
         console.error('获取Twitter连接失败:', error);
         return null;
       }
 
-      return data;
+      // 处理edge function的响应结构
+      if (data && data.is_twitter_connected && data.connection_details) {
+        return data.connection_details as TwitterConnection;
+      }
+
+      return null;
     } catch (error) {
       console.error('获取Twitter连接失败:', error);
       return null;
@@ -294,27 +329,31 @@ class TwitterService {
   }
   
   // 断开Twitter连接
-  async disconnectTwitter(): Promise<void> {
+  async disconnectTwitter(): Promise<{ success: boolean; error?: string }> {
     try {
-      // 获取当前认证用户
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      // 获取当前认证用户和session
+      const { data: { user, session }, error: userError } = await supabase.auth.getUser();
       
-      if (userError || !user) {
-        throw new Error('用户未登录');
+      if (userError || !user || !session) {
+        return { success: false, error: '用户未登录' };
       }
 
-      const { error } = await supabase
-        .from('user_social_connections')
-        .update({ is_active: false })
-        .eq('user_id', user.id)
-        .eq('platform', 'twitter');
+      // 调用edge function断开Twitter连接
+      const { data, error } = await supabase.functions.invoke('disconnect-twitter-connection', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
       if (error) {
-        throw new Error(`Failed to disconnect Twitter: ${error.message}`);
+        console.error('断开Twitter连接失败:', error);
+        return { success: false, error: error.message };
       }
+
+      return { success: true };
     } catch (error) {
       console.error('断开Twitter连接失败:', error);
-      throw error;
+      return { success: false, error: error instanceof Error ? error.message : '未知错误' };
     }
   }
   

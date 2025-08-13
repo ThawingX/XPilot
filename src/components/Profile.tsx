@@ -54,22 +54,23 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
     }
   }, [user]);
 
-  // Check Twitter connection status
-  useEffect(() => {
-    const checkTwitterConnection = async () => {
-      if (user) {
-        setConnectLoading(true);
-        try {
-          const connection = await twitterService.getUserConnection();
-          setTwitterConnection(connection);
-        } catch (error) {
-          console.error('Error checking Twitter connection:', error);
-        } finally {
-          setConnectLoading(false);
-        }
+  // Check Twitter connection status function
+  const checkTwitterConnection = async () => {
+    if (user) {
+      setConnectLoading(true);
+      try {
+        const connection = await twitterService.getUserConnection();
+        setTwitterConnection(connection);
+      } catch (error) {
+        console.error('Error checking Twitter connection:', error);
+      } finally {
+        setConnectLoading(false);
       }
-    };
-    
+    }
+  };
+
+  // Auto-check Twitter connection when user changes
+  useEffect(() => {
     checkTwitterConnection();
   }, [user]);
 
@@ -464,7 +465,13 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
           {menuItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => {
+                setActiveSection(item.id);
+                // 当点击X Connect时，触发一次连接检查
+                if (item.id === 'connect') {
+                  checkTwitterConnection();
+                }
+              }}
               className={`flex-1 flex items-center justify-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
                 activeSection === item.id
                   ? item.id === 'connect'
