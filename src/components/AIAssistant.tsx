@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import PlanningCard from './PlanningCard';
 import ExecutionStatusCard from './ExecutionStatusCard';
 import { supabase } from '../lib/supabase';
+import { apiConfigService } from '../lib/apiConfigService';
 
 // 定义消息类型
 interface Message {
@@ -170,7 +171,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
       console.log('发送请求到后端:', requestBody);
 
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const apiBaseUrl = apiConfigService.getApiBaseUrl();
       const response = await fetch(`${apiBaseUrl}/api/agent`, {
         method: 'POST',
         headers,

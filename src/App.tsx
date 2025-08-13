@@ -16,6 +16,7 @@ import TwitterDirectCallback from './components/TwitterDirectCallback';
 
 import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
+import DevDebugPanel from './components/DevDebugPanel';
 
 // 定义MarketingStrategy类型
 export interface MarketingStrategy {
@@ -295,6 +296,9 @@ const AppContent: React.FC = () => {
           {/* Vibe X Operation - Right Sidebar */}
           <AIAssistant onExpandedChange={setIsAIChatExpanded} />
         </div>
+        
+        {/* 开发调试面板 - 仅在开发环境显示 */}
+        <DevDebugPanel />
       </LayoutContext.Provider>
     </CopilotKit>
   );

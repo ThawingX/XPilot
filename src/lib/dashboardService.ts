@@ -1,6 +1,7 @@
 // Removed mock dashboard data import
 import { Users, Zap, PenTool, Calendar, MessageSquare, Star, BarChart3, Activity, Heart, Target } from 'lucide-react';
 import { supabase } from './supabase';
+import { apiConfigService } from './apiConfigService';
 
 // Dashboard API service
 export interface DashboardStats {
@@ -41,11 +42,12 @@ export interface DashboardData {
 }
 
 class DashboardService {
-  private baseUrl: string;
+  private get baseUrl(): string {
+    return apiConfigService.getApiBaseUrl();
+  }
 
   constructor() {
-    // 使用环境变量或默认的本地开发地址
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    // baseUrl 现在通过 getter 动态获取
   }
 
   // 获取认证头

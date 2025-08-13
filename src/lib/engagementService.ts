@@ -1,5 +1,6 @@
 import { Card } from '../types';
 import { supabase } from './supabase';
+import { apiConfigService } from './apiConfigService';
 
 // 互动队列API响应类型
 interface EngagementItem {
@@ -60,11 +61,12 @@ interface RejectReplyResponse {
 }
 
 class EngagementService {
-  private baseUrl: string;
+  private get baseUrl(): string {
+    return apiConfigService.getApiBaseUrl();
+  }
   
   constructor() {
-    // 使用环境变量或默认的本地开发地址
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    // baseUrl 现在通过 getter 动态获取
   }
   
   // 获取认证头
