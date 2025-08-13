@@ -61,6 +61,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [threadId, setThreadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [retryCount, setRetryCount] = useState(0);
+  const [shouldStopRetry, setShouldStopRetry] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -115,9 +116,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   }, [messages]);
 
   // 发送消息到后端（带重试机制）
-  const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string, capability?: typeof CAPABILITY_OPTIONS[0] | null) => {
+  const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string, capability?: typeof CAPABILITY_OPTIONS[0] | null): Promise<boolean> => {
     setError(null);
     setRetryCount(currentRetryCount);
+    
+    // 在开始新的消息发送时重置停止重试标志
+    if (currentRetryCount === 0) {
+      setShouldStopRetry(false);
+    }
 
     // 将 currentAssistantMessageId 移到函数顶部，确保在 catch 块中也能访问
     let currentAssistantMessageId = assistantMessageId;
@@ -144,7 +150,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       // 构建符合后端要求的请求体
       // 根据选中的能力构建tools数组
       const currentCapability = capability || selectedCapability;
-      const tools = currentCapability ? [currentCapability.id] : [];
+      const tools = currentCapability ? [{
+        name: currentCapability.id,
+        description: '',
+        parameters: null
+      }] : [];
       
 
       
@@ -286,6 +296,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
           }
         }
       }
+      
+      // 流式响应处理完成，返回成功
+        return true;
 
     } catch (error: any) {
 
@@ -301,7 +314,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         setMessages(prev => [...prev, errorMessage]);
         setIsLoading(false);
         setRetryCount(0);
-        return;
+        return false;
       }
       
       // 检查是否需要重试 - 最多重试4次（总共5次尝试）
@@ -332,9 +345,12 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         
         // 延迟重试，避免频繁请求
         setTimeout(() => {
-          sendMessageToBackend(message, currentRetryCount + 1, currentAssistantMessageId, capability);
+          // 检查是否应该停止重试
+          if (!shouldStopRetry) {
+            sendMessageToBackend(message, currentRetryCount + 1, currentAssistantMessageId, capability);
+          }
         }, 1000 * (currentRetryCount + 1)); // 递增延迟
-        return;
+        return false;
       }
       
       // 达到5次尝试后仍然失败，更新消息内容为网络异常
@@ -354,10 +370,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
             : msg
         ));
       }
+      return false;
     } finally {
       setIsLoading(false);
       setRetryCount(0);
     }
+    
+    return true;
   };
 
   // 停止响应
@@ -473,9 +492,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // 处理消息发送时包含选中的能力
   const handleSubmit = async (message: string) => {
-    if (!message.trim() || isLoading) return;
+    if (!message.trim() || isLoading || retryCount > 0) return;
     
     setError(null); // 清除之前的错误
+    
+    // 保存当前的输入状态，以便在重试失败时恢复
+    const currentInputValue = inputValue;
+    const currentSelectedCapability = selectedCapability;
     
     try {
       // 检查是否是debug命令
@@ -514,13 +537,16 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       }
       
       // 发送消息到后端（工具信息通过tools数组传递，不需要添加到消息内容中）
-      await sendMessageToBackend(message, 0, undefined, selectedCapability);
+      const success = await sendMessageToBackend(message, 0, undefined, selectedCapability);
       
-      setInputValue('');
-      // 发送后清除选中的能力
-      setSelectedCapability(null);
+      // 只有在消息成功发送时才清空输入框和选中的工具
+      if (success) {
+        setInputValue('');
+        setSelectedCapability(null);
+      }
     } catch (error: any) {
-
+      // 如果发送失败且不是重试中，恢复输入状态
+      // 重试逻辑在sendMessageToBackend中处理
     }
   };
 
@@ -557,8 +583,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // 停止响应 - 使用自定义实现
   const handleStopResponse = () => {
-    if (isLoading) {
+    if (isLoading || retryCount > 0) {
+      setShouldStopRetry(true); // 设置停止重试标志
       stopResponse();
+      setRetryCount(0); // 重置重试计数
     }
   };
 
@@ -596,7 +624,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     // Handle normal input
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (isLoading) {
+      if (isLoading || retryCount > 0) {
         handleStopResponse();
       } else {
         handleSubmit(inputValue);
@@ -604,9 +632,10 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     }
   };
 
-  // 渲染发送按钮 - 基于 CopilotKit 状态
+  // 渲染发送按钮 - 基于加载状态和重试状态
   const renderSendButton = () => {
-    if (isLoading) {
+    // 在加载中或重试中时显示停止按钮
+    if (isLoading || retryCount > 0) {
       return (
         <button
           onClick={handleStopResponse}
