@@ -16,7 +16,7 @@ import TwitterDirectCallback from './components/TwitterDirectCallback';
 
 import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
-import DevDebugPanel from './components/DevDebugPanel';
+
 import { apiConfigService } from './lib/apiConfigService';
 
 // 定义MarketingStrategy类型
@@ -311,7 +311,7 @@ const AppContent: React.FC = () => {
         </div>
         
         {/* 开发调试面板 - 仅在开发环境显示 */}
-        <DevDebugPanel />
+  
       </LayoutContext.Provider>
     </CopilotKit>
   );

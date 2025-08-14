@@ -9,6 +9,7 @@ export const TwitterDirectCallback: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('正在验证授权信息...');
   const [countdown, setCountdown] = useState<number>(3);
+  const [progress, setProgress] = useState<number>(0);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -18,33 +19,37 @@ export const TwitterDirectCallback: React.FC = () => {
         const error = searchParams.get('error');
 
         if (error) {
-          throw new Error(`Twitter授权被拒绝: ${error}`);
+          throw new Error(`Twitter授权失败: ${error}`);
         }
 
         if (!code || !state) {
-          throw new Error('授权参数不完整，请重新尝试连接');
-        }
-
-        // 检查localStorage中是否有必要的OAuth数据
-        const storedState = localStorage.getItem('twitter_oauth_state');
-        const storedCodeVerifier = localStorage.getItem('twitter_code_verifier');
-        
-        if (!storedState || !storedCodeVerifier) {
-          throw new Error('OAuth会话已过期，请重新开始授权流程');
+          throw new Error('缺少必要的授权参数');
         }
 
         setMessage('正在验证授权信息...');
+        setProgress(20);
         await new Promise(resolve => setTimeout(resolve, 500)); // 短暂延迟提升用户体验
 
         setMessage('正在获取访问令牌...');
+        setProgress(40);
         await new Promise(resolve => setTimeout(resolve, 300));
 
-        // 处理OAuth回调
-        const result = await twitterService.handleCallback(code, state);
+        // 处理OAuth回调 - 增加超时处理
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('请求超时，请稍后重试')), 30000); // 30秒超时
+        });
+        
+        const result = await Promise.race([
+          twitterService.handleCallback(code, state),
+          timeoutPromise
+        ]) as { success: boolean; data?: any; error?: string };
 
         if (result.success) {
           setMessage('正在获取用户信息...');
-          await new Promise(resolve => setTimeout(resolve, 300));
+          setProgress(80);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          setProgress(100);
           
           setStatus('success');
           setMessage('Twitter账户授权成功！');
@@ -78,10 +83,14 @@ export const TwitterDirectCallback: React.FC = () => {
           setMessage('授权会话已过期，请重新开始连接流程');
         } else if (errorMessage.includes('Invalid state parameter')) {
           setMessage('授权验证失败，请重新开始连接流程');
+        } else if (errorMessage.includes('请求超时')) {
+          setMessage('网络请求超时，请检查网络连接后重试');
         } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('network')) {
           setMessage('网络连接失败，请检查网络后重试');
         } else if (errorMessage.includes('invalid input syntax for type uuid')) {
           setMessage('用户身份验证失败，请重新登录应用');
+        } else if (errorMessage.includes('Missing required parameters')) {
+          setMessage('服务配置错误，请联系管理员');
         } else {
           setMessage(errorMessage);
         }
@@ -106,7 +115,16 @@ export const TwitterDirectCallback: React.FC = () => {
             {status === 'loading' && (
               <div className="space-y-4">
                 <Loader className="mx-auto w-8 h-8 text-blue-500 animate-spin" />
-                <p className="text-gray-600">{message}</p>
+                <div className="space-y-2">
+                  <p className="text-gray-600">{message}</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500">请耐心等待，通常需要10-30秒完成</p>
+                </div>
               </div>
             )}
 
@@ -143,20 +161,13 @@ export const TwitterDirectCallback: React.FC = () => {
                   <p className="text-lg font-semibold text-red-600">授权失败</p>
                   <p className="text-sm text-gray-600">{message}</p>
                 </div>
-                <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3">
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md border border-transparent hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                  >
-                    重新尝试
-                  </button>
-                  <button
-                    onClick={() => navigate('/?section=profile&tab=twitter-auth')}
-                    className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md border border-transparent hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                  >
-                    返回个人资料
-                  </button>
-                </div>
+                <button
+                  onClick={() => navigate('/?section=profile&tab=twitter-auth')}
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md border border-transparent hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  返回个人资料
+                  <ArrowRight className="ml-2 w-4 h-4" />
+                </button>
               </div>
             )}
           </div>

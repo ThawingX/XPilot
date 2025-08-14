@@ -205,9 +205,9 @@ class TwitterService {
     // 使用 Supabase Edge Function 作为代理
     const { data, error } = await supabase.functions.invoke('twitter-api-proxy', {
       body: {
-        endpoint: 'users/me?user.fields=id,username,name,profile_image_url,verified,public_metrics',
+        endpoint: '/users/me?user.fields=id,username,name,profile_image_url,verified,public_metrics',
         method: 'GET',
-        accessToken
+        access_token: accessToken
       }
     });
 
@@ -342,11 +342,11 @@ class TwitterService {
     // 使用 Supabase Edge Function 作为代理
     const { data, error } = await supabase.functions.invoke('twitter-api-proxy', {
       body: {
-        endpoint,
+        endpoint: endpoint.startsWith('/') ? endpoint : `/${endpoint}`,
         method: options.method || 'GET',
         body: options.body ? JSON.parse(options.body as string) : undefined,
         headers: options.headers,
-        accessToken: connection.access_token
+        access_token: connection.access_token
       }
     });
 

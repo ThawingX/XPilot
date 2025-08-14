@@ -11,11 +11,11 @@ Deno.serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
   
-  // 创建 Supabase 客户端
+  // 创建 Supabase 管理员客户端
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://amugncveoxslbbxpyiar.supabase.co';
-  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdWduY3Zlb3hzbGJieHB5aWFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Mjk2MDgsImV4cCI6MjA2ODMwNTYwOH0.OWj4yXXkhg2nCDmmCxuCDsnd0iY2osvJbzcJvoO5sho';
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseServiceKey) {
     return new Response(JSON.stringify({
       error: 'Supabase configuration missing',
       is_twitter_connected: false
@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
     });
   }
   
-  const supabase = createClient(supabaseUrl, supabaseAnonKey);
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
   // 从 Authorization 头部获取 Bearer Token
   const authHeader = req.headers.get('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -62,12 +62,18 @@ Deno.serve(async (req) => {
     // 查询 user_social_connections 表
     const { data, error } = await supabase.from('user_social_connections').select('*').eq('user_id', user.id).eq('platform', 'twitter').eq('is_active', true);
     
+    // 添加调试日志
+    console.log('Debug - User ID:', user.id);
+    console.log('Debug - Query result:', { data, error });
+    
     if (error) {
+      console.log('Debug - Query error:', error);
       // 如果是 PGRST116 错误（表不存在），返回未连接状态而不是错误
       if (error.code === 'PGRST116') {
         return new Response(JSON.stringify({
           is_twitter_connected: false,
-          connection_details: null
+          connection_details: null,
+          debug_info: 'Table does not exist'
         }), {
           headers: {
             'Content-Type': 'application/json',
@@ -79,7 +85,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({
         error: error.message,
         error_code: error.code,
-        is_twitter_connected: false
+        is_twitter_connected: false,
+        debug_info: 'Database query error'
       }), {
         status: 500,
         headers: {
@@ -90,14 +97,53 @@ Deno.serve(async (req) => {
     }
     
     // 处理查询结果 - data 现在是数组
-    const hasActiveConnection = data && data.length > 0;
-    const latestConnection = hasActiveConnection ? data[0] : null;
+    let hasActiveConnection = data && data.length > 0;
+    let latestConnection = hasActiveConnection ? data[0] : null;
     
-    return new Response(JSON.stringify({
+    console.log('Debug - Initial connection check:', { hasActiveConnection, connectionCount: data?.length });
+    
+    // 检查token是否过期
+    if (hasActiveConnection && latestConnection) {
+      const expiresAt = latestConnection.expires_at;
+      console.log('Debug - Expires at:', expiresAt);
+      
+      if (expiresAt) {
+        const expirationTime = new Date(expiresAt);
+        const currentTime = new Date();
+        
+        console.log('Debug - Time comparison:', {
+          currentTime: currentTime.toISOString(),
+          expirationTime: expirationTime.toISOString(),
+          isExpired: currentTime >= expirationTime
+        });
+        
+        // 如果token已过期，标记为未连接
+        if (currentTime >= expirationTime) {
+          hasActiveConnection = false;
+          latestConnection = null;
+          console.log('Debug - Token expired, marking as disconnected');
+        }
+      } else {
+        console.log('Debug - No expiration time set');
+      }
+    }
+    
+    const result = {
       is_twitter_connected: hasActiveConnection,
       connection_details: latestConnection,
-      total_connections: data ? data.length : 0
-    }), {
+      total_connections: data ? data.length : 0,
+      debug_info: {
+        user_id: user.id,
+        query_returned_records: data?.length || 0,
+        has_active_connection: hasActiveConnection,
+        expires_at: latestConnection?.expires_at,
+        current_time: new Date().toISOString()
+      }
+    };
+    
+    console.log('Debug - Final result:', result);
+    
+    return new Response(JSON.stringify(result), {
       headers: {
         'Content-Type': 'application/json',
         ...corsHeaders

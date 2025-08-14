@@ -435,6 +435,8 @@ const Profile: React.FC<ProfileProps> = ({ onClose, initialSection = 'overview',
 
 
 
+
+
   const renderContent = () => {
     switch (activeSection) {
       case 'overview': return renderOverview();
