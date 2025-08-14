@@ -2,28 +2,27 @@ import { Card } from '../types';
 import { supabase } from './supabase';
 import { apiConfigService } from './apiConfigService';
 
-// 互动队列API响应类型
+// 互动队列API响应类型（实际API返回的扁平化结构）
 interface EngagementItem {
   id: string;
-  type: 'reply' | 'repost';
-  original_tweet: {
-    id: string;
-    content: string;
-    author: {
-      username: string;
-      display_name: string;
-      profile_image_url: string;
-    };
-    created_at: string;
-    metrics: {
-      reply_count: number;
-      retweet_count: number;
-      like_count: number;
-      view_count: number;
-    };
-  };
+  user_id: string;
+  tweet_id: string;
+  tweet_text: string;
+  tweet_author_id: string;
+  tweet_author_username: string;
+  tweet_author_display_name: string;
+  tweet_author_profile_image_url: string;
+  tweet_author_verified: boolean;
+  tweet_reply_count: number;
+  tweet_repost_count: number;
+  tweet_like_count: number;
+  tweet_view_count: number;
+  tweet_created_at: string;
+  interaction_type: 'autoReply' | 'autoRepost';
   suggested_content: string;
   status: 'pending' | 'posted' | 'rejected';
+  priority: number;
+  scheduled_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -184,20 +183,20 @@ class EngagementService {
     return {
       id: item.id,
       type: 'tweet',
-      content: item.original_tweet.content,
-      author: item.original_tweet.author.display_name,
-      handle: `@${item.original_tweet.author.username}`,
-      avatar: item.original_tweet.author.profile_image_url,
-      time: this.formatTime(item.original_tweet.created_at),
-      likes: item.original_tweet.metrics.like_count,
-      retweets: item.original_tweet.metrics.retweet_count,
-      replies: item.original_tweet.metrics.reply_count,
-      views: item.original_tweet.metrics.view_count,
+      content: item.tweet_text,
+      author: item.tweet_author_display_name,
+      handle: `@${item.tweet_author_username}`,
+      avatar: item.tweet_author_profile_image_url,
+      time: this.formatTime(item.tweet_created_at),
+      likes: item.tweet_like_count,
+      retweets: item.tweet_repost_count,
+      replies: item.tweet_reply_count,
+      views: item.tweet_view_count,
       stats: {
-        comments: item.original_tweet.metrics.reply_count,
-        retweets: item.original_tweet.metrics.retweet_count,
-        likes: item.original_tweet.metrics.like_count,
-        views: item.original_tweet.metrics.view_count,
+        comments: item.tweet_reply_count,
+        retweets: item.tweet_repost_count,
+        likes: item.tweet_like_count,
+        views: item.tweet_view_count,
         bookmarks: 0 // API中没有提供bookmarks数据
       },
       suggestedReply: item.suggested_content,
