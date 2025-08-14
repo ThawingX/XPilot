@@ -11,20 +11,7 @@ import ExecutionStepsCard from './ExecutionStepsCard';
 import { supabase } from '../lib/supabase';
 import { apiConfigService } from '../lib/apiConfigService';
 
-// 原始后端请求接口
-interface BackendRequest {
-  state: any[];
-  tools: any[];
-  context: any[];
-  forwardedProps: Record<string, any>;
-  messages: Array<{
-    content: string;
-    role: string;
-    id: string;
-  }>;
-  runId: string;
-  threadId: string;
-}
+
 
 // 定义消息类型
 interface Message {
@@ -101,7 +88,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     setMessages,
     appendMessage,
     isLoading,
-    stop: stopResponse
+    stopGeneration
   } = useCopilotChat({
     id: 'ai-assistant-chat',
     makeSystemMessage: () => `You are an AI assistant for X-Pilot, a social media management platform. 
@@ -269,60 +256,19 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   // 生成唯一ID
   const generateId = () => `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-  // 获取认证头的函数
+  // 获取认证头 - 保留用于其他可能的API调用
   const getAuthHeaders = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
     
+    // 获取当前用户会话
+    const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       headers['Authorization'] = `Bearer ${session.access_token}`;
     }
     
     return headers;
-  };
-
-  // 发送消息到后端的函数
-  const sendMessageToBackend = async (messages: any[], tools: any[] = [], context: any[] = []) => {
-    try {
-      const apiBaseUrl = apiConfigService.getApiBaseUrl();
-      if (!apiBaseUrl) {
-        throw new Error('API URL not configured');
-      }
-
-      // 获取认证头
-      const headers = await getAuthHeaders();
-
-      const requestData: BackendRequest = {
-        state: [],
-        tools,
-        context,
-        forwardedProps: {},
-        messages: messages.map(msg => ({
-          content: msg.content,
-          role: msg.role,
-          id: msg.id || generateId()
-        })),
-        runId: generateId(),
-        threadId: generateId()
-      };
-
-      const response = await fetch(`${apiBaseUrl}/api/agent`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Backend request failed:', error);
-      throw error;
-    }
   };
 
   // 新增聊天窗口功能
@@ -529,46 +475,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     };
   }, []);
 
-  // 处理消息发送
+  // 处理消息发送 - 完全使用CopilotKit框架
   const handleSubmit = async (message: string) => {
     if (!message.trim() || isLoading) return;
 
     setError(null);
 
     try {
-
-
-      if (message.trim() === '/debug-plan-exec') {
-        // 模拟显示执行步骤
-        setExecutionSteps([
-          {
-            step: 'Initialize content generation',
-            status: 'completed',
-            description: 'Setting up content generation pipeline'
-          },
-          {
-            step: 'Analyze audience preferences',
-            status: 'running',
-            description: 'Analyzing target audience engagement patterns'
-          },
-          {
-            step: 'Generate post content',
-            status: 'pending',
-            description: 'Creating engaging social media posts'
-          }
-        ]);
-        setInputValue('');
-        return;
-      }
-
       // 构建消息内容，包含选中的能力信息
       let messageContent = message;
       if (selectedCapability) {
         messageContent = `[Using ${selectedCapability.label} capability] ${message}`;
       }
 
-      // 清空输入框
-      setInputValue('');
+      // 只清空选中的能力，保留输入框内容
+      setSelectedCapability(null);
       
       // 使用 CopilotKit 的 appendMessage 来添加用户消息并触发AI响应
       // CopilotKit 会自动处理消息发送到后端和AI响应
@@ -578,7 +499,6 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         role: 'user'
       });
 
-      setSelectedCapability(null);
     } catch (error: any) {
       console.error('Error sending message:', error);
       setError('Failed to send message. Please try again.');
@@ -731,9 +651,34 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       </button>
                       {isLoading ? (
                         <button
-                          onClick={stopResponse}
+                          onClick={() => {
+                            // 停止 CopilotKit 的响应
+                            stopGeneration();
+                            
+                            // 找到最后一条用户消息并恢复到输入框
+                            const lastUserMessage = messages
+                              .slice()
+                              .reverse()
+                              .find(msg => msg.role === 'user');
+                            
+                            if (lastUserMessage && lastUserMessage.content) {
+                              setInputValue(lastUserMessage.content);
+                            }
+                            
+                            // 清除消息历史
+                            setMessages([]);
+                            
+                            // 清理所有相关状态
+                            setError(null);
+                            setCurrentPlan(null);
+                            setPlanGenerationBuffer('');
+                            setSimplePlan(null);
+                            setExecutionSteps(null);
+                            
+                            console.log('All operations stopped, messages cleared, and last user input restored');
+                          }}
                           className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-sm hover:shadow-md"
-                          title="Stop"
+                          title="Stop All Operations"
                         >
                           <Square size={14} />
                           <span className="text-xs font-medium">Stop</span>
