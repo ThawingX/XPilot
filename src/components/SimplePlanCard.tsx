@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle, X } from 'lucide-react';
-import { useCopilotAction } from '@copilotkit/react-core';
+import { useLangGraphInterrupt } from '@copilotkit/react-core';
 
 interface SimplePlanCardProps {
   steps: string[];
@@ -15,23 +15,23 @@ const SimplePlanCard: React.FC<SimplePlanCardProps> = ({
   onCancel,
   className = ''
 }) => {
-  // 使用 CopilotKit 的 interrupt 功能处理Execute Plan
-  useCopilotAction({
-    name: 'executePlan',
-    description: 'Execute the plan by sending APPROVE code',
-    handler: async () => {
-      // 发送 interrupt 消息给后端
-      return { code: 'APPROVE' };
+  // 使用 useLangGraphInterrupt 处理 APPROVE interrupt
+  useLangGraphInterrupt({
+    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'APPROVE',
+    render: ({ event, resolve }) => {
+      // 自动解析为 APPROVE
+      resolve('APPROVE');
+      return null;
     }
   });
 
-  // 使用 CopilotKit 的 interrupt 功能处理Cancel Plan
-  useCopilotAction({
-    name: 'cancelPlan',
-    description: 'Cancel the plan by sending CANCEL code',
-    handler: async () => {
-      // 发送 interrupt 消息给后端
-      return { code: 'CANCEL' };
+  // 使用 useLangGraphInterrupt 处理 CANCEL interrupt
+  useLangGraphInterrupt({
+    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'CANCEL',
+    render: ({ event, resolve }) => {
+      // 自动解析为 CANCEL
+      resolve('CANCEL');
+      return null;
     }
   });
 

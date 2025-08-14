@@ -8,7 +8,7 @@ import SimplePlanCard from './SimplePlanCard';
 import ExecutionStepsCard from './ExecutionStepsCard';
 import { supabase } from '../lib/supabase';
 import { apiConfigService } from '../lib/apiConfigService';
-import { useCopilotAction } from '@copilotkit/react-core';
+import { useLangGraphInterrupt } from '@copilotkit/react-core';
 
 // 定义消息类型
 interface Message {
@@ -99,26 +99,42 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     onExpandedChange?.(isExpanded);
   }, [isExpanded, onExpandedChange]);
 
-  // 使用 CopilotKit 的 interrupt 功能处理执行计划
-  useCopilotAction({
-    name: 'executePlan',
-    description: 'Execute the plan by sending APPROVE code',
-    handler: async () => {
-      // 发送 interrupt 消息给后端
-      await sendInterruptMessage({ code: 'APPROVE' });
-      return { success: true, message: 'Plan execution approved' };
-    }
+  // 使用 useLangGraphInterrupt 处理 APPROVE interrupt
+  useLangGraphInterrupt({
+    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'APPROVE',
+    render: ({ event, resolve }) => (
+      <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-green-800 mb-2">执行计划确认</h3>
+          <p className="text-green-600 mb-4">是否确认执行此计划？</p>
+          <div className="flex space-x-3 justify-center">
+            <button 
+              onClick={() => resolve('APPROVE')}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              确认执行
+            </button>
+            <button 
+              onClick={() => resolve('CANCEL')}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      </div>
+    )
   });
 
-  // 使用 CopilotKit 的 interrupt 功能处理取消计划
-  useCopilotAction({
-    name: 'cancelPlan',
-    description: 'Cancel the plan by sending CANCEL code',
-    handler: async () => {
-      // 发送 interrupt 消息给后端
-      await sendInterruptMessage({ code: 'CANCEL' });
+  // 使用 useLangGraphInterrupt 处理 CANCEL interrupt
+  useLangGraphInterrupt({
+    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'CANCEL',
+    render: ({ event, resolve }) => {
+      // 清除本地状态
       setSimplePlan(null);
-      return { success: true, message: 'Plan cancelled' };
+      // 自动解析为 CANCEL
+      resolve('CANCEL');
+      return null;
     }
   });
   
@@ -179,33 +195,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     }
   }, [messages]);
 
-  // 发送 interrupt 消息到后端
-  const sendInterruptMessage = async (interruptData: { code: string }) => {
-    try {
-      const headers = await getAuthHeaders();
-      const apiBaseUrl = apiConfigService.getApiBaseUrl();
-      
-      const response = await fetch(`${apiBaseUrl}/api/agent/interrupt`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          threadId: threadId,
-          interrupt: interruptData
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Interrupt sent successfully:', result);
-      return result;
-    } catch (error) {
-      console.error('Failed to send interrupt:', error);
-      throw error;
-    }
-  };
 
   // 发送消息到后端（带重试机制）
   const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string, capability?: typeof CAPABILITY_OPTIONS[0] | null): Promise<boolean> => {
@@ -405,6 +395,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               }
               // 处理 check_steps 类型的 interrupt 消息
               else if (data.type === 'check_steps' && data.content && Array.isArray(data.content)) {
+                console.log('Received check_steps interrupt:', data.content);
                 // 设置简化计划数据
                 setSimplePlan({ steps: data.content });
                 // 清除当前复杂计划
@@ -412,7 +403,29 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 setPlanGenerationBuffer('');
               }
               // 处理 CUSTOM 类型的执行步骤消息
+              else if (data.type === 'CUSTOM' && data.rawEvent) {
+                console.log('Received CUSTOM interrupt:', data.rawEvent);
+                const rawEvent = data.rawEvent;
+                
+                // 处理 check_steps 类型的 rawEvent
+                if (rawEvent.value && rawEvent.value.type === 'check_steps' && rawEvent.value.content) {
+                  console.log('Processing check_steps from CUSTOM rawEvent:', rawEvent.value.content);
+                  setSimplePlan({ steps: rawEvent.value.content });
+                  setCurrentPlan(null);
+                  setPlanGenerationBuffer('');
+                }
+                // 处理执行步骤消息
+                else if (rawEvent.value && rawEvent.value.reply_steps) {
+                  console.log('Processing reply_steps from CUSTOM rawEvent:', rawEvent.value.reply_steps);
+                  setExecutionSteps(rawEvent.value.reply_steps);
+                  setSimplePlan(null);
+                  setCurrentPlan(null);
+                  setPlanGenerationBuffer('');
+                }
+              }
+              // 处理旧版本的 CUSTOM 类型执行步骤消息（向后兼容）
               else if (data.type === 'CUSTOM' && data.value && data.value.reply_steps) {
+                console.log('Received legacy CUSTOM reply_steps:', data.value.reply_steps);
                 // 设置执行步骤数据
                 setExecutionSteps(data.value.reply_steps);
                 // 清除其他计划状态
@@ -1600,10 +1613,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                         <SimplePlanCard
                           steps={simplePlan.steps}
                           onExecute={async () => {
-                            await sendInterruptMessage({ code: 'APPROVE' });
+                            // SimplePlanCard handles interrupts through its own useCopilotAction
                           }}
                           onCancel={async () => {
-                            await sendInterruptMessage({ code: 'CANCEL' });
                             setSimplePlan(null);
                           }}
                         />
