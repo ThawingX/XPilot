@@ -135,7 +135,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       description: "Manage and discover new accounts",
       icon: "users",
       color: "blue",
-      url: "/inspiration-accounts"
+      url: "/inspiration-accounts",
+      disabled: false
     },
     {
       id: 2,
@@ -143,23 +144,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       description: "Configure automated interactions",
       icon: "heart",
       color: "green",
-      url: "/auto-engagement"
+      url: "/auto-engagement",
+      disabled: false
     },
     {
       id: 3,
       title: "Get Post/Thread",
-      description: "Create and schedule content",
+      description: "Create and schedule content (Coming Soon)",
       icon: "message-square",
       color: "purple",
-      url: "/posts-topics"
+      url: "/posts-topics",
+      disabled: true
     },
     {
       id: 4,
       title: "Marketing Strategy",
-      description: "Plan your content calendar",
+      description: "Plan your content calendar (Coming Soon)",
       icon: "target",
       color: "orange",
-      url: "/content-strategy"
+      url: "/content-strategy",
+      disabled: true
     }
   ];
 
@@ -331,22 +335,44 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             {quickActions.map((action) => {
               const IconComponent = dashboardService.getIconComponent(action.icon);
               const colorClasses = dashboardService.getColorClasses(action.color);
+              const isDisabled = action.disabled;
               
               return (
                 <button
                   key={action.id}
-                  onClick={() => onNavigate?.(getNavigationSection(action.url))}
-                  className="p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200 text-left group bg-white/50 hover:bg-white/80"
+                  onClick={() => !isDisabled && onNavigate?.(getNavigationSection(action.url))}
+                  disabled={isDisabled}
+                  className={`p-4 rounded-lg border transition-all duration-200 text-left group ${
+                    isDisabled 
+                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60' 
+                      : 'border-gray-200 hover:border-gray-300 hover:shadow-md bg-white/50 hover:bg-white/80'
+                  }`}
                 >
                   <div className="flex items-start space-x-3">
-                    <div className={`p-2 rounded-lg group-hover:scale-110 transition-transform duration-200 ${colorClasses.bg}`}>
-                      <IconComponent className={`w-5 h-5 ${colorClasses.icon}`} />
+                    <div className={`p-2 rounded-lg transition-transform duration-200 ${
+                      isDisabled 
+                        ? 'bg-gray-200' 
+                        : `${colorClasses.bg} group-hover:scale-110`
+                    }`}>
+                      <IconComponent className={`w-5 h-5 ${
+                        isDisabled 
+                          ? 'text-gray-400' 
+                          : colorClasses.icon
+                      }`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 text-sm mb-1 group-hover:text-blue-600 transition-colors">
+                      <h4 className={`font-medium text-sm mb-1 transition-colors ${
+                        isDisabled 
+                          ? 'text-gray-500' 
+                          : 'text-gray-900 group-hover:text-blue-600'
+                      }`}>
                         {action.title}
                       </h4>
-                      <p className="text-xs text-gray-500 line-clamp-2">
+                      <p className={`text-xs line-clamp-2 ${
+                        isDisabled 
+                          ? 'text-gray-400' 
+                          : 'text-gray-500'
+                      }`}>
                         {action.description}
                       </p>
                     </div>

@@ -30,6 +30,16 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [environmentInfo, setEnvironmentInfo] = useState<EnvironmentInfo>({} as EnvironmentInfo);
   const [currentApiUrl, setCurrentApiUrl] = useState('');
+  
+  // 拖拽相关状态
+  const [position, setPosition] = useState({ x: 16, y: 16 }); // 默认位置
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  
+  // 设置初始位置为左下角
+  useEffect(() => {
+    setPosition({ x: 16, y: window.innerHeight - 76 });
+  }, []);
 
   useEffect(() => {
 
@@ -99,6 +109,49 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
     }
   };
 
+  // 拖拽事件处理
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    
+    // 限制在视窗范围内
+    const maxX = window.innerWidth - 60; // 按钮宽度约60px
+    const maxY = window.innerHeight - 60; // 按钮高度约60px
+    
+    setPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // 添加全局鼠标事件监听
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset]);
+
   // 获取系统信息
   const getSystemInfo = () => {
     return {
@@ -118,9 +171,19 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
     <>
       {/* 悬浮按钮 */}
       <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-4 left-4 z-50 p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 ${className}`}
-        title="开发调试面板"
+        onClick={(e) => {
+          if (!isDragging) {
+            setIsOpen(true);
+          }
+        }}
+        onMouseDown={handleMouseDown}
+        className={`fixed z-50 p-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ${isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab hover:scale-110'} ${className}`}
+        style={{
+          left: `${position.x}px`,
+          top: `${position.y}px`,
+          userSelect: 'none'
+        }}
+        title="开发调试面板 (可拖拽)"
       >
         <Settings className="w-5 h-5" />
       </button>
