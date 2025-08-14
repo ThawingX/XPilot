@@ -16,6 +16,7 @@ import TwitterDirectCallback from './components/TwitterDirectCallback';
 
 import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
+import EnvSwitcher from './components/EnvSwitcher';
 
 import { apiConfigService } from './lib/apiConfigService';
 
@@ -310,7 +311,8 @@ const AppContent: React.FC = () => {
           <AIAssistant onExpandedChange={setIsAIChatExpanded} />
         </div>
         
-        {/* 开发调试面板 - 仅在开发环境显示 */}
+        {/* 环境切换器 - 仅在开发环境显示 */}
+        <EnvSwitcher />
   
       </LayoutContext.Provider>
     </CopilotKit>
