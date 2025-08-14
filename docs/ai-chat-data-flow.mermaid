@@ -1,0 +1,189 @@
+# AI Chat 数据处理流程图
+
+```mermaid
+flowchart TD
+    %% 用户交互层
+    A[用户输入消息] --> B{选择工具能力?}
+    B -->|@post| C1[Vibe Generation Post]
+    B -->|@thread| C2[Vibe Generation Thread]
+    B -->|@reply| C3[Vibe Auto Reply]
+    B -->|@strategy| C4[Vibe Operation Strategy]
+    B -->|无选择| C5[普通对话]
+    
+    %% 前端数据处理
+    C1 --> D[构建BackendRequest]
+    C2 --> D
+    C3 --> D
+    C4 --> D
+    C5 --> D
+    
+    D --> E[添加用户消息到本地状态]
+    E --> F[设置加载状态]
+    F --> G[获取认证Token]
+    
+    %% 认证检查
+    G --> H{认证有效?}
+    H -->|否| I[显示登录提示]
+    H -->|是| J[发送POST请求到/api/agent]
+    
+    %% 请求结构
+    J --> K[BackendRequest结构]
+    K --> K1[state: 状态数组]
+    K --> K2[tools: 工具数组]
+    K --> K3[context: 上下文数组]
+    K --> K4[forwardedProps: 转发属性]
+    K --> K5[messages: 消息历史]
+    K --> K6[runId: 运行ID]
+    K --> K7[threadId: 线程ID]
+    
+    %% 后端流式响应处理
+    J --> L[接收SSE流式响应]
+    L --> M[TextDecoder解码数据块]
+    M --> N[按行分割查找data:开头]
+    N --> O[解析JSON数据]
+    
+    %% 响应类型处理
+    O --> P{响应类型}
+    P -->|RUN_STARTED| Q1[记录运行开始]
+    P -->|STEP_STARTED| Q2[记录步骤开始]
+    P -->|RAW事件| Q3[处理RAW事件]
+    P -->|直接内容| Q4[向后兼容处理]
+    
+    %% RAW事件细分
+    Q3 --> R{RAW事件类型}
+    R -->|on_chat_model_stream| S1[流式内容输出]
+    R -->|on_chat_model_end| S2[聊天模型流结束]
+    
+    %% 内容累积和显示
+    S1 --> T[累积到assistantContent]
+    Q4 --> T
+    T --> U{首次收到内容?}
+    U -->|是| V[创建助手消息]
+    U -->|否| W[更新现有助手消息]
+    
+    %% 计划生成检测
+    T --> X{检测到计划生成?}
+    X -->|是| Y[更新计划生成缓冲区]
+    X -->|否| Z[正常消息显示]
+    
+    Y --> Y1[创建PlanData对象]
+    Y1 --> Y2[设置状态为generating]
+    Y2 --> Y3[解析Markdown内容]
+    Y3 --> Y4[解析Mermaid图表]
+    
+    %% 计划状态管理
+    S2 --> AA{有计划在生成?}
+    AA -->|是| BB[更新计划状态为ready]
+    AA -->|否| CC[继续正常流程]
+    
+    %% 错误处理和重试
+    J --> DD{请求成功?}
+    DD -->|否| EE{需要重试?}
+    EE -->|是,<5次| FF[显示重试状态]
+    EE -->|否,>=5次| GG[显示错误信息]
+    FF --> HH[延迟后重试]
+    HH --> J
+    
+    %% 最终状态更新
+    V --> II[更新UI显示]
+    W --> II
+    Z --> II
+    BB --> II
+    CC --> II
+    GG --> II
+    
+    II --> JJ[自动滚动到底部]
+    JJ --> KK[等待下一次用户输入]
+    
+    %% 数据类型定义
+    subgraph "数据类型"
+        L1[Message接口]
+        L2[PlanData接口]
+        L3[BackendRequest接口]
+        L4[SSE响应类型]
+    end
+    
+    %% 认证服务
+    subgraph "认证服务"
+        M1[Supabase Auth]
+        M2[JWT Token验证]
+        M3[用户会话管理]
+    end
+    
+    %% API配置
+    subgraph "API配置"
+        N1[apiConfigService]
+        N2[动态环境切换]
+        N3[本地/生产环境]
+    end
+    
+    %% 样式定义
+    classDef userAction fill:#e1f5fe
+    classDef dataProcess fill:#f3e5f5
+    classDef apiCall fill:#e8f5e8
+    classDef errorHandle fill:#ffebee
+    classDef planGen fill:#fff3e0
+    
+    class A,B userAction
+    class D,E,F,T,U,V,W dataProcess
+    class J,L,M,N,O apiCall
+    class DD,EE,FF,GG,HH errorHandle
+    class X,Y,Y1,Y2,Y3,Y4,AA,BB planGen
+```
+
+## 数据流说明
+
+### 1. 用户交互层
+- 用户在聊天界面输入消息
+- 可选择特定工具能力(@post, @thread, @reply, @strategy)
+- 支持普通对话模式
+
+### 2. 前端数据处理
+- 构建符合后端要求的BackendRequest结构
+- 包含消息历史、工具选择、运行ID、线程ID等
+- 添加用户消息到本地状态并设置加载状态
+
+### 3. 认证机制
+- 使用Supabase Auth进行用户认证
+- 获取JWT Token并添加到请求头
+- 认证失败时显示登录提示
+
+### 4. 流式响应处理
+- 发送POST请求到/api/agent接口
+- 接收Server-Sent Events (SSE)流式响应
+- 使用TextDecoder解码数据块
+- 按行解析JSON格式的响应数据
+
+### 5. 响应类型处理
+- **RUN_STARTED**: 记录运行开始信息
+- **STEP_STARTED**: 记录步骤开始信息
+- **RAW事件**: 处理流式内容和模型结束事件
+- **直接内容**: 向后兼容的内容处理
+
+### 6. 内容累积和显示
+- 流式内容累积到assistantContent变量
+- 首次收到内容时创建助手消息
+- 后续内容更新现有助手消息
+- 自动滚动到聊天底部
+
+### 7. 计划生成特殊处理
+- 检测计划生成相关内容
+- 创建PlanData对象管理计划状态
+- 解析Markdown内容和Mermaid图表
+- 支持计划状态流转(generating → ready → confirmed → executing → completed)
+
+### 8. 错误处理和重试机制
+- 支持最多5次重试
+- 网络错误时显示重试状态
+- 认证错误时显示登录提示
+- 解析错误时输出控制台警告
+
+### 9. 状态管理
+- 使用React useState管理本地状态
+- 消息列表、加载状态、错误信息、重试计数
+- 计划生成状态、工具选择状态
+
+### 10. API配置服务
+- 支持开发/生产环境动态切换
+- 本地API(localhost:8000)和生产API配置
+- 统一的API基础URL管理

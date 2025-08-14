@@ -3,6 +3,7 @@ import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wif
 import ReactMarkdown from 'react-markdown';
 import PlanningCard from './PlanningCard';
 import ExecutionStatusCard from './ExecutionStatusCard';
+import PlanGenerationCard from './PlanGenerationCard';
 import { supabase } from '../lib/supabase';
 import { apiConfigService } from '../lib/apiConfigService';
 
@@ -12,6 +13,29 @@ interface Message {
   content: string;
   role: 'user' | 'assistant';
   timestamp?: string;
+  planData?: PlanData;
+}
+
+// 定义计划数据类型
+interface PlanData {
+  id: string;
+  title: string;
+  description?: string;
+  steps: PlanStep[];
+  markdownContent?: string;
+  mermaidDiagram?: string;
+  status: 'generating' | 'ready' | 'confirmed' | 'executing' | 'completed';
+  progress?: number;
+}
+
+interface PlanStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+  estimatedTime?: string;
+  priority?: 'high' | 'medium' | 'low';
+  status?: 'pending' | 'in-progress' | 'completed' | 'blocked';
 }
 
 interface AIAssistantProps {
@@ -62,6 +86,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [threadId, setThreadId] = useState(() => `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [retryCount, setRetryCount] = useState(0);
   const [shouldStopRetry, setShouldStopRetry] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
+  const [planGenerationBuffer, setPlanGenerationBuffer] = useState<string>('');
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -97,6 +123,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     setInputValue('');
     // 清除选中的能力
     setSelectedCapability(null);
+    // 清除计划相关状态
+    setCurrentPlan(null);
+    setPlanGenerationBuffer('');
     // 重新生成threadId，确保新对话有独立的会话ID
     setThreadId(`thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     
@@ -234,6 +263,44 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   
                   assistantContent += content;
                   
+                  // 检测计划生成
+                  const planDetection = detectPlanGeneration(assistantContent);
+                  if (planDetection.isPlanGeneration || planDetection.hasMermaid) {
+                    // 更新计划生成缓冲区
+                    setPlanGenerationBuffer(prev => prev + content);
+                    
+                    // 如果还没有当前计划，创建一个
+                    if (!currentPlan) {
+                      const newPlan: PlanData = {
+                        id: generateId(),
+                        title: '正在生成计划...',
+                        description: '',
+                        steps: [],
+                        status: 'generating',
+                        progress: 0
+                      };
+                      setCurrentPlan(newPlan);
+                    }
+                    
+                    // 尝试解析当前缓冲区内容
+                    try {
+                      const parsedPlan = parsePlanGenerationContent(planGenerationBuffer);
+                      if (parsedPlan.steps.length > 0 || parsedPlan.mermaidDiagram) {
+                        setCurrentPlan(prev => prev ? {
+                          ...prev,
+                          title: parsedPlan.title || prev.title,
+                          description: parsedPlan.description || prev.description,
+                          steps: parsedPlan.steps,
+                          markdownContent: parsedPlan.markdownContent,
+                          mermaidDiagram: parsedPlan.mermaidDiagram,
+                          status: 'generating'
+                        } : null);
+                      }
+                    } catch (e) {
+                      // 解析失败，继续累积内容
+                    }
+                  }
+                  
                   // 第一次收到内容时创建助手消息
                   if (!assistantMessageCreated) {
                     const assistantMessage: Message = {
@@ -256,7 +323,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 }
                 // 处理其他RAW事件类型（如果需要）
                 else if (data.event.event === 'on_chat_model_end') {
-    
+                  // 流式响应结束，如果有计划正在生成，更新状态为ready
+                  if (currentPlan && currentPlan.status === 'generating') {
+                    setCurrentPlan(prev => prev ? {
+                      ...prev,
+                      status: 'ready',
+                      title: prev.title === '正在生成计划...' ? '新计划' : prev.title
+                    } : null);
+                  }
                 }
               } 
               // 处理其他事件类型
@@ -666,6 +740,68 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     return null;
   };
 
+  // 计划操作处理函数
+  const handlePlanConfirm = (planId: string) => {
+    if (currentPlan && currentPlan.id === planId) {
+      setCurrentPlan(prev => prev ? {
+        ...prev,
+        status: 'confirmed'
+      } : null);
+      
+      // 可以在这里添加确认计划的API调用
+      console.log('Plan confirmed:', planId);
+    }
+  };
+
+  const handlePlanExecute = (planId: string) => {
+    if (currentPlan && currentPlan.id === planId) {
+      setCurrentPlan(prev => prev ? {
+        ...prev,
+        status: 'executing',
+        progress: 0
+      } : null);
+      
+      // 可以在这里添加执行计划的API调用
+      console.log('Plan execution started:', planId);
+      
+      // 模拟执行进度（实际应该从后端获取）
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 10;
+        setCurrentPlan(prev => prev ? {
+          ...prev,
+          progress
+        } : null);
+        
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+          setCurrentPlan(prev => prev ? {
+            ...prev,
+            status: 'completed'
+          } : null);
+        }
+      }, 500);
+    }
+  };
+
+  const handlePlanCancel = (planId: string) => {
+    if (currentPlan && currentPlan.id === planId) {
+      setCurrentPlan(null);
+      setPlanGenerationBuffer('');
+      console.log('Plan cancelled:', planId);
+    }
+  };
+
+  const handlePlanEdit = (planId: string, updatedPlan: Partial<PlanData>) => {
+    if (currentPlan && currentPlan.id === planId) {
+      setCurrentPlan(prev => prev ? {
+        ...prev,
+        ...updatedPlan
+      } : null);
+      console.log('Plan edited:', planId, updatedPlan);
+    }
+  };
+
   // 渲染选中的能力标签
   const renderSelectedCapability = () => {
     if (!selectedCapability) return null;
@@ -734,6 +870,97 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         </div>
       </div>
     );
+  };
+
+  // 检测计划生成消息的函数
+  const detectPlanGeneration = (content: string) => {
+    // 检测计划生成的特殊标记
+    const planGenerationMarkers = [
+      'PLAN_START', 'PLAN_GENERATION_START', '开始制定计划',
+      'PLAN_STEP', 'PLAN_ITEM', '计划步骤',
+      'PLAN_END', 'PLAN_GENERATION_END', '计划制定完成',
+      'MERMAID_START', 'DIAGRAM_START', '流程图开始',
+      'MERMAID_END', 'DIAGRAM_END', '流程图结束'
+    ];
+    
+    const hasGenerationMarker = planGenerationMarkers.some(marker => 
+      content.includes(marker)
+    );
+    
+    // 检测是否包含Mermaid图表语法
+    const hasMermaidSyntax = /```mermaid[\s\S]*?```/.test(content) || 
+                            /graph|flowchart|sequenceDiagram|classDiagram/.test(content);
+    
+    return {
+      isPlanGeneration: hasGenerationMarker,
+      hasMermaid: hasMermaidSyntax,
+      content
+    };
+  };
+
+  // 解析计划生成内容
+  const parsePlanGenerationContent = (content: string) => {
+    const lines = content.split('\n');
+    const steps: PlanStep[] = [];
+    let title = '新计划';
+    let description = '';
+    let mermaidDiagram = '';
+    let stepCounter = 1;
+    
+    // 提取标题
+    const titleMatch = content.match(/(?:计划标题|标题|title)[:：]\s*(.+)/i);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    }
+    
+    // 提取描述
+    const descMatch = content.match(/(?:计划描述|描述|description)[:：]\s*(.+)/i);
+    if (descMatch) {
+      description = descMatch[1].trim();
+    }
+    
+    // 提取Mermaid图表
+    const mermaidMatch = content.match(/```mermaid([\s\S]*?)```/);
+    if (mermaidMatch) {
+      mermaidDiagram = mermaidMatch[1].trim();
+    }
+    
+    // 解析步骤
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      
+      // 匹配步骤格式
+      const stepMatch = trimmedLine.match(/^(?:步骤|Step)\s*(\d+)[:：]\s*(.+)/) ||
+                       trimmedLine.match(/^(\d+)[\.\.]\s*(.+)/) ||
+                       trimmedLine.match(/^[-*+]\s*(.+)/);
+      
+      if (stepMatch) {
+        const stepTitle = stepMatch[2] || stepMatch[1];
+        const priorityMatch = stepTitle.match(/\[(高|中|低|high|medium|low)\]/);
+        const timeMatch = stepTitle.match(/\((\d+[小时天周月]?)\)/);
+        
+        steps.push({
+          id: `step-${stepCounter}`,
+          stepNumber: stepCounter,
+          title: stepTitle.replace(/\[(高|中|低|high|medium|low)\]/, '').replace(/\(\d+[小时天周月]?\)/, '').trim(),
+          description: stepTitle,
+          priority: priorityMatch ? 
+            (priorityMatch[1] === '高' || priorityMatch[1] === 'high' ? 'high' :
+             priorityMatch[1] === '中' || priorityMatch[1] === 'medium' ? 'medium' : 'low') : 'medium',
+          estimatedTime: timeMatch ? timeMatch[1] : undefined,
+          status: 'pending'
+        });
+        stepCounter++;
+      }
+    }
+    
+    return {
+      title,
+      description,
+      steps,
+      mermaidDiagram: mermaidDiagram || undefined,
+      markdownContent: content
+    };
   };
 
   // 检测计划内容的函数
@@ -1238,6 +1465,21 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       </div>
                     );
                   })}
+                  
+                  {/* Plan Generation Card */}
+                  {currentPlan && (
+                    <div className="flex justify-start mb-4">
+                      <div className="max-w-[80%]">
+                        <PlanGenerationCard
+                          plan={currentPlan}
+                          onConfirm={handlePlanConfirm}
+                          onExecute={handlePlanExecute}
+                          onCancel={handlePlanCancel}
+                          onEdit={handlePlanEdit}
+                        />
+                      </div>
+                    </div>
+                  )}
                   
                   {/* 独立的加载动画气泡 */}
                   {isLoading && (
