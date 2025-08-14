@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
-import { BarChart3, Users, Heart, MessageSquare, Target, Settings, User } from 'lucide-react';
+import { Home, Eye, MessageCircle, FileText, Lightbulb, Settings, User } from 'lucide-react';
 
 interface SidebarProps {
   onMenuItemClick?: (itemName: string) => void;
@@ -13,19 +12,20 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleItemClick = (itemName: string) => {
+  const handleItemClick = (itemName: string, disabled: boolean) => {
+    if (disabled) return;
     onMenuItemClick?.(itemName);
   };
 
   // 定义菜单项
   const menuItems = [
-    { name: 'Dashboard', icon: BarChart3 },
-    { name: 'Inspiration Accounts', icon: Users },
-    { name: 'Auto Engagement', icon: Heart },
-    { name: 'Get Post/Thread', icon: MessageSquare },
-    { name: 'Marketing Strategy', icon: Target },
-    { name: 'Config', icon: Settings },
-    { name: 'Profile', icon: User },
+    { name: 'Dashboard', icon: Home, disabled: false },
+    { name: 'Inspiration Accounts', icon: Eye, disabled: false },
+    { name: 'Auto Engagement', icon: MessageCircle, disabled: false },
+    { name: 'Get Post/Thread', icon: FileText, disabled: true },
+    { name: 'Marketing Strategy', icon: Lightbulb, disabled: true },
+    { name: 'Config', icon: Settings, disabled: false },
+    { name: 'Profile', icon: User, disabled: false },
   ];
 
   return (
@@ -33,53 +33,43 @@ const Sidebar: React.FC<SidebarProps> = ({
       isExpanded ? 'w-64' : 'w-16'
     }`}>
       <div className={`p-4 ${isExpanded ? 'px-6' : 'px-4'}`}>
-        {isExpanded ? (
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/xpilot-logo-fill-white.jpg" 
-                alt="X Pilot Logo" 
-                className="object-contain w-8 h-8"
-              />
-              {/* <h1 className="text-xl font-bold text-[#4792E6] opacity-90">X-Pilot</h1> */}
-            </div>
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
-              aria-label="Collapse menu"
-            >
-              <X size={20} />
-            </button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center space-y-3">
+        <div className="flex items-center">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+            aria-label={isExpanded ? "Collapse menu" : "Expand menu"}
+          >
             <img 
               src="/xpilot-logo-fill-white.jpg" 
               alt="X Pilot Logo" 
-              className="object-contain w-8 h-8"
+              className="object-contain w-5 h-5"
             />
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 rounded-lg transition-colors hover:bg-gray-100"
-              aria-label="Expand menu"
-            >
-              <Menu size={20} />
-            </button>
-          </div>
-        )}
+          </button>
+        </div>
       </div>
       
       <nav className="px-2">
         {menuItems.map((item) => (
           <button
             key={item.name}
-            onClick={() => handleItemClick(item.name)}
-            className={`w-full flex items-center px-3 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors mb-1 ${
+            onClick={() => handleItemClick(item.name, item.disabled)}
+            disabled={item.disabled}
+            className={`w-full flex items-center px-3 py-3 rounded-lg transition-colors mb-1 ${
               isExpanded ? 'justify-start' : 'justify-center'
-            } ${activeMenuItem === item.name ? 'bg-[#4792E6]/10 text-[#4792E6] border border-[#4792E6]/20' : ''}`}
+            } ${
+              item.disabled 
+                ? 'text-gray-400 cursor-not-allowed opacity-50'
+                : activeMenuItem === item.name 
+                ? 'bg-[#4792E6]/10 text-[#4792E6] border border-[#4792E6]/20'
+                : 'text-gray-700 hover:bg-gray-100'
+            }`}
             title={!isExpanded ? item.name : undefined}
           >
-            <item.icon size={20} className={`${isExpanded ? "mr-3" : ""} ${activeMenuItem === item.name ? 'text-[#4792E6]' : ''}`} />
+            <item.icon size={20} className={`${isExpanded ? "mr-3" : ""} ${
+              item.disabled 
+                ? 'text-gray-400'
+                : activeMenuItem === item.name ? 'text-[#4792E6]' : ''
+            }`} />
             {isExpanded && (
               <span className="font-medium">{item.name}</span>
             )}

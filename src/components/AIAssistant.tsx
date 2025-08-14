@@ -62,10 +62,10 @@ interface BackendRequest {
 
 // Capability selector options
 const CAPABILITY_OPTIONS = [
-  { id: 'post', label: '@post', description: 'Vibe Generation Post' },
-  { id: 'thread', label: '@thread', description: 'Vibe Generation Thread' },
-  { id: 'reply', label: '@reply', description: 'Vibe Auto Reply' },
-  { id: 'strategy', label: '@strategy', description: 'Vibe Operation Strategy' }
+  { id: 'post', label: '@post', description: 'Vibe Generation Post', disabled: true },
+  { id: 'thread', label: '@thread', description: 'Vibe Generation Thread', disabled: true },
+  { id: 'strategy', label: '@strategy', description: 'Vibe Operation Strategy', disabled: true },
+  { id: 'reply', label: '@reply', description: 'Vibe Auto Reply', disabled: false }
 ];
 
 const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
@@ -542,7 +542,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const handleAtButtonClick = () => {
     // 直接显示选择器，不在输入框中添加@符号
     setShowCapabilitySelector(true);
-    setSelectedCapabilityIndex(0);
+    // 找到第一个未禁用的选项
+    const firstEnabledIndex = CAPABILITY_OPTIONS.findIndex(option => !option.disabled);
+    setSelectedCapabilityIndex(firstEnabledIndex !== -1 ? firstEnabledIndex : 0);
     setSelectorPosition({ top: -280, left: 0 });
     
     // Focus the textarea
@@ -577,7 +579,9 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         // Show selector when @ is present and no space/newline after it
         
         setShowCapabilitySelector(true);
-        setSelectedCapabilityIndex(0);
+        // 找到第一个未禁用的选项
+        const firstEnabledIndex = CAPABILITY_OPTIONS.findIndex(option => !option.disabled);
+        setSelectedCapabilityIndex(firstEnabledIndex !== -1 ? firstEnabledIndex : 0);
         setAtTriggerPosition(lastAtIndex);
         
         // Simple positioning - show above input
@@ -602,6 +606,11 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // Handle capability selection
   const handleCapabilitySelect = (capability: typeof CAPABILITY_OPTIONS[0]) => {
+    // 如果选项被禁用，则不执行任何操作
+    if (capability.disabled) {
+      return;
+    }
+    
     // 设置选中的能力，显示在输入框上方
     setSelectedCapability(capability);
     
@@ -750,15 +759,23 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedCapabilityIndex(prev => 
-            prev > 0 ? prev - 1 : CAPABILITY_OPTIONS.length - 1
-          );
+          setSelectedCapabilityIndex(prev => {
+            let newIndex = prev;
+            do {
+              newIndex = newIndex > 0 ? newIndex - 1 : CAPABILITY_OPTIONS.length - 1;
+            } while (CAPABILITY_OPTIONS[newIndex].disabled && newIndex !== prev);
+            return newIndex;
+          });
           return;
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedCapabilityIndex(prev => 
-            prev < CAPABILITY_OPTIONS.length - 1 ? prev + 1 : 0
-          );
+          setSelectedCapabilityIndex(prev => {
+            let newIndex = prev;
+            do {
+              newIndex = newIndex < CAPABILITY_OPTIONS.length - 1 ? newIndex + 1 : 0;
+            } while (CAPABILITY_OPTIONS[newIndex].disabled && newIndex !== prev);
+            return newIndex;
+          });
           return;
         case 'Enter':
           e.preventDefault();
@@ -924,21 +941,28 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
           <button
             key={option.id}
             onClick={() => handleCapabilitySelect(option)}
+            disabled={option.disabled}
             className={`flex items-center justify-between px-4 py-3 w-full text-left transition-all duration-150 ${
-              index === selectedCapabilityIndex
+              option.disabled
+                ? 'opacity-50 cursor-not-allowed bg-gray-50'
+                : index === selectedCapabilityIndex
                 ? 'bg-blue-50 border-l-2 border-[#4792E6]'
                 : 'hover:bg-gray-50'
             }`}
           >
             <div className="flex items-center space-x-3">
               <span className={`font-medium ${
-                index === selectedCapabilityIndex ? 'text-[#4792E6]' : 'text-[#4792E6]'
+                option.disabled
+                  ? 'text-gray-400'
+                  : index === selectedCapabilityIndex ? 'text-[#4792E6]' : 'text-[#4792E6]'
               }`}>
                 {option.label}
               </span>
-              <span className="text-sm text-gray-600">{option.description}</span>
+              <span className={`text-sm ${
+                option.disabled ? 'text-gray-400' : 'text-gray-600'
+              }`}>{option.description}</span>
             </div>
-            {index === selectedCapabilityIndex && (
+            {index === selectedCapabilityIndex && !option.disabled && (
               <div className="flex items-center space-x-1 text-xs text-gray-400">
                 <span>↵</span>
               </div>
