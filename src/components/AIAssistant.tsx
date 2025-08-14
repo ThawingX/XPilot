@@ -1,8 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import PlanningCard from './PlanningCard';
-import ExecutionStatusCard from './ExecutionStatusCard';
 import PlanGenerationCard from './PlanGenerationCard';
 import SimplePlanCard from './SimplePlanCard';
 import ExecutionStepsCard from './ExecutionStepsCard';
@@ -99,44 +97,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     onExpandedChange?.(isExpanded);
   }, [isExpanded, onExpandedChange]);
 
-  // 使用 useLangGraphInterrupt 处理 APPROVE interrupt
-  useLangGraphInterrupt({
-    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'APPROVE',
-    render: ({ event, resolve }) => (
-      <div className="flex items-center justify-center p-4 bg-green-50 border border-green-200 rounded-lg">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-green-800 mb-2">执行计划确认</h3>
-          <p className="text-green-600 mb-4">是否确认执行此计划？</p>
-          <div className="flex space-x-3 justify-center">
-            <button 
-              onClick={() => resolve('APPROVE')}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-            >
-              确认执行
-            </button>
-            <button 
-              onClick={() => resolve('CANCEL')}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-            >
-              取消
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  });
-
-  // 使用 useLangGraphInterrupt 处理 CANCEL interrupt
-  useLangGraphInterrupt({
-    enabled: ({ eventValue }) => eventValue.type === 'approval' && eventValue.code === 'CANCEL',
-    render: ({ event, resolve }) => {
-      // 清除本地状态
-      setSimplePlan(null);
-      // 自动解析为 CANCEL
-      resolve('CANCEL');
-      return null;
-    }
-  });
+  // SimplePlanCard 组件负责处理 interrupt，这里不再重复处理
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);

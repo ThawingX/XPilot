@@ -300,7 +300,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-[#4792E6] text-white font-medium rounded-lg hover:bg-[#3a7bc8] focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play size={16} />
-                <span>Execute Plan</span>
+                <span>Execute</span>
               </button>
             )}
             
