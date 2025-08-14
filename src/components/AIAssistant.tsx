@@ -5,6 +5,7 @@ import PlanningCard from './PlanningCard';
 import ExecutionStatusCard from './ExecutionStatusCard';
 import PlanGenerationCard from './PlanGenerationCard';
 import SimplePlanCard from './SimplePlanCard';
+import ExecutionStepsCard from './ExecutionStepsCard';
 import { supabase } from '../lib/supabase';
 import { apiConfigService } from '../lib/apiConfigService';
 import { useCopilotAction } from '@copilotkit/react-core';
@@ -85,7 +86,13 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [shouldStopRetry, setShouldStopRetry] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
   const [planGenerationBuffer, setPlanGenerationBuffer] = useState<string>('');
-  const [simplePlan, setSimplePlan] = useState<{ steps: string[] } | null>(null);  
+  const [simplePlan, setSimplePlan] = useState<{ steps: string[] } | null>(null);
+  const [executionSteps, setExecutionSteps] = useState<Array<{
+    step: string;
+    status: 'pending' | 'running' | 'completed' | 'failed';
+    description: string;
+    details?: string;
+  }> | null>(null);  
   
   // Notify parent component when expanded state changes
   useEffect(() => {
@@ -153,6 +160,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     setCurrentPlan(null);
     setPlanGenerationBuffer('');
     setSimplePlan(null);
+    setExecutionSteps(null);
     // 重新生成threadId，确保新对话有独立的会话ID
     setThreadId(`thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     
@@ -286,7 +294,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       if (currentRetryCount > 0 && currentAssistantMessageId) {
         setMessages(prev => prev.map(msg => 
           msg.id === currentAssistantMessageId 
-            ? { ...msg, content: `网络重试中 (${currentRetryCount}/5)...` }
+            ? { ...msg, content: `Network retrying (${currentRetryCount}/5)...` }
             : msg
         ));
       }
@@ -403,6 +411,15 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 setCurrentPlan(null);
                 setPlanGenerationBuffer('');
               }
+              // 处理 CUSTOM 类型的执行步骤消息
+              else if (data.type === 'CUSTOM' && data.value && data.value.reply_steps) {
+                // 设置执行步骤数据
+                setExecutionSteps(data.value.reply_steps);
+                // 清除其他计划状态
+                setSimplePlan(null);
+                setCurrentPlan(null);
+                setPlanGenerationBuffer('');
+              }
               // 处理直接的 content 字段（向后兼容）
               else if (data.content) {
                 assistantContent += data.content;
@@ -465,7 +482,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         if (!currentAssistantMessageId) {
           const assistantMessage: Message = {
             id: generateId(),
-            content: `网络重试中 (${currentRetryCount + 1}/5)...`,
+            content: `Network retrying (${currentRetryCount + 1}/5)...`,
             role: 'assistant',
             timestamp: new Date().toISOString()
           };
@@ -475,7 +492,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
           // 更新助手消息显示重试状态
           setMessages(prev => prev.map(msg => 
             msg.id === currentAssistantMessageId 
-              ? { ...msg, content: `网络重试中 (${currentRetryCount + 1}/5)...` }
+              ? { ...msg, content: `Network retrying (${currentRetryCount + 1}/5)...` }
               : msg
           ));
         }
@@ -495,7 +512,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
         // 如果还没有助手消息，创建一个显示网络异常的消息
         const assistantMessage: Message = {
           id: generateId(),
-          content: '网络异常，请重试！',
+          content: 'Network error, please retry!',
           role: 'assistant',
           timestamp: new Date().toISOString()
         };
@@ -503,7 +520,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       } else {
         setMessages(prev => prev.map(msg => 
           msg.id === currentAssistantMessageId 
-            ? { ...msg, content: '网络异常，请重试！' }
+            ? { ...msg, content: 'Network error, please retry!' }
             : msg
         ));
       }
@@ -1153,8 +1170,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const renderMessageContent = (content: string, role: 'user' | 'assistant') => {
     if (role === 'assistant') {
       // 检查是否是网络异常消息或重试消息，这些不在气泡中显示
-      const isNetworkError = content.includes('网络异常');
-      const isRetrying = content.includes('网络重试中');
+    const isNetworkError = content.includes('Network error');
+    const isRetrying = content.includes('Network retrying');
       
       // 如果是状态消息，返回null，这些消息将单独显示
       if (isNetworkError || isRetrying) {
@@ -1297,8 +1314,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // 渲染状态消息（网络重试和错误）
   const renderStatusMessage = (content: string) => {
-    const isNetworkError = content.includes('网络异常');
-    const isRetrying = content.includes('网络重试中');
+    const isNetworkError = content.includes('Network error');
+    const isRetrying = content.includes('Network retrying');
     
     if (isNetworkError) {
       return (
@@ -1463,8 +1480,8 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                 {/* Messages */}
                 <div className="overflow-y-auto flex-1 p-4 space-y-2 min-h-0">
                   {messages.map((message, index) => {
-                    const isNetworkError = message.content.includes('网络异常');
-                    const isRetrying = message.content.includes('网络重试中');
+                    const isNetworkError = message.content.includes('Network error');
+    const isRetrying = message.content.includes('Network retrying');
                     
                     // 如果是状态消息，单独显示
                     if (isNetworkError || isRetrying) {
@@ -1473,6 +1490,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                           {renderStatusMessage(message.content)}
                         </div>
                       );
+                    }
+                    
+                    // 检查消息内容是否应该显示
+                    const messageContent = renderMessageContent(message.content, message.role);
+                    
+                    // 如果消息内容为null（比如网络状态消息），不渲染消息气泡
+                    if (messageContent === null) {
+                      return null;
                     }
                     
                     // 正常消息气泡
@@ -1510,7 +1535,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                                   : 'bg-white text-black border border-gray-200 rounded-tl-sm'
                               }`}
                             >
-                              {renderMessageContent(message.content, message.role)}
+                              {messageContent}
                             </div>
                             
                             {/* 用户消息的复制按钮 - 放在消息气泡下方 */}
@@ -1557,6 +1582,18 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                             await sendInterruptMessage({ code: 'CANCEL' });
                             setSimplePlan(null);
                           }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Execution Steps Card */}
+                  {executionSteps && (
+                    <div className="flex justify-start mb-4">
+                      <div className="max-w-[80%]">
+                        <ExecutionStepsCard
+                          steps={executionSteps}
+                          title="Execution Progress"
                         />
                       </div>
                     </div>

@@ -76,21 +76,21 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'running': return '执行中';
-      case 'completed': return '已完成';
-      case 'failed': return '执行失败';
-      case 'paused': return '已暂停';
-      default: return '等待中';
+      case 'running': return 'Running';
+      case 'completed': return 'Completed';
+      case 'failed': return 'Failed';
+      case 'paused': return 'Paused';
+      default: return 'Pending';
     }
   };
 
   const getStepStatusText = (status: string) => {
     switch (status) {
-      case 'completed': return '已完成';
-      case 'in-progress': return '执行中';
-      case 'blocked': return '已阻塞';
-      case 'skipped': return '已跳过';
-      default: return '等待中';
+      case 'completed': return 'Completed';
+      case 'in-progress': return 'In Progress';
+      case 'blocked': return 'Blocked';
+      case 'skipped': return 'Skipped';
+      default: return 'Pending';
     }
   };
 
@@ -98,35 +98,35 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
   const totalSteps = steps.length;
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 ${className}`}>
+    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm transition-all duration-200 hover:shadow-md ${className}`}>
       {/* Header */}
       <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center mb-2 space-x-2">
               <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
-              <span className={`inline-flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(overallStatus)}`}>
+              <span className={`inline-flex items-center px-3 py-1 space-x-1 text-sm font-medium rounded-full border ${getStatusColor(overallStatus)}`}>
                 {getOverallStatusIcon(overallStatus)}
                 <span>{getStatusText(overallStatus)}</span>
               </span>
             </div>
             {description && (
-              <p className="text-sm text-gray-600 mb-4">{description}</p>
+              <p className="mb-4 text-sm text-gray-600">{description}</p>
             )}
             
             {/* Progress Bar */}
             <div className="mb-4">
-              <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                <span>执行进度</span>
-                <span>{completedSteps}/{totalSteps} 步骤完成</span>
+              <div className="flex justify-between items-center mb-2 text-sm text-gray-600">
+                <span>Execution Progress</span>
+                <span>{completedSteps}/{totalSteps} steps completed</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full h-3 bg-gray-200 rounded-full">
                 <div 
                   className="bg-[#4792E6] h-3 rounded-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
-              <div className="text-right text-xs text-gray-500 mt-1">
+              <div className="mt-1 text-xs text-right text-gray-500">
                 {Math.round(progress)}%
               </div>
             </div>
@@ -136,13 +136,13 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
               {startTime && (
                 <div className="flex items-center space-x-1">
                   <Calendar size={12} />
-                  <span>开始时间 {startTime}</span>
+                  <span>Start time {startTime}</span>
                 </div>
               )}
               {endTime && (
                 <div className="flex items-center space-x-1">
                   <Target size={12} />
-                  <span>结束时间 {endTime}</span>
+                  <span>End time {endTime}</span>
                 </div>
               )}
             </div>
@@ -175,7 +175,7 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
                   : 'bg-gray-50 border-gray-200'
               }`}>
                 {/* Step Number & Status Icon */}
-                <div className="flex-shrink-0 flex flex-col items-center space-y-2">
+                <div className="flex flex-col flex-shrink-0 items-center space-y-2">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
                     step.status === 'completed' ? 'bg-green-600 text-white' :
                     step.status === 'in-progress' ? 'bg-blue-600 text-white' :
@@ -189,18 +189,18 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
                 </div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between">
+                  <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="text-base font-medium text-gray-900 mb-2">
+                      <h4 className="mb-2 text-base font-medium text-gray-900">
                         {step.title}
                       </h4>
-                      <p className="text-sm text-gray-600 mb-3">
+                      <p className="mb-3 text-sm text-gray-600">
                         {step.description}
                       </p>
                       
                       {/* Error Message */}
                       {step.errorMessage && step.status === 'blocked' && (
-                        <div className="mb-3 p-2 bg-red-100 border border-red-200 rounded-md">
+                        <div className="p-2 mb-3 bg-red-100 rounded-md border border-red-200">
                           <p className="text-xs text-red-700">{step.errorMessage}</p>
                         </div>
                       )}
@@ -210,26 +210,26 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
                         {step.startTime && (
                           <div className="flex items-center space-x-1">
                             <Calendar size={10} />
-                            <span>开始 {step.startTime}</span>
+                            <span>Start {step.startTime}</span>
                           </div>
                         )}
                         {step.endTime && (
                           <div className="flex items-center space-x-1">
                             <Target size={10} />
-                            <span>结束 {step.endTime}</span>
+                            <span>End {step.endTime}</span>
                           </div>
                         )}
                         {step.duration && (
                           <div className="flex items-center space-x-1">
                             <Clock size={10} />
-                            <span>耗时 {step.duration}</span>
+                            <span>Duration {step.duration}</span>
                           </div>
                         )}
                       </div>
                     </div>
                     
                     {/* Status Badge */}
-                    <div className="flex items-center space-x-2 ml-3">
+                    <div className="flex items-center ml-3 space-x-2">
                       <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${getStepStatusColor(step.status)}`}>
                         {getStepStatusText(step.status)}
                       </span>
@@ -242,9 +242,9 @@ const ExecutionStatusCard: React.FC<ExecutionStatusCardProps> = ({
         </div>
         
         {steps.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="py-8 text-center text-gray-500">
             <TrendingUp size={24} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">暂无执行步骤</p>
+            <p className="text-sm">No execution steps</p>
           </div>
         )}
       </div>

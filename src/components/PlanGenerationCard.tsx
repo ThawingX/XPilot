@@ -93,7 +93,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
               <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
               <span className={`inline-flex items-center px-2 py-1 space-x-1 text-xs font-medium rounded-full border ${getStatusColor(status)}`}>
                 {getStatusIcon(status)}
-                <span className="capitalize">{status === 'generating' ? '生成中' : status === 'ready' ? '待确认' : status === 'confirmed' ? '已确认' : status === 'executing' ? '执行中' : '已完成'}</span>
+                <span className="capitalize">{status === 'generating' ? 'Generating' : status === 'ready' ? 'Ready' : status === 'confirmed' ? 'Confirmed' : status === 'executing' ? 'Executing' : 'Completed'}</span>
               </span>
             </div>
             {description && (
@@ -104,7 +104,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
             {status === 'executing' && (
               <div className="mb-4">
                 <div className="flex justify-between items-center mb-1 text-xs text-gray-500">
-                  <span>执行进度</span>
+                  <span>Execution Progress</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="w-full h-2 bg-gray-200 rounded-full">
@@ -120,11 +120,11 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
             <div className="flex items-center space-x-4 text-xs text-gray-500">
               <div className="flex items-center space-x-1">
                 <Calendar size={12} />
-                <span>创建于 {new Date().toLocaleString()}</span>
+                <span>Created at {new Date().toLocaleString()}</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Target size={12} />
-                <span>{steps.length} 个步骤</span>
+                <span>{steps.length} steps</span>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                   : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              概览
+              Overview
             </button>
             {markdownContent && (
               <button
@@ -162,7 +162,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                 }`}
               >
                 <FileText size={14} className="inline mr-1" />
-                详细内容
+                Details
               </button>
             )}
             {mermaidDiagram && (
@@ -175,7 +175,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                 }`}
               >
                 <TrendingUp size={14} className="inline mr-1" />
-                流程图
+                Diagram
               </button>
             )}
           </div>
@@ -237,8 +237,8 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                         
                         {step.priority && (
                           <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(step.priority)}`}>
-                            {step.priority === 'high' ? '高优先级' : 
-                             step.priority === 'medium' ? '中优先级' : '低优先级'}
+                            {step.priority === 'high' ? 'High Priority' : 
+                             step.priority === 'medium' ? 'Medium Priority' : 'Low Priority'}
                           </span>
                         )}
                       </div>
@@ -250,7 +250,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
               {steps.length === 0 && status === 'generating' && (
                 <div className="py-8 text-center text-gray-500">
                   <Clock size={24} className="mx-auto mb-2 opacity-50 animate-spin" />
-                  <p className="text-sm">正在生成计划步骤...</p>
+                  <p className="text-sm">Generating plan steps...</p>
                 </div>
               )}
             </div>
@@ -280,7 +280,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                   onClick={onCancelPlan}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-lg border border-gray-300 transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
                 >
-                  取消
+                  Cancel
                 </button>
                 <button
                   onClick={onConfirmPlan}
@@ -288,7 +288,7 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                   className="inline-flex items-center space-x-2 px-4 py-2 bg-[#4792E6] text-white font-medium rounded-lg hover:bg-[#3a7bc8] focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <CheckCircle size={16} />
-                  <span>确认计划</span>
+                  <span>Confirm Plan</span>
                 </button>
               </>
             )}
@@ -300,13 +300,13 @@ const PlanGenerationCard: React.FC<PlanGenerationCardProps> = ({
                 className="inline-flex items-center space-x-2 px-4 py-2 bg-[#4792E6] text-white font-medium rounded-lg hover:bg-[#3a7bc8] focus:outline-none focus:ring-2 focus:ring-[#4792E6] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Play size={16} />
-                <span>执行计划</span>
+                <span>Execute Plan</span>
               </button>
             )}
             
             {(status === 'executing' || status === 'completed') && (
               <div className="text-sm text-gray-500">
-                {status === 'executing' ? '计划执行中...' : '计划已完成'}
+                {status === 'executing' ? 'Plan executing...' : 'Plan completed'}
               </div>
             )}
           </div>
