@@ -17,6 +17,7 @@ import TwitterDirectCallback from './components/TwitterDirectCallback';
 import { Card, InspirationAccount, Post } from './types/index';
 import AIAssistant from './components/AIAssistant';
 import DevDebugPanel from './components/DevDebugPanel';
+import { apiConfigService } from './lib/apiConfigService';
 
 // 定义MarketingStrategy类型
 export interface MarketingStrategy {
@@ -63,6 +64,7 @@ const AppContent: React.FC = () => {
   const [profileInitialSection, setProfileInitialSection] = useState<string>('overview');
   const [isAIChatExpanded, setIsAIChatExpanded] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [apiBaseUrl, setApiBaseUrl] = useState<string>(apiConfigService.getApiBaseUrl());
 
   useEffect(() => {
     const handleResize = () => {
@@ -72,12 +74,6 @@ const AppContent: React.FC = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Calculate available space for intelligent layout
-  const sidebarWidth = 256; // w-64 = 16rem = 256px
-  const aiChatWidth = isAIChatExpanded ? Math.min(Math.max(windowWidth * 0.55, 600), 800) : 320; // Expanded: 55vw (min 600px, max 800px), Normal: 320px
-  const remainingWidth = windowWidth - sidebarWidth - aiChatWidth;
-  const canShowBothPanels = remainingWidth >= 800; // Need at least 800px for both panels
 
   // 处理 URL 参数和路由持久化
   useEffect(() => {
@@ -108,6 +104,25 @@ const AppContent: React.FC = () => {
       localStorage.setItem('profileSection', profileInitialSection);
     }
   }, [activeMenuItem, profileInitialSection]);
+
+  // 监听 API 配置变更
+  useEffect(() => {
+    const handleApiUrlChange = (newUrl: string) => {
+      setApiBaseUrl(newUrl);
+    };
+    
+    apiConfigService.addListener(handleApiUrlChange);
+    
+    return () => {
+      apiConfigService.removeListener(handleApiUrlChange);
+    };
+  }, []);
+
+  // Calculate available space for intelligent layout
+  const sidebarWidth = 256; // w-64 = 16rem = 256px
+  const aiChatWidth = isAIChatExpanded ? Math.min(Math.max(windowWidth * 0.55, 600), 800) : 320; // Expanded: 55vw (min 600px, max 800px), Normal: 320px
+  const remainingWidth = windowWidth - sidebarWidth - aiChatWidth;
+  const canShowBothPanels = remainingWidth >= 800; // Need at least 800px for both panels
 
   // 显示加载状态
   if (loading) {
@@ -226,8 +241,6 @@ const AppContent: React.FC = () => {
   const showConfig = activeMenuItem === 'Config';
   const showProfile = activeMenuItem === 'Profile';
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-
   return (
     <CopilotKit runtimeUrl={`${apiBaseUrl}/api/agent`}>
       <LayoutContext.Provider value={{ isAIChatExpanded, setIsAIChatExpanded }}>
@@ -279,18 +292,18 @@ const AppContent: React.FC = () => {
             </div>
             
             {/* Results Area - only show when not Dashboard and not Profile and when there's enough space */}
-            {!showDashboard && !showProfile && canShowBothPanels && (
-              <div className="overflow-hidden flex-1 min-w-0">
-                <ResultsArea 
-                  selectedCard={selectedCard} 
-                  selectedAccount={selectedAccount} 
-                  selectedConfigItem={selectedConfigItem}
-                  selectedPostId={selectedPostId}
-                  selectedPost={selectedPost}
-                  selectedStrategy={selectedStrategy}
-                />
-              </div>
-            )}
+            <div className={`overflow-hidden flex-1 min-w-0 ${
+              !showDashboard && !showProfile && canShowBothPanels ? 'block' : 'hidden'
+            }`}>
+              <ResultsArea 
+                selectedCard={selectedCard} 
+                selectedAccount={selectedAccount} 
+                selectedConfigItem={selectedConfigItem}
+                selectedPostId={selectedPostId}
+                selectedPost={selectedPost}
+                selectedStrategy={selectedStrategy}
+              />
+            </div>
           </div>
           
           {/* Vibe X Operation - Right Sidebar */}

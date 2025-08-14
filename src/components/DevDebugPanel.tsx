@@ -16,6 +16,14 @@ interface DevDebugPanelProps {
 }
 
 const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
+  // 只在开发环境显示
+  const isDevelopment = import.meta.env.DEV;
+  
+  // 如果不是开发环境，不渲染组件
+  if (!isDevelopment) {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'api' | 'env' | 'config'>('api');
   const [useLocalAPI, setUseLocalAPI] = useState(false);
@@ -23,11 +31,7 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
   const [environmentInfo, setEnvironmentInfo] = useState<EnvironmentInfo>({} as EnvironmentInfo);
   const [currentApiUrl, setCurrentApiUrl] = useState('');
 
-  // 只在开发环境显示
-  const isDevelopment = import.meta.env.DEV;
-
   useEffect(() => {
-    if (!isDevelopment) return;
 
     // 获取环境变量信息
     const envInfo: EnvironmentInfo = {
@@ -109,11 +113,6 @@ const DevDebugPanel: React.FC<DevDebugPanelProps> = ({ className = '' }) => {
       'Local Time': new Date().toLocaleString(),
     };
   };
-
-  // 如果不是开发环境，不渲染组件
-  if (!isDevelopment) {
-    return null;
-  }
 
   return (
     <>

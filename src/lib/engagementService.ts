@@ -95,7 +95,9 @@ class EngagementService {
       const searchParams = new URLSearchParams();
       
       if (params?.type) {
-        searchParams.append('type', params.type);
+        // API使用interaction_type参数，并且reply对应autoReply
+        const interactionType = params.type === 'reply' ? 'autoReply' : 'autoRepost';
+        searchParams.append('interaction_type', interactionType);
       }
       if (params?.page_num) {
         searchParams.append('page_num', params.page_num.toString());
@@ -106,18 +108,21 @@ class EngagementService {
 
       const url = `${this.baseUrl}/api/engagements${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
       
+      // 直接调用API接口
       const response = await fetch(url, {
         method: 'GET',
         headers
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch engagements: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      console.log('API Response:', data);
+      return data;
     } catch (error) {
-
+      console.error('Error in getEngagements:', error);
       throw error;
     }
   }
@@ -127,19 +132,23 @@ class EngagementService {
     try {
       const headers = await this.getAuthHeaders();
       
-      const response = await fetch(`${this.baseUrl}/api/engagements/reply`, {
+      const url = `${this.baseUrl}/api/engagements/reply`;
+      
+      // 直接调用API接口
+      const response = await fetch(url, {
         method: 'POST',
         headers,
         body: JSON.stringify(request)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to post reply: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
-
+      console.error('Error in postReply:', error);
       throw error;
     }
   }
@@ -149,19 +158,23 @@ class EngagementService {
     try {
       const headers = await this.getAuthHeaders();
       
-      const response = await fetch(`${this.baseUrl}/api/engagements/reply`, {
+      const url = `${this.baseUrl}/api/engagements/reply`;
+      
+      // 直接调用API接口
+      const response = await fetch(url, {
         method: 'DELETE',
         headers,
         body: JSON.stringify(request)
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to reject reply: ${response.status} ${response.statusText}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return response.json();
+      const data = await response.json();
+      return data;
     } catch (error) {
-
+      console.error('Error in rejectReply:', error);
       throw error;
     }
   }

@@ -7,6 +7,7 @@
   ],
   "env": {
     "VITE_APP_URL": "https://x-pilot.vercel.app",
+    "VITE_API_BASE_URL": "https://pilotapi.producthot.top",
     "VITE_SUPABASE_URL": "https://amugncveoxslbbxpyiar.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFtdWduY3Zlb3hzbGJieHB5aWFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI3Mjk2MDgsImV4cCI6MjA2ODMwNTYwOH0.OWj4yXXkhg2nCDmmCxuCDsnd0iY2osvJbzcJvoO5sho"
   }

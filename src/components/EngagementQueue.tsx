@@ -276,28 +276,30 @@ const EngagementQueue: React.FC<EngagementQueueProps> = ({
 
   // Load accounts when component mounts or tab changes
   useEffect(() => {
-    if (showInspirationAccounts) {
-      // 清除已请求类型标记
-      requestedTypesRef.current.clear();
-      
-      // 清除延迟加载定时器
-      if (delayedOutreachTimerRef.current) {
-        clearTimeout(delayedOutreachTimerRef.current);
-        delayedOutreachTimerRef.current = null;
-      }
-      
-      // 确保只传递有效的账号类型参数
-      const validAccountType = (activeTab === 'starred' || activeTab === 'outreach') 
-        ? activeTab 
-        : 'starred'; // 默认使用starred作为备选
-      
-      // 只加载当前活动标签的数据
-      if (validAccountType === 'starred') {
-        fetchInspirationAccounts('starred');
-        // 移除自动延迟加载outreach数据的逻辑
-      } else if (validAccountType === 'outreach') {
-        fetchInspirationAccounts('outreach');
-      }
+    if (!showInspirationAccounts) {
+      return;
+    }
+    
+    // 清除已请求类型标记
+    requestedTypesRef.current.clear();
+    
+    // 清除延迟加载定时器
+    if (delayedOutreachTimerRef.current) {
+      clearTimeout(delayedOutreachTimerRef.current);
+      delayedOutreachTimerRef.current = null;
+    }
+    
+    // 确保只传递有效的账号类型参数
+    const validAccountType = (activeTab === 'starred' || activeTab === 'outreach') 
+      ? activeTab 
+      : 'starred'; // 默认使用starred作为备选
+    
+    // 只加载当前活动标签的数据
+    if (validAccountType === 'starred') {
+      fetchInspirationAccounts('starred');
+      // 移除自动延迟加载outreach数据的逻辑
+    } else if (validAccountType === 'outreach') {
+      fetchInspirationAccounts('outreach');
     }
   }, [showInspirationAccounts, activeTab]);
 

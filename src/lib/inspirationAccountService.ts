@@ -40,8 +40,8 @@ class InspirationAccountService {
   private baseUrl: string;
 
   constructor() {
-    // 使用环境变量或默认的本地开发地址
-    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    // 使用环境变量或默认的生产地址
+    this.baseUrl = import.meta.env.VITE_API_BASE_URL || 'https://pilotapi.producthot.top';
   }
 
   // 获取认证头
