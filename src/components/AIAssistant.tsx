@@ -4,8 +4,10 @@ import ReactMarkdown from 'react-markdown';
 import PlanningCard from './PlanningCard';
 import ExecutionStatusCard from './ExecutionStatusCard';
 import PlanGenerationCard from './PlanGenerationCard';
+import SimplePlanCard from './SimplePlanCard';
 import { supabase } from '../lib/supabase';
 import { apiConfigService } from '../lib/apiConfigService';
+import { useCopilotAction } from '@copilotkit/react-core';
 
 // 定义消息类型
 interface Message {
@@ -82,12 +84,36 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const [retryCount, setRetryCount] = useState(0);
   const [shouldStopRetry, setShouldStopRetry] = useState(false);
   const [currentPlan, setCurrentPlan] = useState<PlanData | null>(null);
-  const [planGenerationBuffer, setPlanGenerationBuffer] = useState<string>('');  
+  const [planGenerationBuffer, setPlanGenerationBuffer] = useState<string>('');
+  const [simplePlan, setSimplePlan] = useState<{ steps: string[] } | null>(null);  
   
   // Notify parent component when expanded state changes
   useEffect(() => {
     onExpandedChange?.(isExpanded);
   }, [isExpanded, onExpandedChange]);
+
+  // 使用 CopilotKit 的 interrupt 功能处理执行计划
+  useCopilotAction({
+    name: 'executePlan',
+    description: 'Execute the plan by sending APPROVE code',
+    handler: async () => {
+      // 发送 interrupt 消息给后端
+      await sendInterruptMessage({ code: 'APPROVE' });
+      return { success: true, message: 'Plan execution approved' };
+    }
+  });
+
+  // 使用 CopilotKit 的 interrupt 功能处理取消计划
+  useCopilotAction({
+    name: 'cancelPlan',
+    description: 'Cancel the plan by sending CANCEL code',
+    handler: async () => {
+      // 发送 interrupt 消息给后端
+      await sendInterruptMessage({ code: 'CANCEL' });
+      setSimplePlan(null);
+      return { success: true, message: 'Plan cancelled' };
+    }
+  });
   
   const containerRef = useRef<HTMLDivElement>(null);
   const selectorRef = useRef<HTMLDivElement>(null);
@@ -126,6 +152,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
     // 清除计划相关状态
     setCurrentPlan(null);
     setPlanGenerationBuffer('');
+    setSimplePlan(null);
     // 重新生成threadId，确保新对话有独立的会话ID
     setThreadId(`thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
     
@@ -143,6 +170,34 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       scrollToBottom();
     }
   }, [messages]);
+
+  // 发送 interrupt 消息到后端
+  const sendInterruptMessage = async (interruptData: { code: string }) => {
+    try {
+      const headers = await getAuthHeaders();
+      const apiBaseUrl = apiConfigService.getApiBaseUrl();
+      
+      const response = await fetch(`${apiBaseUrl}/api/agent/interrupt`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          threadId: threadId,
+          interrupt: interruptData
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Interrupt sent successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('Failed to send interrupt:', error);
+      throw error;
+    }
+  };
 
   // 发送消息到后端（带重试机制）
   const sendMessageToBackend = async (message: string, currentRetryCount = 0, assistantMessageId?: string, capability?: typeof CAPABILITY_OPTIONS[0] | null): Promise<boolean> => {
@@ -339,6 +394,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
               }
               else if (data.type === 'RUN_STARTED') {
   
+              }
+              // 处理 check_steps 类型的 interrupt 消息
+              else if (data.type === 'check_steps' && data.content && Array.isArray(data.content)) {
+                // 设置简化计划数据
+                setSimplePlan({ steps: data.content });
+                // 清除当前复杂计划
+                setCurrentPlan(null);
+                setPlanGenerationBuffer('');
               }
               // 处理直接的 content 字段（向后兼容）
               else if (data.content) {
@@ -1476,6 +1539,24 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                           onExecute={handlePlanExecute}
                           onCancel={handlePlanCancel}
                           onEdit={handlePlanEdit}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Simple Plan Card */}
+                  {simplePlan && (
+                    <div className="flex justify-start mb-4">
+                      <div className="max-w-[80%]">
+                        <SimplePlanCard
+                          steps={simplePlan.steps}
+                          onExecute={async () => {
+                            await sendInterruptMessage({ code: 'APPROVE' });
+                          }}
+                          onCancel={async () => {
+                            await sendInterruptMessage({ code: 'CANCEL' });
+                            setSimplePlan(null);
+                          }}
                         />
                       </div>
                     </div>
