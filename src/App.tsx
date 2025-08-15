@@ -243,7 +243,10 @@ const AppContent: React.FC = () => {
   const showProfile = activeMenuItem === 'Profile';
 
   return (
-    <CopilotKit runtimeUrl={`${apiBaseUrl}/api/agent`}>
+    <CopilotKit 
+      runtimeUrl={`${apiBaseUrl}/api/agent`}
+      showDevConsole={true}
+    >
       <LayoutContext.Provider value={{ isAIChatExpanded, setIsAIChatExpanded }}>
         <div className="flex overflow-hidden h-screen bg-gray-50">
           {/* Left Sidebar */}

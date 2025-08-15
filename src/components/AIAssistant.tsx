@@ -1,10 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Zap, ChevronLeft, ChevronRight, Square, Loader2, AlertCircle, Wifi, WifiOff, Maximize2, Minimize2, Plus, Copy, User, MessageSquare, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import {
-  useCopilotChat,
-  useCopilotAction
-} from '@copilotkit/react-core';
+import { useCopilotChat, useCopilotAction } from '@copilotkit/react-core';
+import { TextMessage, MessageRole } from '@copilotkit/runtime-client-gql';
 import PlanGenerationCard from './PlanGenerationCard';
 import SimplePlanCard from './SimplePlanCard';
 import ExecutionStepsCard from './ExecutionStepsCard';
@@ -82,31 +80,24 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 使用 CopilotKit 的聊天功能
-  const {
-    messages,
-    setMessages,
-    appendMessage,
-    isLoading,
-    stopGeneration
-  } = useCopilotChat({
-    id: 'ai-assistant-chat',
-    makeSystemMessage: () => `You are an AI assistant for X-Pilot, a social media management platform. 
-    You can help users with content generation, strategy planning, and social media operations.
-    When providing plans or steps, use the check_steps interrupt to show them to the user for approval.`,
-    onInProgress: (message) => {
-      // 处理流式消息更新
-      console.log('Message in progress:', message);
-    },
-    onComplete: (message) => {
-      // 消息完成时的处理
-      console.log('Message completed:', message);
-    },
-    onError: (error) => {
-      console.error('Chat error:', error);
-      setError('Network error, please retry!');
-    }
-  });
+  // 使用 CopilotKit 的标准聊天功能
+   const {
+     visibleMessagesDeprecatedGqlMessage: copilotMessages,
+     appendMessage,
+     isLoading: isCopilotLoading,
+     stopGeneration,
+     reset: resetChat,
+   } = useCopilotChat();
+
+  const isLoading = isCopilotLoading;
+
+  // Convert CopilotKit messages to our Message format
+  const messages: Message[] = (copilotMessages || []).map((msg, index) => ({
+    id: msg.id || `msg-${index}`,
+    role: msg.role === MessageRole.User ? MessageRole.User : MessageRole.Assistant,
+    content: msg.content || '',
+    timestamp: new Date().toISOString(),
+  }));
 
   // 定义 CopilotKit Actions
   useCopilotAction({
@@ -273,7 +264,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
 
   // 新增聊天窗口功能
   const handleNewChat = () => {
-    setMessages([]);
+    resetChat();
     setError(null);
     setInputValue('');
     setSelectedCapability(null);
@@ -491,13 +482,14 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
       // 只清空选中的能力，保留输入框内容
       setSelectedCapability(null);
       
-      // 使用 CopilotKit 的 appendMessage 来添加用户消息并触发AI响应
-      // CopilotKit 会自动处理消息发送到后端和AI响应
-      appendMessage({
-        id: generateId(),
+      // 清空输入框
+      setInputValue('');
+      
+      // 使用 CopilotKit 的 appendMessage 来发送用户消息并触发AI响应
+      await appendMessage(new TextMessage({
         content: messageContent,
         role: 'user'
-      });
+      }));
 
     } catch (error: any) {
       console.error('Error sending message:', error);
@@ -666,7 +658,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                             }
                             
                             // 清除消息历史
-                            setMessages([]);
+                            resetChat();
                             
                             // 清理所有相关状态
                             setError(null);
@@ -831,7 +823,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onExpandedChange }) => {
                       </button>
                       {isLoading ? (
                         <button
-                          onClick={stopResponse}
+                          onClick={stopGeneration}
                           className="flex items-center space-x-1 px-3 py-1.5 rounded-md bg-red-500 hover:bg-red-600 text-white transition-all duration-200 shadow-sm hover:shadow-md"
                           title="Stop"
                         >
